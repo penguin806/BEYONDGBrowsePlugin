@@ -129,7 +129,7 @@ define([
                         // Todo: Beautify
                     });
 
-                    //Todo: After rendering the histogram, scale the Y-axis
+                    // Todo: After rendering the histogram, scale the Y-axis
                 }
 
             }
