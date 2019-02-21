@@ -1,15 +1,19 @@
 define(
     [
         'dojo/_base/declare',
+        'dojo/_base/array',
         'dojo/dom-construct',
         'dojo/dom-class',
-        'JBrowse/View/Track/Sequence'
+        'JBrowse/View/Track/Sequence',
+        'JBrowse/Util'
     ],
     function(
         declare,
+        array,
         domConstruct,
         domClass,
-        Sequence
+        Sequence,
+        Util
     )
     {
         return declare(
@@ -207,8 +211,78 @@ define(
                         totalHeight += (table.clientHeight || table.offsetHeight);
                     });
                     this.heightUpdate( totalHeight, blockIndex );
-                }
+                },
 
+                // @Override
+                _renderTranslation: function( seq, offset, blockStart, blockEnd, blockLength, scale, reverse ) {
+                    seq = reverse ? Util.revcom( seq ) : seq;
+
+                    var extraBases = (seq.length - offset) % 3;
+                    var seqSliced = seq.slice( offset, seq.length - extraBases );
+
+                    var translated = "";
+                    for( var i = 0; i < seqSliced.length; i += 3 ) {
+                        var nextCodon = seqSliced.slice(i, i + 3);
+                        var aminoAcid = this._codonTable[nextCodon] || this.nbsp;
+                        translated += aminoAcid;
+                    }
+
+                    translated = reverse ? translated.split("").reverse().join("") : translated; // Flip the translated seq for left-to-right rendering
+                    var orientedSeqSliced = reverse ? seqSliced.split("").reverse().join("") : seqSliced
+
+                    var charSize = this.getCharacterMeasurements("aminoAcid");
+                    var bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
+
+                    var charWidth = 100/(blockLength / 3);
+
+                    var container = domConstruct.create(
+                        'div',
+                        {
+                            className: 'Snow_translatedSequence translatedSequence'
+                        } );
+                    var table  = domConstruct.create('table',
+                        {
+                            className: 'Snow_translatedSequence translatedSequence offset'+offset+(bigTiles ? ' big' : ''),
+                            style:
+                                {
+                                    width: (charWidth * translated.length) + "%"
+                                }
+                        }, container );
+                    var tr = domConstruct.create('tr', {}, table );
+
+                    table.style.left = (
+                        reverse ? 100 - charWidth * (translated.length + offset / 3)
+                            : charWidth*offset/3
+                    ) + "%";
+
+                    charWidth = 100/ translated.length + "%";
+
+                    var drawChars = scale >= charSize.w;
+                    if( drawChars )
+                        table.className += ' big';
+
+                    for( var i=0; i<translated.length; i++ ) {
+                        var aminoAcidSpan = document.createElement('td');
+                        var originalCodon = orientedSeqSliced.slice(3 * i, 3 * i + 3)
+                        originalCodon = reverse ? originalCodon.split("").reverse().join("") : originalCodon;
+                        aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_'+translated.charAt(i).toLowerCase();
+
+                        // However, if it's known to be a start/stop, apply those CSS classes instead.
+                        if (this._codonStarts.indexOf(originalCodon.toUpperCase()) != -1) {
+                            aminoAcidSpan.className = 'Snow_aminoAcid aminoAcid_start'
+                        }
+                        if (this._codonStops.indexOf(originalCodon.toUpperCase()) != -1) {
+                            aminoAcidSpan.className = 'Snow_aminoAcid aminoAcid_stop'
+                        }
+
+                        aminoAcidSpan.style.width = charWidth;
+                        if( drawChars ) {
+                            aminoAcidSpan.innerHTML = translated.charAt( i );
+                        }
+                        tr.appendChild(aminoAcidSpan);
+                    }
+                    return container;
+                }
 
             }
         );

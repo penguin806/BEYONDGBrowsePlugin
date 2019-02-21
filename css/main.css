@@ -1,0 +1,51 @@
+.Snow_translatedSequence table {
+    border-collapse: separate !important;
+    border-spacing: 1px;
+}
+
+.Snow_translatedSequence td.Snow_aminoAcid {
+    text-align: center;
+    z-index: 2000;
+
+    color: black;
+    font-family: "Comic Sans MS", cursive, sans-serif;
+    font-weight: bold;
+    text-shadow: white 1px 1px 6px;
+    padding: 3ch;
+    margin: 2px;
+    border-radius: 50%;
+    background: #03A9F4;
+    transition: all 0.2s ease-in-out;
+}
+
+.Snow_translatedSequence .Snow_aminoAcid:hover {
+    transform: rotate(360deg);
+    box-shadow: #2d3436 2px 3px 8px;
+}
+/*.translatedSequence.big, .translatedSequence.big td.aminoAcid {*/
+    /*border-right: 1px solid #777;*/
+/*}*/
+
+/*.translatedSequence.frame2 td.aminoAcid {*/
+    /*border-right-color: #979797;*/
+/*}*/
+/*.translatedSequence.frame1 td.aminoAcid {*/
+    /*border-right-color: #6d6d6d;*/
+/*}*/
+/*.translatedSequence.frame0 td.aminoAcid {*/
+    /*border-right-color: #5f5f5f;*/
+/*}*/
+
+.Snow_translatedSequence td.aminoAcid_stop {
+    background-color: #F44336;
+}
+
+.Snow_translatedSequence td.aminoAcid_start {
+    background-color: #8BC34A;
+}
+
+.Snow_translatedSequence td.base {
+    text-align: center;
+    z-index: 2000;
+}
+
