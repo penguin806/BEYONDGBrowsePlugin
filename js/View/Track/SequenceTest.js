@@ -2,6 +2,7 @@ define(
     [
         'dojo/_base/declare',
         'dojo/_base/array',
+        'dojo/_base/lang',
         'dojo/dom-construct',
         'dojo/dom-class',
         'JBrowse/View/Track/Sequence',
@@ -10,6 +11,7 @@ define(
     function(
         declare,
         array,
+        lang,
         domConstruct,
         domClass,
         Sequence,
@@ -22,16 +24,31 @@ define(
             ],
             {
                 // @Override
+                _defaultConfig: function(){
+                    var oldConfig = this.inherited(arguments);
+                    var newConfig = lang.mixin(
+                        oldConfig,{
+                            showTranslation1st: true,
+                            showTranslation2nd: false,
+                            showTranslation3rd: false
+                    });
+
+                    return newConfig;
+                },
+
+                // @Override
                 _trackMenuOptions: function() {
                     var that = this;
                     return [
-                        { label: 'About this track',
+                        {
+                            label: 'About this track',
                             title: 'About track: '+(this.key||this.name),
                             iconClass: 'jbrowseIconHelp',
                             action: 'contentDialog',
                             content: dojo.hitch(this,'_trackDetailsContent')
                         },
-                        { label: 'Pin to top',
+                        {
+                            label: 'Pin to top',
                             type: 'dijit/CheckedMenuItem',
                             title: "make this track always visible at the top of the view",
                             checked: that.isPinned(),
@@ -40,7 +57,8 @@ define(
                                 that.browser.publish( '/jbrowse/v1/v/tracks/'+( this.checked ? 'pin' : 'unpin' ), [ that.name ] );
                             }
                         },
-                        { label: 'Edit config',
+                        {
+                            label: 'Edit config',
                             title: "edit this track's configuration",
                             iconClass: 'dijitIconConfigure',
                             action: function() {
@@ -51,7 +69,8 @@ define(
                                     });
                             }
                         },
-                        { label: 'Delete track',
+                        {
+                            label: 'Delete track',
                             title: "delete this track",
                             iconClass: 'dijitIconDelete',
                             action: function() {
@@ -60,6 +79,36 @@ define(
                                         if( confirmed )
                                             that.browser.publish( '/jbrowse/v1/v/tracks/delete', [that.config] );
                                     });
+                            }
+                        },
+                        {
+                            type: 'dijit/MenuSeparator'
+                        },
+                        {
+                            label: 'Show Amino Acid Translation 1',
+                            type: 'dijit/CheckedMenuItem',
+                            checked: !!that.config.showTranslation1st,
+                            onClick: function(event){
+                                that.config.showTranslation1st = this.checked;
+                                that.changed();
+                            }
+                        },
+                        {
+                            label: 'Show Amino Acid Translation 2',
+                            type: 'dijit/CheckedMenuItem',
+                            checked: !!that.config.showTranslation2nd,
+                            onClick: function(event){
+                                that.config.showTranslation2nd = this.checked;
+                                that.changed();
+                            }
+                        },
+                        {
+                            label: 'Show Amino Acid Translation 3',
+                            type: 'dijit/CheckedMenuItem',
+                            checked: !!that.config.showTranslation3rd,
+                            onClick: function(event){
+                                that.config.showTranslation3rd = this.checked;
+                                that.changed();
                             }
                         }
                     ];
@@ -145,7 +194,37 @@ define(
                     if( true )
                     {
                     //if( this.config.showForwardStrand && this.config.showTranslation ) {
+                        var translationToShow = [
+                            this.config.showTranslation1st,
+                            this.config.showTranslation2nd,
+                            this.config.showTranslation3rd
+                        ].reverse();
+
                         var frameDiv = [];
+                        // array.forEach(translationToShow,function(configItem, i){
+                        //         if(!!configItem)
+                        //         {
+                        //             var transStart = blockStart + i;
+                        //             var frame = (transStart % 3 + 3) % 3;
+                        //             var translatedDiv = this._renderTranslation( extEndSeq, i, blockStart, blockEnd, blockLength, scale );
+                        //             frameDiv[frame] = translatedDiv;
+                        //             domClass.add( translatedDiv, "frame" + frame );
+                        //         }
+                        // }, this);
+
+                        // for(var i = 0; i < 3; i++)
+                        // {
+                        //     if(translationToShow[i])
+                        //     {
+                        //         var transStart = blockStart + i;
+                        //         var frame = (transStart % 3 + 3) % 3;
+                        //         var translatedDiv = this._renderTranslation( extEndSeq, i, blockStart, blockEnd, blockLength, scale );
+                        //         frameDiv[frame] = translatedDiv;
+                        //         domClass.add( translatedDiv, "frame" + frame );
+                        //     }
+                        // }
+                        // Code above cannot work properly
+
                         for( var i = 0; i < 3; i++ ) {
                             var transStart = blockStart + i;
                             var frame = (transStart % 3 + 3) % 3;
@@ -153,8 +232,16 @@ define(
                             frameDiv[frame] = translatedDiv;
                             domClass.add( translatedDiv, "frame" + frame );
                         }
+
                         for( var i = 2; i >= 0; i-- ) {
-                            block.domNode.appendChild( frameDiv[i] );
+                            if(translationToShow[i])
+                            {
+                                block.domNode.appendChild( frameDiv[i] );
+                            }
+                            else
+                            {
+                                domConstruct.destroy( frameDiv[i] );
+                            }
                         }
                     }
 
@@ -269,10 +356,10 @@ define(
 
                         // However, if it's known to be a start/stop, apply those CSS classes instead.
                         if (this._codonStarts.indexOf(originalCodon.toUpperCase()) != -1) {
-                            aminoAcidSpan.className = 'Snow_aminoAcid aminoAcid_start'
+                            aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_start';
                         }
                         if (this._codonStops.indexOf(originalCodon.toUpperCase()) != -1) {
-                            aminoAcidSpan.className = 'Snow_aminoAcid aminoAcid_stop'
+                            aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_stop';
                         }
 
                         aminoAcidSpan.style.width = charWidth;

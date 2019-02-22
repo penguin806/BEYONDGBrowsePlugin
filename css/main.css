@@ -14,7 +14,7 @@
     padding: 3ch;
     margin: 2px;
     border-radius: 50%;
-    background: #03A9F4;
+    background: #89c3fde6;
     transition: all 0.2s ease-in-out;
 }
 
@@ -36,12 +36,12 @@
     /*border-right-color: #5f5f5f;*/
 /*}*/
 
-.Snow_translatedSequence td.aminoAcid_stop {
-    background-color: #F44336;
+.Snow_translatedSequence td.Snow_aminoAcid_stop {
+    background-color: #ff93bae6;
 }
 
-.Snow_translatedSequence td.aminoAcid_start {
-    background-color: #8BC34A;
+.Snow_translatedSequence td.Snow_aminoAcid_start {
+    background-color: #7df6d5e6;
 }
 
 .Snow_translatedSequence td.base {
