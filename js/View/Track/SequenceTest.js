@@ -307,6 +307,18 @@ define(
                     var extraBases = (seq.length - offset) % 3;
                     var seqSliced = seq.slice( offset, seq.length - extraBases );
 
+                    // Object describe how to mark the aminoAcid
+                    var aminoAcidMarks = {
+                        index: [0,1,2,3],
+                        type: [
+                            "Snow_aminoAcid_mark_left_top",
+                            "Snow_aminoAcid_mark_left_bottom",
+                            "Snow_aminoAcid_mark_right_top",
+                            "Snow_aminoAcid_mark_right_bottom"
+                        ]
+                    };
+                    // Todo: remove this, read from data store
+
                     var translated = "";
                     for( var i = 0; i < seqSliced.length; i += 3 ) {
                         var nextCodon = seqSliced.slice(i, i + 3);
@@ -362,6 +374,14 @@ define(
                             aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_stop';
                         }
 
+                        // Mark AminoAcid according to the Object 'aminoAcidMarks'
+                        if (aminoAcidMarks.index.indexOf(i) != -1)
+                        {
+                            aminoAcidSpan.className = 'Snow_aminoAcid ' + aminoAcidMarks.type[i];
+                        }
+
+
+                        // Todo: Update height and padding as well, not only the width
                         aminoAcidSpan.style.width = charWidth;
                         if( drawChars ) {
                             aminoAcidSpan.innerHTML = translated.charAt( i );
