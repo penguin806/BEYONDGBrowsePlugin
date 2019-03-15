@@ -309,12 +309,12 @@ define(
 
                     // Object describe how to mark the aminoAcid
                     var aminoAcidMarks = {
-                        index: [0,1,2,3],
+                        index: [0,1],
                         type: [
-                            "Snow_aminoAcid_mark_left_top",
+                    //        "Snow_aminoAcid_mark_left_top",
                             "Snow_aminoAcid_mark_left_bottom",
-                            "Snow_aminoAcid_mark_right_top",
-                            "Snow_aminoAcid_mark_right_bottom"
+                            "Snow_aminoAcid_mark_right_top"
+                    //        ,"Snow_aminoAcid_mark_right_bottom"
                         ]
                     };
                     // Todo: remove this, read from data store
@@ -375,9 +375,12 @@ define(
                         }
 
                         // Mark AminoAcid according to the Object 'aminoAcidMarks'
-                        if (aminoAcidMarks.index.indexOf(i) != -1)
+                        // if (aminoAcidMarks.index.indexOf(i) != -1)
+                        // Test: random mark
+                        if(Math.random() > 0.75)
                         {
-                            aminoAcidSpan.className = 'Snow_aminoAcid ' + aminoAcidMarks.type[i];
+                            //aminoAcidSpan.className = 'Snow_aminoAcid ' + aminoAcidMarks.type[i];
+                            aminoAcidSpan.className = 'Snow_aminoAcid ' + aminoAcidMarks.type[i%2];
                         }
 
 

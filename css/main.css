@@ -32,6 +32,7 @@
     background-color: #7df6d5e6;
 }
 
+
 .Snow_translatedSequence td.Snow_aminoAcid_mark_left_top::after {
     content: "";
     position: absolute;
@@ -44,20 +45,42 @@
 .Snow_translatedSequence td.Snow_aminoAcid_mark_left_bottom::after {
     content: "";
     position: absolute;
-    left: 1.4em;
-    top: 2em;
-    border-left: 0.6em solid #d63031;
-    border-top: 1.2em solid transparent;
+    left: -0.12em;
+    top: 0em;
+    border-left: 0.12em solid #d63031;
+    border-bottom: 0.2em solid #d63031;
+    width: 0.5em;
+    height: 5em;
 }
+
+/*.Snow_translatedSequence td.Snow_aminoAcid_mark_left_bottom::after {*/
+    /*content: "";*/
+    /*position: absolute;*/
+    /*left: 1.4em;*/
+    /*top: 2em;*/
+    /*border-left: 0.6em solid #d63031;*/
+    /*border-top: 1.2em solid transparent;*/
+/*}*/
 
 .Snow_translatedSequence td.Snow_aminoAcid_mark_right_top::after {
     content: "";
     position: absolute;
-    left: calc(100% - 2em);
-    top: 2em;
-    border-left: 0.6em solid transparent;
-    border-top: 1.2em solid #d63031;
+    left: calc(100% - 0.52em);
+    top: 0em;
+    border-right: 0.12em solid #d63031;
+    border-top: 0.2em solid #d63031;
+    width: 0.5em;
+    height: 5em;
 }
+
+/*.Snow_translatedSequence td.Snow_aminoAcid_mark_right_top::after {*/
+    /*content: "";*/
+    /*position: absolute;*/
+    /*left: calc(100% - 2em);*/
+    /*top: 2em;*/
+    /*border-left: 0.6em solid transparent;*/
+    /*border-top: 1.2em solid #d63031;*/
+/*}*/
 
 .Snow_translatedSequence td.Snow_aminoAcid_mark_right_bottom::after {
     content: "";
@@ -67,6 +90,7 @@
     border-right: 0.6em solid #d63031;
     border-top: 1.2em solid transparent;
 }
+
 
 /*.Snow_translatedSequence td.base {*/
     /*text-align: center;*/
