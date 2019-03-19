@@ -1,6 +1,26 @@
+.Snow_translatedSequence {
+    position: relative;
+    border-width: 0;
+    border-collapse: collapse;
+    overflow: visible;
+}
+
 .Snow_translatedSequence table {
     border-collapse: separate !important;
     border-spacing: 1px;
+    z-index: 10;
+}
+
+.Snow_translatedSequence.frame0 {
+    background-color: #929292;
+}
+
+.Snow_translatedSequence.frame1 {
+    background-color: #B0B0B0;
+}
+
+.Snow_translatedSequence.frame2 {
+    background-color: #E0E0E0;
 }
 
 .Snow_translatedSequence td.Snow_aminoAcid {
@@ -12,8 +32,7 @@
     font-family: "Comic Sans MS", cursive, sans-serif;
     font-weight: bold;
     text-shadow: white 1px 1px 6px;
-    padding: 3ch;
-    margin: 2px;
+    /*padding: 3ch;*/
     border-radius: 50%;
     background: #89c3fde6;
     transition: all 0.2s ease-in-out;
@@ -90,12 +109,6 @@
     border-right: 0.6em solid #d63031;
     border-top: 1.2em solid transparent;
 }
-
-
-/*.Snow_translatedSequence td.base {*/
-    /*text-align: center;*/
-    /*z-index: 2000;*/
-/*}*/
 
 /*.translatedSequence.big, .translatedSequence.big td.aminoAcid {*/
 /*border-right: 1px solid #777;*/

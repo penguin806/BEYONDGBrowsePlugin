@@ -337,11 +337,11 @@ define(
                     var container = domConstruct.create(
                         'div',
                         {
-                            className: 'Snow_translatedSequence translatedSequence'
+                            className: 'Snow_translatedSequence'
                         } );
                     var table  = domConstruct.create('table',
                         {
-                            className: 'Snow_translatedSequence translatedSequence offset'+offset+(bigTiles ? ' big' : ''),
+                            className: 'Snow_translatedSequence offset'+offset+(bigTiles ? ' big' : ''),
                             style:
                                 {
                                     width: (charWidth * translated.length) + "%"
@@ -353,6 +353,16 @@ define(
                         reverse ? 100 - charWidth * (translated.length + offset / 3)
                             : charWidth*offset/3
                     ) + "%";
+
+                    var blockWidth = blockLength * scale;
+                    var tableWidthScale = 100 / (charWidth * translated.length);
+                    var tableActualWidth = blockWidth / tableWidthScale;
+                    var spanActualWidth = (tableActualWidth - translated.length) / translated.length;
+                    // Need to minus the space between each two span (border-spacing: 1px)
+                    // console.log('blockWidth: ' + blockWidth);
+                    // console.log('tableWidthScale: ' + tableWidthScale);
+                    // console.log('tableActualWidth: ' + tableActualWidth);
+                    // console.log('spanActualWidth: ' + spanActualWidth);
 
                     charWidth = 100/ translated.length + "%";
 
@@ -380,12 +390,14 @@ define(
                         if(Math.random() > 0.75)
                         {
                             //aminoAcidSpan.className = 'Snow_aminoAcid ' + aminoAcidMarks.type[i];
-                            aminoAcidSpan.className = 'Snow_aminoAcid ' + aminoAcidMarks.type[i%2];
+                            aminoAcidSpan.className += ' ' + aminoAcidMarks.type[i%2];
                         }
 
 
-                        // Todo: Update height and padding as well, not only the width
+                        // Finished: Update height and padding as well, not only the width
                         aminoAcidSpan.style.width = charWidth;
+                        // Set height equals to width
+                        aminoAcidSpan.style.height = spanActualWidth + 'px';
                         if( drawChars ) {
                             aminoAcidSpan.innerHTML = translated.charAt( i );
                         }
