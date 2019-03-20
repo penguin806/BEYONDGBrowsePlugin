@@ -170,6 +170,9 @@ define([
                             );
                             // Draw label above the arrow
                             ctx.fillText(item.label,barLeft_X + 1, barLeft_Y - 75);
+                            // Draw value above the label
+                            ctx.fillText((Math.round(item.value * 100) / 100).toString(),
+                                barLeft_X + 1, barLeft_Y - 85);
                         }
                     });
                     ctx.stroke();
