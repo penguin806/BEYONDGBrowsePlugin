@@ -6,18 +6,20 @@ define([
         'dojo/_base/array',
         'dojo/_base/lang',
         'dojo/dom-construct',
-        'JBrowse/View/Track/BlockBased',
+        // 'JBrowse/View/Track/BlockBased',
+        'JBrowse/View/Track/CanvasFeatures'
     ],
     function (
         declare,
         array,
         lang,
         domConstruct,
-        BlockBasedTrack
+        // BlockBasedTrack
+        CanvasFeatures
     ) {
         return declare(
             [
-                BlockBasedTrack
+                CanvasFeatures
             ],
             {
 
@@ -74,6 +76,10 @@ define([
                         { key: "2251.280739", value: "3531.849469" , label: null },
                         { key: "2276.080739", value: "9873.694419" , label: null }
                     ];
+
+                    // Generating test data
+                    histData = this._generateRandomData(histData, args.leftBase);
+
                     // Todo: Remove the code above, Query feature histogram data from STORE
                     // and push into histData Object
                     this._drawHistograms(args, histData);
@@ -181,6 +187,55 @@ define([
                     context.moveTo(toX, toY);
                     context.lineTo(toX-headLength*Math.cos(angle+Math.PI/6),toY-headLength*Math.sin(angle+Math.PI/6));
                     // Call this function several times, then context.stroke()
+                },
+
+                // For demo/testing only
+                _generateRandomData: function ( histData , blockLeftBase ) {
+                    if(blockLeftBase < 0)
+                    {
+                        blockLeftBase = 0;
+                    }
+
+                    var newHistData = lang.clone(histData);
+                    var minKey = 300;
+                    var minValue = 300;
+                    var tempIncrease = 1;
+
+                    array.forEach(newHistData,function (item, index) {
+                        item.key = minKey + 150 * index + Math.random() * 130;
+                        item.value = minValue + Math.random() * 6000;
+
+                        if(index === newHistData.length - 3 && tempIncrease <=3 ) {
+                            if(1 === tempIncrease)
+                            {
+                                newHistData[newHistData.length - 3].label = 'B' +
+                                    ( parseInt(blockLeftBase / newHistData.length)*3 + tempIncrease);
+                                tempIncrease ++;
+                            }
+                            if(2 === tempIncrease)
+                            {
+                                newHistData[newHistData.length - 2].label = 'B' +
+                                    ( parseInt(blockLeftBase / newHistData.length)*3 + tempIncrease);
+                                tempIncrease ++;
+                            }
+                            if(3 === tempIncrease)
+                            {
+                                newHistData[newHistData.length - 1].label = 'B' +
+                                    ( parseInt(blockLeftBase / newHistData.length)*3 + tempIncrease);
+                                tempIncrease ++;
+                            }
+                        }
+                        else if(Math.random() > 0.8 && tempIncrease <= 3) {
+                            item.label = 'B' +
+                                ( parseInt(blockLeftBase / newHistData.length)*3 + tempIncrease);
+                            tempIncrease ++;
+                        }
+                        else {
+                            item.label = null;
+                        }
+                    }, this);
+
+                    return newHistData;
                 }
 
             }
