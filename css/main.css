@@ -33,14 +33,21 @@
     font-weight: bold;
     text-shadow: white 1px 1px 6px;
     /*padding: 3ch;*/
-    border-radius: 50%;
     background: #89c3fde6;
     transition: all 0.2s ease-in-out;
 }
 
-.Snow_translatedSequence .Snow_aminoAcid:hover {
-    transform: rotate(360deg);
+.Snow_translatedSequence td.Snow_aminoAcid_circle {
+    border-radius: 50%;
+}
+
+/*.Snow_translatedSequence td.Snow_aminoAcid:hover {*/
+    /*box-shadow: #2d3436 2px 3px 8px;*/
+/*}*/
+
+.Snow_translatedSequence td.Snow_aminoAcid_animation:hover {
     box-shadow: #2d3436 2px 3px 8px;
+    transform: rotate(360deg);
 }
 
 .Snow_translatedSequence td.Snow_aminoAcid_stop {

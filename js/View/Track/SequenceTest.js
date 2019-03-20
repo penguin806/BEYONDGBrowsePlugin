@@ -5,6 +5,7 @@ define(
         'dojo/_base/lang',
         'dojo/dom-construct',
         'dojo/dom-class',
+        'dojo/query',
         'JBrowse/View/Track/Sequence',
         'JBrowse/Util'
     ],
@@ -14,6 +15,7 @@ define(
         lang,
         domConstruct,
         domClass,
+        dojoQuery,
         Sequence,
         Util
     )
@@ -32,6 +34,8 @@ define(
                             showTranslation2nd: false,
                             showTranslation3rd: false
                     });
+                    newConfig.drawCircle = !!oldConfig.drawCircle || true;
+                    newConfig.animationEnabled = !!oldConfig.animationEnabled || true;
 
                     return newConfig;
                 },
@@ -109,6 +113,44 @@ define(
                             onClick: function(event){
                                 that.config.showTranslation3rd = this.checked;
                                 that.changed();
+                            }
+                        },
+                        {
+                            type: 'dijit/MenuSeparator'
+                        },
+                        {
+                            label: 'Draw Spans with Circle-Style',
+                            type: 'dijit/CheckedMenuItem',
+                            checked: !!that.config.drawCircle,
+                            onClick: function (event) {
+                                that.config.drawCircle = this.checked;
+                                //that.changed();
+                                //console.log(dojoQuery('.Snow_aminoAcid_circle'));
+                                if(!!that.config.drawCircle) {
+                                    dojoQuery('.Snow_translatedSequence td.Snow_aminoAcid')
+                                        .toggleClass('Snow_aminoAcid_circle',true);
+                                }
+                                else {
+                                    dojoQuery('.Snow_translatedSequence td.Snow_aminoAcid_circle')
+                                        .removeClass('Snow_aminoAcid_circle');
+                                }
+                            }
+                        },
+                        {
+                            label: 'Enable Animation when Hover',
+                            type: 'dijit/CheckedMenuItem',
+                            checked: !!that.config.animationEnabled,
+                            onClick: function (event) {
+                                that.config.animationEnabled = this.checked;
+                                //that.changed();
+                                if(!!that.config.animationEnabled) {
+                                    dojoQuery('.Snow_translatedSequence td.Snow_aminoAcid')
+                                        .toggleClass('Snow_aminoAcid_animation',true);
+                                }
+                                else {
+                                    dojoQuery('.Snow_translatedSequence td.Snow_aminoAcid_animation')
+                                        .removeClass('Snow_aminoAcid_animation');
+                                }
                             }
                         }
                     ];
@@ -380,8 +422,17 @@ define(
                         if (this._codonStarts.indexOf(originalCodon.toUpperCase()) != -1) {
                             aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_start';
                         }
-                        if (this._codonStops.indexOf(originalCodon.toUpperCase()) != -1) {
+                        else if (this._codonStops.indexOf(originalCodon.toUpperCase()) != -1) {
                             aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_stop';
+                        }
+
+                        if(this.config.drawCircle)
+                        {
+                            aminoAcidSpan.className += ' Snow_aminoAcid_circle';
+                        }
+                        if(this.config.animationEnabled)
+                        {
+                            aminoAcidSpan.className += ' Snow_aminoAcid_animation';
                         }
 
                         // Mark AminoAcid according to the Object 'aminoAcidMarks'

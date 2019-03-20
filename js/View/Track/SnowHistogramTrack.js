@@ -122,6 +122,7 @@ define([
                             },
                             block.domNode
                         );
+
                     // Done: Update Histogram Height
                     this.heightUpdate(trackTotalHeight, viewArgs.blockIndex);
                     var ctx = c.getContext('2d');
