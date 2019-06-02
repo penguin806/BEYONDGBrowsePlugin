@@ -48,7 +48,7 @@ define(
                     let scale = renderArgs.scale;
 
 
-                    this.queryFeatures(this,refSeq.name, leftBase, rightBase);
+                    this.queryFeatures(this.refSeq.name, leftBase, rightBase);
                     // Todo: Pass the following code as a callback function to <queryFeatures>
 
                     const layout = this._getLayout( scale );
