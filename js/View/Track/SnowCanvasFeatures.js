@@ -23,7 +23,7 @@ define(
                 // }
                 queryFeatures: function(refName, startPos, endPos){
                     request(
-                        'http://172.25.176.243/' + refName + '/' +
+                        'http://172.25.176.241/' + refName + '/' +
                         startPos + '..' + endPos + '/uniprot_id',
                         {
                             method: 'get',
