@@ -28,7 +28,7 @@ define(
                         {
                             method: 'get',
                             headers: {
-                                'User-Agent': 'SnowPlugin-FrontEnd'
+                                //'User-Agent': 'SnowPlugin-FrontEnd'
                             },
                             handleAs: 'json'
                         }
@@ -47,16 +47,32 @@ define(
                     let rightBase = renderArgs.rightBase;
                     let scale = renderArgs.scale;
 
+                    this.store.getReferenceSequence(
+                        {
+                            ref: this.refSeq.name,
+                            start: leftBase,
+                            end: rightBase
+                        },
+                        function( refDNASeq ) {
+                            console.log(refDNASeq);
+                        },
+                        function(error) {
+                            console.error(error);
+                        }
+                    );
+
 
                     this.queryFeatures(this.refSeq.name, leftBase, rightBase);
                     // Todo: Pass the following code as a callback function to <queryFeatures>
 
                     const layout = this._getLayout( scale );
                     const totalHeight = layout.getTotalHeight();
+                    domConstruct.empty( block.domNode );
                     const c = block.featureCanvas =
                         domConstruct.create(
                             'canvas',
-                            { height: totalHeight,
+                            {
+                                height: totalHeight,
                                 width:  block.domNode.offsetWidth+1,
                                 style: {
                                     cursor: 'default',
