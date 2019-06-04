@@ -28,7 +28,7 @@ define(
                         {
                             method: 'get',
                             headers: {
-                                'Origin': 'http://172.25.176.241:12345'
+                                //'Origin': 'http://172.25.176.241:12345'
                                 //'User-Agent': 'SnowPlugin-FrontEnd'
                             },
                             handleAs: 'json'
