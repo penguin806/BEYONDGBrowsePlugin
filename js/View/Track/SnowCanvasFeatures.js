@@ -28,6 +28,7 @@ define(
                         {
                             method: 'get',
                             headers: {
+                                'Origin': 'http://172.25.176.241:12345'
                                 //'User-Agent': 'SnowPlugin-FrontEnd'
                             },
                             handleAs: 'json'
@@ -47,19 +48,26 @@ define(
                     let rightBase = renderArgs.rightBase;
                     let scale = renderArgs.scale;
 
-                    this.store.getReferenceSequence(
-                        {
-                            ref: this.refSeq.name,
-                            start: leftBase,
-                            end: rightBase
-                        },
-                        function( refDNASeq ) {
-                            console.log(refDNASeq);
-                        },
-                        function(error) {
-                            console.error(error);
-                        }
-                    );
+                    if( scale >5 )
+                    {
+                        this.store.getReferenceSequence(
+                            {
+                                ref: this.refSeq.name,
+                                start: leftBase,
+                                end: rightBase
+                            },
+                            function( refDNASeq ) {
+                                console.log(refDNASeq);
+                            },
+                            function(error) {
+                                console.error(error);
+                            }
+                        );
+                    }
+                    else
+                    {
+                        console.log('Region too large: '+leftBase+'..'+rightBase);
+                    }
 
 
                     this.queryFeatures(this.refSeq.name, leftBase, rightBase);
