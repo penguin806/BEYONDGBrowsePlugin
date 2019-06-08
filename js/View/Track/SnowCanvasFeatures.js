@@ -27,7 +27,7 @@ define(
             {
                 constructor: function(arg) {
                     this._codonTable = this.defaultCodonTable;
-                    console.log(this.defaultCodonTable);
+                    //console.log(this.defaultCodonTable);
                 },
 
                 _translateSequenceToProtein: function(sequence, isReverse){
@@ -97,8 +97,6 @@ define(
                         }
                     ).then(
                         function (recordObjectArray) {
-                            console.log(recordObjectArray);
-
                             dataObject.proteinData = recordObjectArray;
                             mapProteinSeqDeferred.resolve(dataObject);
                         },
@@ -109,7 +107,7 @@ define(
 
                     mapProteinSeqDeferred.then(
                         function (dataObject) {
-
+                            console.log(dataObject);
                         }
                     );
 
