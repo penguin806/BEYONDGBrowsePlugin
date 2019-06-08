@@ -22,8 +22,9 @@ define(
                 CanvasFeatures
             ],
             {
-                construct: function (arg) {
+                constructor: function(arg) {
                     this._codonTable = this.defaultCodonTable;
+                    console.log(this.defaultCodonTable);
                 },
 
                 _translateSequenceToProtein: function(sequence, isReverse){
