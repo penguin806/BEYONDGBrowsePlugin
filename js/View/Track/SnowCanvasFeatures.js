@@ -6,7 +6,8 @@ define(
         'dojo/dom-construct',
         'dojo/Deferred',
         'JBrowse/View/Track/CanvasFeatures',
-        'JBrowse/Util'
+        'JBrowse/Util',
+        'JBrowse/CodonTable'
     ],
     function (
         declare,
@@ -14,12 +15,14 @@ define(
         domConstruct,
         dojoDeferred,
         CanvasFeatures,
-        Util
+        Util,
+        CodonTable
     ) {
 
         return declare(
             [
-                CanvasFeatures
+                CanvasFeatures,
+                CodonTable
             ],
             {
                 constructor: function(arg) {
