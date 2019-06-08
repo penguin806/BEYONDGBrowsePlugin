@@ -89,7 +89,7 @@ define(
                             dataObject.translatedRefSeqs =
                                 _this._translateSequenceToProtein(refGenomeSeq, false);
 
-                            let requestPromise = _this.queryFeatures(this.refSeq.name, leftBase, rightBase);
+                            let requestPromise = _this.queryFeatures(_this.refSeq.name, leftBase, rightBase);
                             return requestPromise;
                         },
                         function (errorReason) {
@@ -115,7 +115,7 @@ define(
 
                     drawResultsDeferred.then(
                         function (obj) {
-                            let layout = this._getLayout( scaleLevel );
+                            let layout = _this._getLayout( scaleLevel );
                             let totalHeight = layout.getTotalHeight();
                             domConstruct.empty( blockObject.domNode );
                             let c = blockObject.featureCanvas =
@@ -136,12 +136,12 @@ define(
                                 );
                             let ctx = c.getContext('2d');
                             // scale the canvas to work well with the various device pixel ratios
-                            this._scaleCanvas(c);
+                            _this._scaleCanvas(c);
 
                             if (blockObject.maxHeightExceeded)
-                                this.markBlockHeightOverflow(blockObject);
+                                _this.markBlockHeightOverflow(blockObject);
 
-                            this.heightUpdate(totalHeight, blockIndex);
+                            _this.heightUpdate(totalHeight, blockIndex);
 
                             // this.renderFeatures(args, fRects);
                             // this.renderClickMap(args, fRects);
