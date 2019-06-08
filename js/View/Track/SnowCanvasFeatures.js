@@ -23,7 +23,7 @@ define(
             ],
             {
                 construct: function (arg) {
-                    this._codonTable = this.defaultCodonTable();
+                    this._codonTable = this.defaultCodonTable;
                 },
 
                 _translateSequenceToProtein: function(sequence, isReverse){
@@ -83,7 +83,7 @@ define(
                         function (refGenomeSeq) {
                             // Execute when Retrieve reference sequence complete
                             dataObject.translatedRefSeqs =
-                                this._translateSequenceToProtein(refGenomeSeq, false);
+                                _this._translateSequenceToProtein(refGenomeSeq, false);
 
                             let requestPromise = _this.queryFeatures(this.refSeq.name, leftBase, rightBase);
                             return requestPromise;
