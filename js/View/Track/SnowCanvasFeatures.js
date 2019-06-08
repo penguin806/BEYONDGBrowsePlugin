@@ -148,7 +148,7 @@ define(
                     {
                         this.store.getReferenceSequence(
                             {
-                                ref: this.translatedRefSeqs.name,
+                                ref: this.refSeqs.name,
                                 start: leftBase,
                                 end: rightBase
                             },
