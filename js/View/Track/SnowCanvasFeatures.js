@@ -186,6 +186,27 @@ define(
                     mapProteinSeqDeferred.then(
                         function (dataObject) {
                             console.log(dataObject);
+
+                            let mappedObj = null;
+                            let maxCommonSeq = {
+                                id: null,
+                                length: 0
+                            };
+                            for(let i=0; i< dataObject.proteinData.length; i++)
+                            {
+                                let commonSeqLength = getLcs.call(this,dataObject.translatedRefSeqs,
+                                    dataObject.proteinData[i].sequence);
+
+                                if(commonSeqLength > maxCommonSeqLength)
+                                {
+                                    maxCommonSeq.id = i;
+                                    maxCommonSeq.length = commonSeqLength;
+                                }
+                            }
+
+                            console.log('Result: ' + maxCommonSeq);
+                            console.log(dataObject.proteinData[maxCommonSeq.id].scanId);
+                            console.log(dataObject.proteinData[maxCommonSeq.id].sequence);
                         }
                     );
 
