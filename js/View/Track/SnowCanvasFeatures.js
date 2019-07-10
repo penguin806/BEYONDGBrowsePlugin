@@ -197,7 +197,7 @@ define(
                                 let commonSeqLength = getLcs.call(this,dataObject.translatedRefSeqs,
                                     dataObject.proteinData[i].sequence);
 
-                                if(commonSeqLength > maxCommonSeqLength)
+                                if(commonSeqLength > maxCommonSeq.length)
                                 {
                                     maxCommonSeq.id = i;
                                     maxCommonSeq.length = commonSeqLength;
@@ -243,6 +243,7 @@ define(
                             // this.renderFeatures(args, fRects);
                             // this.renderClickMap(args, fRects);
                         }
+
                     );
 
                     if( scaleLevel > 5 )
