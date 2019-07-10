@@ -163,6 +163,7 @@ define(
 
                     getRefSeqDeferred.then(
                         function (refGenomeSeq) {
+                            console.log(refGenomeSeq);
                             // Execute when Retrieve reference sequence complete
                             dataObject.translatedRefSeqs =
                                 _this._translateSequenceToProtein(refGenomeSeq, false);
