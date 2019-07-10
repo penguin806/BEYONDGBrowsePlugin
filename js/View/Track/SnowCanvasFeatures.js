@@ -204,9 +204,13 @@ define(
                                 }
                             }
 
-                            console.log('Result: ' + maxCommonSeq);
-                            console.log(dataObject.proteinData[maxCommonSeq.id].scanId);
-                            console.log(dataObject.proteinData[maxCommonSeq.id].sequence);
+                            console.log('Result: ', maxCommonSeq);
+                            if(dataObject.proteinData.hasOwnProperty(maxCommonSeq.id))
+                            {
+                                console.log(dataObject.proteinData[maxCommonSeq.id].scanId);
+                                console.log(dataObject.proteinData[maxCommonSeq.id].sequence);
+                            }
+
                         }
                     );
 
