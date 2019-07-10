@@ -103,12 +103,14 @@ define(
                 CodonTable
             ],
             {
-                constructor: function(arg) {
+                constructor: function(arg)
+                {
                     this._codonTable = this.defaultCodonTable;
                     //console.log(this.defaultCodonTable);
                 },
 
-                _translateSequenceToProtein: function(sequence, isReverse){
+                _translateSequenceToProtein: function(sequence, isReverse)
+                {
                     let threeTranslatedSeqs = [];
 
                     for(let offset=0; offset<3; offset++)
@@ -128,10 +130,12 @@ define(
                     return threeTranslatedSeqs;
                 },
 
-                queryFeatures: function(refName, startPos, endPos){
+                queryFeatures: function(refName, startPos, endPos)
+                {
                     let requestPromise = request(
-                        'http://172.25.176.241:12345/' + refName + '/' +
-                        startPos + '..' + endPos + '/uniprot_id', {
+                        'http://localhost:12345/' + refName + '/' +
+                        startPos + '..' + endPos + '/uniprot_id',
+                        {
                             method: 'GET',
                             headers: {
                                 'X-Requested-With': null
@@ -139,11 +143,12 @@ define(
                             },
                             handleAs: 'json'
                         }
-                        );
+                    );
                     return requestPromise;
                 },
 
-                fillBlock: function(renderArgs) {
+                fillBlock: function(renderArgs)
+                {
                     let _this = this;
                     let blockIndex = renderArgs.blockIndex;
                     let blockObject = renderArgs.block;
@@ -162,7 +167,8 @@ define(
                     };
 
                     getRefSeqDeferred.then(
-                        function (refGenomeSeq) {
+                        function (refGenomeSeq)
+                        {
                             console.log(refGenomeSeq);
                             // Execute when Retrieve reference sequence complete
                             dataObject.translatedRefSeqs =
@@ -171,21 +177,26 @@ define(
                             let requestPromise = _this.queryFeatures(_this.refSeq.name, leftBase, rightBase);
                             return requestPromise;
                         },
-                        function (errorReason) {
+                        function (errorReason)
+                        {
                             console.error(errorReason);
                         }
+
                     ).then(
-                        function (recordObjectArray) {
+                        function (recordObjectArray)
+                        {
                             dataObject.proteinData = recordObjectArray;
                             mapProteinSeqDeferred.resolve(dataObject);
                         },
-                        function (reasonWhyRequestFail) {
+                        function (reasonWhyRequestFail)
+                        {
                             console.error(reasonWhyRequestFail);
                         }
                     );
 
                     mapProteinSeqDeferred.then(
-                        function (dataObject) {
+                        function (dataObject)
+                        {
                             console.log(dataObject);
 
                             let mappedObj = null;
