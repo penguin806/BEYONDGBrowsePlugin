@@ -197,7 +197,7 @@ define(
                     var dCurrentMassSUM=0.0;
                     var boolPTM=false;
                     var strPTM="";
-                    var dSpanThreshold=0.2;
+                    var dSpanThreshold=40;
 
 
                     function RecongnazieTheBIonPosition() {
@@ -329,7 +329,10 @@ define(
                             newObject.value = arrMSScanPeakAundance[ arrBIonNUM[i] ];
                             newObject.label = strSenquence.charAt( arrBIonPosition[i] );
                             newObject.labelIndex = arrBIonPosition[i];
-                            arrBionPositionAndNumObject.push(newObject);
+                            if(newObject.key !== undefined)
+                            {
+                                arrBionPositionAndNumObject.push(newObject);
+                            }
                         }
 
                         return arrBionPositionAndNumObject;
