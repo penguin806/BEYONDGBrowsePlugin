@@ -77,12 +77,18 @@ define([
                         { key: "2276.080739", value: "9873.694419" , label: null }
                     ];
 
-                    // Generating test data
-                    histData = this._generateRandomData(histData, args.leftBase);
+                    if(args.hasOwnProperty('dataToDraw'))
+                    {
+                        this._drawHistograms(args, args.dataToDraw);
+                    }
+                    else {
+                        // Generating test data
+                        histData = this._generateRandomData(histData, args.leftBase);
+                        // Todo: Remove the code above, Query feature histogram data from STORE
+                        // and push into histData Object
+                        this._drawHistograms(args, histData);
+                    }
 
-                    // Todo: Remove the code above, Query feature histogram data from STORE
-                    // and push into histData Object
-                    this._drawHistograms(args, histData);
                 },
 
                 _drawHistograms: function ( viewArgs, histData) {
