@@ -8,7 +8,7 @@ define(
         'JBrowse/View/Track/CanvasFeatures',
         'JBrowse/Util',
         'JBrowse/CodonTable',
-        'JBrowse/View/Track/_YScaleMixin',
+        // 'JBrowse/View/Track/_YScaleMixin',
         'SnowPlugin/View/Track/SnowHistogramTrack'
     ],
     function (
@@ -19,14 +19,14 @@ define(
         CanvasFeatures,
         Util,
         CodonTable,
-        YScaleMixin,
+        // YScaleMixin,
         SnowHistogramTrack
     ) {
         return declare(
             [
                 CanvasFeatures,
                 CodonTable,
-                YScaleMixin,
+                // YScaleMixin,
                 SnowHistogramTrack
             ],
             {
@@ -34,11 +34,11 @@ define(
                 {
                     this._codonTable = this.defaultCodonTable;
                     //console.log(this.defaultCodonTable);
-                    this.makeYScale({
-                        fixBounds: false,
-                        min: 200,
-                        max: 1000
-                    });
+                    // this.makeYScale({
+                    //     fixBounds: false,
+                    //     min: 200,
+                    //     max: 1000
+                    // });
                 },
 
                 _getLongestCommonSubSequenceMatrix: function(str1, str2)
@@ -140,8 +140,47 @@ define(
                     return requestPromise;
                 },
 
+                _sortArrMSScanMassAndArrMSScanPeakAundance: function(arrMSScanMass, arrMSScanPeakAundance)
+                {
+                    let list = [];
+                    for (let i = 0; i < arrMSScanMass.length; i++)
+                    {
+                        list.push(
+                            {
+                                'MSScanMass': arrMSScanMass[i],
+                                'MSScanPeakAundance': arrMSScanPeakAundance[i]
+                            }
+                        );
+                    }
+
+                    list.sort(
+                        function(a, b) {
+                            if(a.MSScanMass < b.MSScanMass)
+                            {
+                                return -1;
+                            }
+                            else if(a.MSScanMass === b.MSScanMass)
+                            {
+                                return 0;
+                            }
+                            else
+                            {
+                                return 1;
+                            }
+                        }
+                    );
+
+                    for (let j = 0; j < list.length; j++) {
+                        arrMSScanMass[j] = list[j].MSScanMass;
+                        arrMSScanPeakAundance[j] = list[j].MSScanPeakAundance;
+                    }
+
+                },
+
                 _calcMSScanMass: function(strSenquence, arrMSScanMass, arrMSScanPeakAundance)
                 {
+                    this._sortArrMSScanMassAndArrMSScanPeakAundance(arrMSScanMass, arrMSScanPeakAundance);
+
                     //ACIDS MASS AND COMMON PTM MASS, THE mapACIDMass can be extended by adding other PTM
                     var mapACIDMass=new Map([
                         ["G",57.0215],
@@ -173,13 +212,9 @@ define(
                     ]);
 
                     var iSCANNO=936;
-
                     var intCurrentPos=0;
-
                     var arrBIonPosition = [];//B 离子的序列position
-
                     var arrBIonNUM = [];//B 离子的质谱position
-
 
                     var iCurrentSeqPositionWithoutPTM=0;
                     var dCurrentMassSUM=0.0;
@@ -191,11 +226,9 @@ define(
                     function RecongnazieTheBIonPosition() {
 
                         var dSpan=dSpanThreshold;//the span threshold with mass and percusor
-
                         for (var j = intCurrentPos; j < arrMSScanMass.length; j++) {
 
                             //收敛到一点，向后探索
-
 
                             var doubleCheckMassDistance = arrMSScanMass[j] - dCurrentMassSUM;
                             console.log("sum:",dCurrentMassSUM,"POS:",j," mass:",arrMSScanMass[j]," span:",doubleCheckMassDistance);
@@ -223,8 +256,6 @@ define(
                         arrBIonNUM.push(intCurrentPos++);
 
                         arrBIonPosition.push(iCurrentSeqPositionWithoutPTM);
-
-                        return;
                     }
 
                     for (var i = 0; i < strSenquence.length; i++) {
@@ -237,12 +268,9 @@ define(
                             dCurrentMassSUM += dCurrentMass;
                             iCurrentSeqPositionWithoutPTM++;
 
-
                             console.log(iCurrentSeqPositionWithoutPTM," ",strSenquence[i],dCurrentMass," sum:",dCurrentMassSUM)
 
-
                             RecongnazieTheBIonPosition();
-
 
                         }else
                         {
@@ -334,7 +362,6 @@ define(
                         }
 
                     }
-
 
 
                     return calculate();
@@ -451,7 +478,7 @@ define(
 
                             let layout = _this._getLayout( scaleLevel );
                             let totalHeight = layout.getTotalHeight();
-                            domConstruct.empty( blockObject.domNode );
+                            // domConstruct.empty( blockObject.domNode );
                             let c = blockObject.featureCanvas =
                                 domConstruct.create(
                                     'canvas',
@@ -485,6 +512,8 @@ define(
 
                     if( scaleLevel > 5 )
                     {
+                        domConstruct.empty( blockObject.domNode );
+
                         this.store.getReferenceSequence(
                             {
                                 ref: this.refSeq.name,
