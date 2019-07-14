@@ -8,6 +8,7 @@ define(
         'JBrowse/View/Track/CanvasFeatures',
         'JBrowse/Util',
         'JBrowse/CodonTable',
+        'JBrowse/View/Track/_YScaleMixin',
         'SnowPlugin/View/Track/SnowHistogramTrack'
     ],
     function (
@@ -18,91 +19,14 @@ define(
         CanvasFeatures,
         Util,
         CodonTable,
+        YScaleMixin,
         SnowHistogramTrack
     ) {
-        var getLcs = function () {
-            /**
-             * Find the lengths of longest common sub-sequences
-             * of two strings and their substrings.
-             *
-             * Complexity: O(MN).
-             *
-             * @private
-             * @param {String} first string
-             * @param {String} second string
-             * @return {Array} two dimensional array with LCS
-             * lengths of input strings and their substrings.
-             *
-             */
-            function getLcsLengths(str1, str2) {
-                var result = [];
-                for (var i = -1; i < str1.length; i = i + 1) {
-                    result[i] = [];
-                    for (var j = -1; j < str2.length; j = j + 1) {
-                        if (i === -1 || j === -1) {
-                            result[i][j] = 0;
-                        } else if (str1[i] === str2[j]) {
-                            result[i][j] = result[i - 1][j - 1] + 1;
-                        } else {
-                            result[i][j] = Math.max(result[i - 1][j], result[i][j - 1]);
-                        }
-                    }
-                }
-                return result;
-            }
-            /**
-             * Find longest common sub-sequences of two strings.
-             *
-             * Complexity: O(M + N).
-             *
-             * @private
-             * @param {String} first string
-             * @param {String} second string
-             * @return {Array} two dimensional array with LCS
-             * lengths of input strings and their substrings
-             * returned from 'getLcsLengths' function.
-             *
-             */
-            function getLcs(str1, str2, lcsLengthsMatrix) {
-                var execute = function (i, j) {
-                    if (!lcsLengthsMatrix[i][j]) {
-                        return '';
-                    } else if (str1[i] === str2[j]) {
-                        return execute(i - 1, j - 1) + str1[i];
-                    } else if (lcsLengthsMatrix[i][j - 1] > lcsLengthsMatrix[i - 1][j]) {
-                        return execute(i, j - 1);
-                    } else {
-                        return execute(i - 1, j);
-                    }
-                };
-                return execute(str1.length - 1, str2.length - 1);
-            }
-            /**
-             * Algorithm from dynamic programming. It finds the longest
-             * common sub-sequence of two strings. For example for strings 'abcd'
-             * and 'axxcda' the longest common sub-sequence is 'acd'.
-             *
-             * @example
-             * var subsequence = require('path-to-algorithms/src/searching/'+
-             * 'longest-common-subsequence').longestCommonSubsequence;
-             * console.log(subsequence('abcd', 'axxcda'); // 'acd'
-             *
-             * @public
-             * @module searching/longest-common-subsequence
-             * @param {String} first input string.
-             * @param {String} second input string.
-             * @return {Array} Longest common subsequence.
-             */
-            return function (str1, str2) {
-                var lcsLengthsMatrix = getLcsLengths(str1, str2);
-                return getLcs(str1, str2, lcsLengthsMatrix);
-            };
-        };
-
         return declare(
             [
                 CanvasFeatures,
                 CodonTable,
+                YScaleMixin,
                 SnowHistogramTrack
             ],
             {
@@ -110,9 +34,38 @@ define(
                 {
                     this._codonTable = this.defaultCodonTable;
                     //console.log(this.defaultCodonTable);
+                    this.makeYScale({
+                        fixBounds: false,
+                        min: 200,
+                        max: 1000
+                    });
                 },
 
+                _getLongestCommonSubSequenceMatrix: function(str1, str2)
+                {
+                    var result = [];
+                    for (var i = -1; i < str1.length; i = i + 1) {
+                        result[i] = [];
+                        for (var j = -1; j < str2.length; j = j + 1) {
+                            if (i === -1 || j === -1) {
+                                result[i][j] = 0;
+                            } else if (str1[i] === str2[j]) {
+                                result[i][j] = result[i - 1][j - 1] + 1;
+                            } else {
+                                result[i][j] = Math.max(result[i - 1][j], result[i][j - 1]);
+                            }
+                        }
+                    }
+                    return result;
+                },
 
+                _getLcsMatrixLength: function(str1, str2, matrix)
+                {
+                    const str1Length = str1.length;
+                    const str2Length = str2.length;
+
+                    return matrix[str1Length - 1][str2Length -1];
+                },
 
                 _translateSequenceToProtein: function(sequence, isReverse)
                 {
@@ -133,6 +86,41 @@ define(
                     }
 
                     return threeTranslatedSeqs;
+                },
+
+                _parseRequestedObject: function(recordObjectArray)
+                {
+                    if(recordObjectArray === undefined)
+                        return;
+                    for(let i=0; i<recordObjectArray.length; i++)
+                    {
+                        if(recordObjectArray[i].hasOwnProperty('_start'))
+                        {
+                            recordObjectArray[i]._start = parseInt(recordObjectArray[i]._start);
+                        }
+                        if(recordObjectArray[i].hasOwnProperty('end'))
+                        {
+                            recordObjectArray[i].end = parseInt(recordObjectArray[i].end);
+                        }
+                        if(recordObjectArray[i].hasOwnProperty('arrMSScanMassArray'))
+                        {
+                            for(let property in recordObjectArray[i].arrMSScanMassArray)
+                            {
+                                recordObjectArray[i].arrMSScanMassArray[property] =
+                                    parseFloat(recordObjectArray[i].arrMSScanMassArray[property]);
+                            }
+                        }
+                        if(recordObjectArray[i].hasOwnProperty('arrMSScanPeakAundance'))
+                        {
+                            for(let property in recordObjectArray[i].arrMSScanPeakAundance)
+                            {
+                                recordObjectArray[i].arrMSScanPeakAundance[property] =
+                                    parseFloat(recordObjectArray[i].arrMSScanPeakAundance[property]);
+                            }
+                        }
+                    }
+
+                    return recordObjectArray;
                 },
 
                 _queryFeatures: function(refName, startPos, endPos)
@@ -362,22 +350,23 @@ define(
                     let rightBase = renderArgs.rightBase;
                     let scaleLevel = renderArgs.scale;
 
-                    let getRefSeqDeferred = new dojoDeferred();
-                    let mapProteinSeqDeferred = new dojoDeferred();
+                    let getReferenceSequenceDeferred = new dojoDeferred();
+                    let mapTranslatedProteinSequenceToRequestedProteoformDeferred = new dojoDeferred();
                     let drawResultsDeferred = new dojoDeferred();
 
-                    let dataObject = {
+                    let proteinInfoObject = {
                         translatedRefSeqs: null,
-                        proteinData: null
+                        requestedProteoformObjectArray: null
                     };
 
-                    getRefSeqDeferred.then(
+                    getReferenceSequenceDeferred.then(
                         function (refGenomeSeq)
                         {
-                            // Execute when Retrieve reference sequence complete
-                            console.log(refGenomeSeq);
-                            dataObject.translatedRefSeqs =
-                                _this._translateSequenceToProtein(refGenomeSeq, false);
+                            // Execute when Retrieving reference genome sequence complete
+                            let translatedProteinSequence = _this._translateSequenceToProtein(refGenomeSeq, false);
+                            console.info('refGenomeSeq:', refGenomeSeq);
+                            console.info('translatedProteinSequence:', translatedProteinSequence);
+                            proteinInfoObject.translatedRefSeqs = translatedProteinSequence;
 
                             // Return promise from dojo request
                             return _this._queryFeatures(_this.refSeq.name, leftBase, rightBase);
@@ -386,14 +375,14 @@ define(
                         {
                             console.error(errorReason);
                         }
-
                     ).then(
                         function (recordObjectArray)
                         {
                             if(recordObjectArray !== undefined)
                             {
-                                dataObject.proteinData = recordObjectArray;
-                                mapProteinSeqDeferred.resolve(dataObject);
+                                let parsedRecords = _this._parseRequestedObject(recordObjectArray);
+                                proteinInfoObject.requestedProteoformObjectArray = parsedRecords;
+                                mapTranslatedProteinSequenceToRequestedProteoformDeferred.resolve(proteinInfoObject);
                             }
                         },
                         function (reasonWhyRequestFail)
@@ -402,45 +391,54 @@ define(
                         }
                     );
 
-                    mapProteinSeqDeferred.then(
-                        function (dataObject)
+                    mapTranslatedProteinSequenceToRequestedProteoformDeferred.then(
+                        function (proteinInfoObject)
                         {
-                            console.log(dataObject);
-
-                            let mappedObj = null;
-                            let maxCommonSeq = {
+                            console.info('proteinInfoObject:', proteinInfoObject);
+                            let longestCommonSeq = {
                                 id: null,
-                                sequence: "",
+                                matrix: [],
                                 length: 0
                             };
-                            for(let i=0; i< dataObject.proteinData.length; i++)
+                            for(let i=0; i< proteinInfoObject.requestedProteoformObjectArray.length; i++)
                             {
-                                let commonSequence = getLcs().call(this,dataObject.translatedRefSeqs[0],
-                                    dataObject.proteinData[i].sequence.replace(/\[\w*\]|\(|\)|\./g,''));
+                                const translatedSeq = proteinInfoObject.translatedRefSeqs[0];
+                                const proteoformToCompare = proteinInfoObject.requestedProteoformObjectArray[i].sequence.replace(/\[\w*\]|\(|\)|\./g,'');
 
-                                if(commonSequence.length > maxCommonSeq.length)
+                                let matrix = _this._getLongestCommonSubSequenceMatrix(
+                                    translatedSeq,
+                                    proteoformToCompare
+                                );
+
+                                let length = _this._getLcsMatrixLength(
+                                    translatedSeq,
+                                    proteoformToCompare,
+                                    matrix
+                                );
+
+                                if(length > longestCommonSeq.length)
                                 {
-                                    maxCommonSeq.id = i;
-                                    maxCommonSeq.sequence = commonSequence;
-                                    maxCommonSeq.length = commonSequence.length;
+                                    longestCommonSeq.id = i;
+                                    longestCommonSeq.matrix = matrix;
+                                    longestCommonSeq.length = length;
                                 }
                             }
 
-                            console.log('Result: ', maxCommonSeq);
-                            if(dataObject.proteinData.hasOwnProperty(maxCommonSeq.id))
+                            console.info('longestCommonSeq: ', longestCommonSeq);
+                            if(proteinInfoObject.requestedProteoformObjectArray.hasOwnProperty(longestCommonSeq.id))
                             {
-                                console.log('scanId:', dataObject.proteinData[maxCommonSeq.id].scanId);
-                                console.log('sequence:', dataObject.proteinData[maxCommonSeq.id].sequence);
-                                console.log('arrMSScanMassArray:', dataObject.proteinData[maxCommonSeq.id].arrMSScanMassArray);
-                                console.log('arrMSScanPeakAundance:', dataObject.proteinData[maxCommonSeq.id].arrMSScanPeakAundance);
+                                console.info('scanId:', proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].scanId);
+                                console.info('sequence:', proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].sequence);
+                                console.info('arrMSScanMassArray:', proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].arrMSScanMassArray);
+                                console.info('arrMSScanPeakAundance:', proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].arrMSScanPeakAundance);
 
                                 renderArgs.dataToDraw = _this._calcMSScanMass(
-                                    dataObject.proteinData[maxCommonSeq.id].sequence,
-                                    dataObject.proteinData[maxCommonSeq.id].arrMSScanMassArray,
-                                    dataObject.proteinData[maxCommonSeq.id].arrMSScanPeakAundance
+                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].sequence,
+                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].arrMSScanMassArray,
+                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].arrMSScanPeakAundance
                                 );
 
-                                console.log('Calculation:', renderArgs.dataToDraw);
+                                console.info('Calculation:', renderArgs.dataToDraw);
                                 _this.fillHistograms(renderArgs);
                             }
 
@@ -494,10 +492,10 @@ define(
                                 end: rightBase
                             },
                             function( refGenomeSeq ) {
-                                getRefSeqDeferred.resolve(refGenomeSeq);
+                                getReferenceSequenceDeferred.resolve(refGenomeSeq);
                             },
                             function(errorReason) {
-                                getRefSeqDeferred.reject(errorReason);
+                                getReferenceSequenceDeferred.reject(errorReason);
                             }
                         );
                     }
@@ -505,7 +503,7 @@ define(
                     {
                         let errorMsg = 'Scale level is ' + scaleLevel +
                             ' (less than 5), range too large: ' + leftBase+'~'+rightBase;
-                        getRefSeqDeferred.reject(errorMsg);
+                        getReferenceSequenceDeferred.reject(errorMsg);
                     }
 
                 }
