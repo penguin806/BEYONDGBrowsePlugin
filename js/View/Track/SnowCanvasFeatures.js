@@ -377,8 +377,8 @@ define(
                 {
                     let proteoformSequenceLengthWithoutModification = proteoformSequence.replace(/\[\w*\]|\(|\)|\./g,'').length;
 
-                    let lengthPerAminoAcid = proteoformSequenceLengthWithoutModification /
-                        (proteoformEndPosition - proteoformStartPosition);
+                    let lengthPerAminoAcid = (proteoformEndPosition - proteoformStartPosition)
+                        / proteoformSequenceLengthWithoutModification;
 
                     let newResultObjectArray = [];
                     for(let index in mappingResultObjectArray)
