@@ -5,6 +5,7 @@ define(
         'dojo/request',
         'dojo/dom-construct',
         'dojo/Deferred',
+        'dojo/topic',
         'JBrowse/View/Track/CanvasFeatures',
         'JBrowse/Util',
         'JBrowse/CodonTable',
@@ -16,6 +17,7 @@ define(
         request,
         domConstruct,
         dojoDeferred,
+        dojoTopic,
         CanvasFeatures,
         Util,
         CodonTable,
@@ -67,7 +69,7 @@ define(
                     const str1Length = str1.length;
                     const str2Length = str2.length;
 
-                    return matrix[str1Length - 1][str2Length -1];
+                    return matrix[str1Length - 1][str2Length - 1];
                 },
 
                 _translateGenomeSequenceToProtein: function(sequence, isReverse)
@@ -398,6 +400,17 @@ define(
                     return newResultObjectArray;
                 },
 
+                _publishDrawProteoformSequenceEvent: function(
+                    proteoformSequence, filteredMSScanMassMappingResultArray,
+                    proteoformStartPosition, proteoformEndPosition, blockIndex
+                )
+                {
+                    dojoTopic.publish('snow/showProteoform',
+                        proteoformSequence, filteredMSScanMassMappingResultArray,
+                        proteoformStartPosition, proteoformEndPosition, blockIndex
+                    );
+                },
+
                 fillBlock: function(renderArgs)
                 {
                     let _this = this;
@@ -496,18 +509,27 @@ define(
                                     proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].arrMSScanMassArray,
                                     proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].arrMSScanPeakAundance
                                 );
-                                console.info('mappingResultObjectArray:', renderArgs.dataToDraw);
+                                console.info('mappingResultObjectArray:', mappingResultObjectArray);
 
-                                renderArgs.dataToDraw = _this._filterMSScanMassMappingResultForCurrentBlock(
+                                let filteredMSScanMassMappingResultArray = _this._filterMSScanMassMappingResultForCurrentBlock(
                                     leftBase,
                                     rightBase,
                                     mappingResultObjectArray,
                                     proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].sequence,
                                     proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id]._start,
-                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].end,
+                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].end
                                 );
 
-                                console.info('renderArgs.dataToDraw:', renderArgs.dataToDraw);
+                                _this._publishDrawProteoformSequenceEvent(
+                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].sequence,
+                                    filteredMSScanMassMappingResultArray,
+                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id]._start,
+                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].end,
+                                    blockIndex
+                                );
+
+                                console.info('filteredMSScanMassMappingResultArray:', filteredMSScanMassMappingResultArray);
+                                renderArgs.dataToDraw = filteredMSScanMassMappingResultArray;
                                 _this.fillHistograms(renderArgs);
                             }
 

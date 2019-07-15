@@ -55,26 +55,26 @@ define([
 
                 fillHistograms: function ( args ) {
                     var histData = [
-                        { key: "632.0333849", value: "2988.667223" , label: null },
-                        { key: "680.5928342", value: "1155.390511" , label: null },
-                        { key: "710.411926", value: "1152.658037" , label: null },
-                        { key: "749.4333483", value: "1729.825008" , label: null },
-                        { key: "831.3868395", value: "1264.8382" , label: null },
-                        { key: "853.488464", value: "1913.211091" , label: "B1" },
-                        { key: "868.6782834", value: "3533.121477" , label: null },
-                        { key: "1156.646592", value: "1052.036554" , label: "B2" },
-                        { key: "1194.012072", value: "935.1523377" , label: null },
-                        { key: "1289.746934", value: "2645.348555" , label: null },
-                        { key: "1407.809556", value: "673.3459446" , label: "B3" },
-                        { key: "1438.879551", value: "1615.504777" , label: null },
-                        { key: "1549.889269", value: "2041.588973" , label: "B4" },
-                        { key: "1651.942614", value: "1593.798358" , label: null },
-                        { key: "1790.011013", value: "1352.322675" , label: null },
-                        { key: "1947.576779", value: "1256.54348" , label: null },
-                        { key: "2169.220591", value: "1257.662272" , label: null },
-                        { key: "2197.030845", value: "932.6885953" , label: null },
-                        { key: "2251.280739", value: "3531.849469" , label: null },
-                        { key: "2276.080739", value: "9873.694419" , label: null }
+                        // { key: "632.0333849", value: "2988.667223" , label: null },
+                        // { key: "680.5928342", value: "1155.390511" , label: null },
+                        // { key: "710.411926", value: "1152.658037" , label: null },
+                        // { key: "749.4333483", value: "1729.825008" , label: null },
+                        // { key: "831.3868395", value: "1264.8382" , label: null },
+                        // { key: "853.488464", value: "1913.211091" , label: "B1" },
+                        // { key: "868.6782834", value: "3533.121477" , label: null },
+                        // { key: "1156.646592", value: "1052.036554" , label: "B2" },
+                        // { key: "1194.012072", value: "935.1523377" , label: null },
+                        // { key: "1289.746934", value: "2645.348555" , label: null },
+                        // { key: "1407.809556", value: "673.3459446" , label: "B3" },
+                        // { key: "1438.879551", value: "1615.504777" , label: null },
+                        // { key: "1549.889269", value: "2041.588973" , label: "B4" },
+                        // { key: "1651.942614", value: "1593.798358" , label: null },
+                        // { key: "1790.011013", value: "1352.322675" , label: null },
+                        // { key: "1947.576779", value: "1256.54348" , label: null },
+                        // { key: "2169.220591", value: "1257.662272" , label: null },
+                        // { key: "2197.030845", value: "932.6885953" , label: null },
+                        // { key: "2251.280739", value: "3531.849469" , label: null },
+                        // { key: "2276.080739", value: "9873.694419" , label: null }
                     ];
 
                     if(args.hasOwnProperty('dataToDraw'))
@@ -91,7 +91,12 @@ define([
 
                 },
 
-                _drawHistograms: function ( viewArgs, histData) {
+                _drawHistograms: function (viewArgs, histData) {
+                    if(histData.length === 0)
+                    {
+                        return;
+                    }
+
                     var _this = this;
                     // First we're going to find the max value
                     var maxValue = histData.length > 0 ? histData[0].value : 0;
