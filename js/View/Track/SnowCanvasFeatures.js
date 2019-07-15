@@ -44,10 +44,13 @@ define(
                 _getLongestCommonSubSequenceMatrix: function(str1, str2)
                 {
                     var result = [];
-                    for (var i = -1; i < str1.length; i = i + 1) {
+                    for (var i = -1; i < str1.length; i = i + 1)
+                    {
                         result[i] = [];
-                        for (var j = -1; j < str2.length; j = j + 1) {
-                            if (i === -1 || j === -1) {
+                        for (var j = -1; j < str2.length; j = j + 1)
+                        {
+                            if (i === -1 || j === -1)
+                            {
                                 result[i][j] = 0;
                             } else if (str1[i] === str2[j]) {
                                 result[i][j] = result[i - 1][j - 1] + 1;
@@ -67,7 +70,7 @@ define(
                     return matrix[str1Length - 1][str2Length -1];
                 },
 
-                _translateSequenceToProtein: function(sequence, isReverse)
+                _translateGenomeSequenceToProtein: function(sequence, isReverse)
                 {
                     let threeTranslatedSeqs = [];
 
@@ -220,7 +223,7 @@ define(
                     var dCurrentMassSUM=0.0;
                     var boolPTM=false;
                     var strPTM="";
-                    var dSpanThreshold=40;
+                    var dSpanThreshold=10;
 
 
                     function RecongnazieTheBIonPosition() {
@@ -343,8 +346,9 @@ define(
                             let newObject = {};
                             newObject.key = arrMSScanMass[ arrBIonNUM[i] ];
                             newObject.value = arrMSScanPeakAundance[ arrBIonNUM[i] ];
-                            newObject.label = strSenquence.charAt( arrBIonPosition[i] );
-                            newObject.labelIndex = arrBIonPosition[i];
+                            newObject.label = 'A' + i;
+                            newObject.amino_acid = strSenquence.charAt( arrBIonPosition[i] );
+                            newObject.position = arrBIonPosition[i];
                             if(newObject.key !== undefined)
                             {
                                 arrBionPositionAndNumObject.push(newObject);
@@ -363,8 +367,35 @@ define(
 
                     }
 
-
                     return calculate();
+                },
+
+                _filterMSScanMassMappingResultForCurrentBlock: function(
+                    blockLeftBase, blockRightBase, mappingResultObjectArray,
+                    proteoformSequence, proteoformStartPosition, proteoformEndPosition
+                )
+                {
+                    let proteoformSequenceLengthWithoutModification = proteoformSequence.replace(/\[\w*\]|\(|\)|\./g,'').length;
+
+                    let lengthPerAminoAcid = proteoformSequenceLengthWithoutModification /
+                        (proteoformEndPosition - proteoformStartPosition);
+
+                    let newResultObjectArray = [];
+                    for(let index in mappingResultObjectArray)
+                    {
+                        if(mappingResultObjectArray.hasOwnProperty(index))
+                        {
+                            let MSScanMassPosition = proteoformStartPosition +
+                                lengthPerAminoAcid * mappingResultObjectArray[index].position;
+
+                            if(MSScanMassPosition > blockLeftBase && MSScanMassPosition < blockRightBase)
+                            {
+                                newResultObjectArray.push(mappingResultObjectArray[index]);
+                            }
+                        }
+                    }
+
+                    return newResultObjectArray;
                 },
 
                 fillBlock: function(renderArgs)
@@ -390,7 +421,7 @@ define(
                         function (refGenomeSeq)
                         {
                             // Execute when Retrieving reference genome sequence complete
-                            let translatedProteinSequence = _this._translateSequenceToProtein(refGenomeSeq, false);
+                            let translatedProteinSequence = _this._translateGenomeSequenceToProtein(refGenomeSeq, false);
                             console.info('refGenomeSeq:', refGenomeSeq);
                             console.info('translatedProteinSequence:', translatedProteinSequence);
                             proteinInfoObject.translatedRefSeqs = translatedProteinSequence;
@@ -459,13 +490,24 @@ define(
                                 console.info('arrMSScanMassArray:', proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].arrMSScanMassArray);
                                 console.info('arrMSScanPeakAundance:', proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].arrMSScanPeakAundance);
 
-                                renderArgs.dataToDraw = _this._calcMSScanMass(
+
+                                let mappingResultObjectArray = _this._calcMSScanMass(
                                     proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].sequence,
                                     proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].arrMSScanMassArray,
                                     proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].arrMSScanPeakAundance
                                 );
+                                console.info('mappingResultObjectArray:', renderArgs.dataToDraw);
 
-                                console.info('Calculation:', renderArgs.dataToDraw);
+                                renderArgs.dataToDraw = _this._filterMSScanMassMappingResultForCurrentBlock(
+                                    leftBase,
+                                    rightBase,
+                                    mappingResultObjectArray,
+                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].sequence,
+                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id]._start,
+                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].end,
+                                );
+
+                                console.info('renderArgs.dataToDraw:', renderArgs.dataToDraw);
                                 _this.fillHistograms(renderArgs);
                             }
 
@@ -474,7 +516,6 @@ define(
 
                     drawResultsDeferred.then(
                         function (obj) {
-
 
                             let layout = _this._getLayout( scaleLevel );
                             let totalHeight = layout.getTotalHeight();
