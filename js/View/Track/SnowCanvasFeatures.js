@@ -402,12 +402,12 @@ define(
 
                 _publishDrawProteoformSequenceEvent: function(
                     proteoformSequence, filteredMSScanMassMappingResultArray,
-                    proteoformStartPosition, proteoformEndPosition, blockIndex
+                    proteoformStartPosition, proteoformEndPosition, block
                 )
                 {
                     dojoTopic.publish('snow/showProteoform',
                         proteoformSequence, filteredMSScanMassMappingResultArray,
-                        proteoformStartPosition, proteoformEndPosition, blockIndex
+                        proteoformStartPosition, proteoformEndPosition, block
                     );
                 },
 
@@ -416,6 +416,7 @@ define(
                     let _this = this;
                     let blockIndex = renderArgs.blockIndex;
                     let blockObject = renderArgs.block;
+                    blockObject.blockIndex = blockIndex;
                     let blockWidth = blockObject.domNode.offsetWidth;
                     let leftBase = renderArgs.leftBase;
                     let rightBase = renderArgs.rightBase;
@@ -525,7 +526,7 @@ define(
                                     filteredMSScanMassMappingResultArray,
                                     proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id]._start,
                                     proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].end,
-                                    blockIndex
+                                    blockObject
                                 );
 
                                 console.info('filteredMSScanMassMappingResultArray:', filteredMSScanMassMappingResultArray);

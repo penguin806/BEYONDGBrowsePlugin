@@ -29,14 +29,22 @@ define(
             {
                 constructor: function ( args ) {
                     let _this = this;
+                    _this.blockObjectArray = [];
+
                     // Subscribe draw proteoform event from module <SnowCanvasFeatures>
                     dojoTopic.subscribe(
                         'snow/showProteoform',
-                        _this._drawProteoformSequenceEventCallback
+                        function(
+                            proteoformSequence, filteredMSScanMassMappingResultArray,
+                            proteoformStartPosition, proteoformEndPosition, block
+                        ){
+                            _this._drawProteoformSequenceEventCallback(proteoformSequence, filteredMSScanMassMappingResultArray,
+                                proteoformStartPosition, proteoformEndPosition, block, _this);
+                        }
                     );
                 },
 
-                // @Override
+
                 _defaultConfig: function(){
                     var oldConfig = this.inherited(arguments);
                     var newConfig = lang.mixin(
@@ -51,7 +59,7 @@ define(
                     return newConfig;
                 },
 
-                // @Override
+
                 _trackMenuOptions: function() {
                     var that = this;
                     return [
@@ -169,21 +177,71 @@ define(
 
                 _drawProteoformSequenceEventCallback: function(
                     proteoformSequence, filteredMSScanMassMappingResultArray,
-                    proteoformStartPosition, proteoformEndPosition, blockIndex
+                    proteoformStartPosition, proteoformEndPosition, block, _this
                 ){
                     console.warn('snow/showProteoform received:',
                         proteoformSequence, filteredMSScanMassMappingResultArray,
-                        proteoformStartPosition, proteoformEndPosition, blockIndex
+                        proteoformStartPosition, proteoformEndPosition, block
                     );
+                    console.warn('corresponding block in SnowSequenceTrack:',
+                        _this.blockObjectArray[block.blockIndex]);
 
+                    if( _this.blockObjectArray[block.blockIndex] === undefined ||
+                        _this.blockObjectArray[block.blockIndex].startBase !== block.startBase ||
+                        _this.blockObjectArray[block.blockIndex].endBase !== block.endBase
+                    )
+                    {
+                        console.error('Block do not match!');
+                        return;
+                    }
 
+                    let blockLengthPerSequenceCharacter =
+                        (proteoformEndPosition - proteoformStartPosition) / proteoformSequence.length;
+                    let startOffset = (block.startBase - proteoformStartPosition) / blockLengthPerSequenceCharacter;
+                    let endOffset = (proteoformEndPosition - block.endBase) / blockLengthPerSequenceCharacter;
+                    let proteoformSequenceOfCurrentBlock =
+                        proteoformSequence.substring(
+                            Math.round(startOffset),
+                            Math.round(proteoformSequence.length - endOffset)
+                        );
+
+                    let modificationPositionArray = [];
+                    for(let i=0; i<filteredMSScanMassMappingResultArray.length; i++)
+                    {
+                        if(filteredMSScanMassMappingResultArray[i].hasOwnProperty('position'))
+                        {
+                            modificationPositionArray.push(
+                                filteredMSScanMassMappingResultArray[i].position - Math.round(startOffset)
+                            );
+                        }
+                    }
+
+                    let newProteoformSequenceDiv = _this._renderProteoformSequence(
+                        proteoformSequenceOfCurrentBlock,
+                        0,
+                        _this.blockObjectArray[block.blockIndex].startBase,
+                        _this.blockObjectArray[block.blockIndex].endBase,
+                        _this.blockObjectArray[block.blockIndex].endBase - _this.blockObjectArray[block.blockIndex].startBase,
+                        _this.blockObjectArray[block.blockIndex].scale,
+                        modificationPositionArray
+                    );
+                    _this.blockObjectArray[block.blockIndex].domNode.appendChild(newProteoformSequenceDiv);
+
+                    let totalHeight = 0;
+                    array.forEach(
+                        _this.blockObjectArray[block.blockIndex].domNode.childNodes,
+                        function( table ) {
+                            totalHeight += (table.clientHeight || table.offsetHeight);
+                        }
+                    );
+                    this.heightUpdate( totalHeight, block.blockIndex );
                 },
 
-                // @Override
+
                 fillBlock: function(args){
 
                     var blockIndex = args.blockIndex;
-                    var block = args.block;
+                    var blockObject = args.block;
                     var leftBase = args.leftBase;
                     var rightBase = args.rightBase;
                     var scale = args.scale;
@@ -192,6 +250,7 @@ define(
                     var rightExtended = rightBase + 2;
 
                     var thisB = this;
+                    thisB.blockObjectArray[blockIndex] = blockObject;
 
                     var blur = domConstruct.create(
                         'div',
@@ -199,7 +258,7 @@ define(
                             className: 'sequence_blur',
                             innerHTML: '<span class="loading">Loading</span>'
                         },
-                        block.domNode
+                        blockObject.domNode
                     );
 
                     this.heightUpdate( blur.offsetHeight+2*blur.offsetTop, blockIndex );
@@ -217,8 +276,8 @@ define(
                                     blur.innerHTML = '<span class="zoom">No sequence available</span>';
                                 }
                                 else {
-                                    domConstruct.empty( block.domNode );
-                                    thisB._fillSequenceBlock( block, blockIndex, scale, seq );
+                                    domConstruct.empty( blockObject.domNode );
+                                    thisB._fillSequenceBlock( blockObject, blockIndex, scale, seq );
                                 }
                                 args.finishCallback();
                             },
@@ -240,7 +299,7 @@ define(
                     }
                 },
 
-                // @Override
+
                 _fillSequenceBlock: function( block, blockIndex, scale, seq ) {
                     seq = seq.replace(/\s/g,this.nbsp);
 
@@ -365,7 +424,7 @@ define(
                     this.heightUpdate( totalHeight, blockIndex );
                 },
 
-                // @Override
+
                 _renderTranslation: function( seq, offset, blockStart, blockEnd, blockLength, scale, reverse ) {
                     seq = reverse ? Util.revcom( seq ) : seq;
 
@@ -392,7 +451,7 @@ define(
                     }
 
                     translated = reverse ? translated.split("").reverse().join("") : translated; // Flip the translated seq for left-to-right rendering
-                    var orientedSeqSliced = reverse ? seqSliced.split("").reverse().join("") : seqSliced
+                    var orientedSeqSliced = reverse ? seqSliced.split("").reverse().join("") : seqSliced;
 
                     var charSize = this.getCharacterMeasurements("aminoAcid");
                     var bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
@@ -411,7 +470,8 @@ define(
                                 {
                                     width: (charWidth * translated.length) + "%"
                                 }
-                        }, container );
+                        }, container
+                    );
                     var tr = domConstruct.create('tr', {}, table );
 
                     table.style.left = (
@@ -461,12 +521,11 @@ define(
                         // Mark AminoAcid according to the Object 'aminoAcidMarks'
                         // if (aminoAcidMarks.index.indexOf(i) != -1)
                         // Test: random mark
-                        if(Math.random() > 0.75)
-                        {
-                            //aminoAcidSpan.className = 'Snow_aminoAcid ' + aminoAcidMarks.type[i];
-                            aminoAcidSpan.className += ' ' + aminoAcidMarks.type[i%2];
-                        }
-
+                        // if(Math.random() > 0.75)
+                        // {
+                        //     //aminoAcidSpan.className = 'Snow_aminoAcid ' + aminoAcidMarks.type[i];
+                        //     aminoAcidSpan.className += ' ' + aminoAcidMarks.type[i%2];
+                        // }
 
                         // Finished: Update height and padding as well, not only the width
                         aminoAcidSpan.style.width = charWidth;
@@ -474,6 +533,75 @@ define(
                         aminoAcidSpan.style.height = spanActualWidth + 'px';
                         if( drawChars ) {
                             aminoAcidSpan.innerHTML = translated.charAt( i );
+                        }
+                        tr.appendChild(aminoAcidSpan);
+                    }
+                    return container;
+                },
+
+
+                _renderProteoformSequence: function(
+                    proteoformSequence, offset,
+                    blockStart, blockEnd,
+                    blockLength, scale, modificationPositionArray
+                ){
+                    var charSize = this.getCharacterMeasurements("aminoAcid");
+                    var bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
+                    var charWidth = 100/(blockLength / 3);
+
+                    var container = domConstruct.create(
+                        'div',
+                        {
+                            className: 'Snow_translatedSequence'
+                        }
+                    );
+                    var table  = domConstruct.create('table',
+                        {
+                            className: 'Snow_translatedSequence offset'+offset+(bigTiles ? ' big' : ''),
+                            style:
+                                {
+                                    width: (charWidth * proteoformSequence.length) + "%"
+                                }
+                        },
+                        container
+                    );
+                    var tr = domConstruct.create('tr', {}, table );
+                    table.style.left = (charWidth*offset/3) + "%";
+
+                    var blockWidth = blockLength * scale;
+                    var tableWidthScale = 100 / (charWidth * proteoformSequence.length);
+                    var tableActualWidth = blockWidth / tableWidthScale;
+                    var spanActualWidth = (tableActualWidth - proteoformSequence.length) / proteoformSequence.length;
+
+
+                    charWidth = 100/ proteoformSequence.length + "%";
+
+                    var drawChars = scale >= charSize.w;
+                    if( drawChars )
+                        table.className += ' big';
+
+                    for( var i=0; i<proteoformSequence.length; i++ ) {
+                        var aminoAcidSpan = document.createElement('td');
+                        aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_'+proteoformSequence.charAt(i).toLowerCase();
+
+                        if(this.config.drawCircle)
+                        {
+                            aminoAcidSpan.className += ' Snow_aminoAcid_circle';
+                        }
+                        if(this.config.animationEnabled)
+                        {
+                            aminoAcidSpan.className += ' Snow_aminoAcid_animation';
+                        }
+                        // Modification mark
+                        if(modificationPositionArray.indexOf(i) !== -1)
+                        {
+                            aminoAcidSpan.className += ' Snow_aminoAcid_mark_right_top';
+                        }
+
+                        aminoAcidSpan.style.width = charWidth;
+                        aminoAcidSpan.style.height = spanActualWidth + 'px';
+                        if( drawChars ) {
+                            aminoAcidSpan.innerHTML = proteoformSequence.charAt( i );
                         }
                         tr.appendChild(aminoAcidSpan);
                     }
