@@ -225,6 +225,7 @@ define(
                         _this.blockObjectArray[block.blockIndex].scale,
                         modificationPositionArray
                     );
+                    domClass.add( newProteoformSequenceDiv, "snow_proteoform_frame" );
                     _this.blockObjectArray[block.blockIndex].domNode.appendChild(newProteoformSequenceDiv);
 
                     let totalHeight = 0;

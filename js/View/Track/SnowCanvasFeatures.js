@@ -377,10 +377,10 @@ define(
                     proteoformSequence, proteoformStartPosition, proteoformEndPosition
                 )
                 {
-                    let proteoformSequenceLengthWithoutModification = proteoformSequence.replace(/\[\w*\]|\(|\)|\./g,'').length;
-
+                    // let proteoformSequenceLengthWithoutModification = proteoformSequence.replace(/\[\w*\]|\(|\)|\./g,'').length;
+                    let proteoformSequenceLength = proteoformSequence.length;
                     let lengthPerAminoAcid = (proteoformEndPosition - proteoformStartPosition)
-                        / proteoformSequenceLengthWithoutModification;
+                        / proteoformSequenceLength;
 
                     let newResultObjectArray = [];
                     for(let index in mappingResultObjectArray)
@@ -427,7 +427,8 @@ define(
                     let drawResultsDeferred = new dojoDeferred();
 
                     let proteinInfoObject = {
-                        translatedRefSeqs: null,
+                        translatedReferenceSequence: null,              // Eg: chr1:149813526..149813620 (95 b)
+                        translatedFullRangeReferenceSequence: null,     // Eg: chr1:149813271..149813681 (411 b)
                         requestedProteoformObjectArray: null
                     };
 
@@ -438,7 +439,7 @@ define(
                             let translatedProteinSequence = _this._translateGenomeSequenceToProtein(refGenomeSeq, false);
                             console.info('refGenomeSeq:', refGenomeSeq);
                             console.info('translatedProteinSequence:', translatedProteinSequence);
-                            proteinInfoObject.translatedRefSeqs = translatedProteinSequence;
+                            proteinInfoObject.translatedReferenceSequence = translatedProteinSequence;
 
                             // Return promise from dojo request
                             return _this._queryFeatures(_this.refSeq.name, leftBase, rightBase);
@@ -450,11 +451,30 @@ define(
                     ).then(
                         function (recordObjectArray)
                         {
-                            if(recordObjectArray !== undefined)
+                            if(recordObjectArray !== undefined && recordObjectArray.length > 0)
                             {
-                                let parsedRecords = _this._parseRequestedObject(recordObjectArray);
-                                proteinInfoObject.requestedProteoformObjectArray = parsedRecords;
-                                mapTranslatedProteinSequenceToRequestedProteoformDeferred.resolve(proteinInfoObject);
+                                _this.store.getReferenceSequence(
+                                    {
+                                        ref: _this.refSeq.name,
+                                        start: parseInt(recordObjectArray[0]._start),
+                                        end: parseInt(recordObjectArray[0].end)
+                                    },
+                                    function( fullRangeReferenceGenomeSequence ) {
+                                        let translatedFullRangeProteinSequence =
+                                            _this._translateGenomeSequenceToProtein(fullRangeReferenceGenomeSequence, false);
+                                        console.info('fullRangeReferenceGenomeSequence:', fullRangeReferenceGenomeSequence);
+                                        console.info('translatedFullRangeProteinSequence:', translatedFullRangeProteinSequence);
+                                        proteinInfoObject.translatedFullRangeReferenceSequence = translatedFullRangeProteinSequence;
+
+                                        let parsedRecords = _this._parseRequestedObject(recordObjectArray);
+                                        proteinInfoObject.requestedProteoformObjectArray = parsedRecords;
+                                        mapTranslatedProteinSequenceToRequestedProteoformDeferred.resolve(proteinInfoObject);
+                                    },
+                                    function(errorReason) {
+                                        console.error('Retrieve full range genome sequence failed:', errorReason);
+                                    }
+                                );
+
                             }
                         },
                         function (reasonWhyRequestFail)
@@ -474,8 +494,13 @@ define(
                             };
                             for(let i=0; i< proteinInfoObject.requestedProteoformObjectArray.length; i++)
                             {
-                                const translatedSeq = proteinInfoObject.translatedRefSeqs[0];
-                                const proteoformToCompare = proteinInfoObject.requestedProteoformObjectArray[i].sequence.replace(/\[\w*\]|\(|\)|\./g,'');
+                                //const translatedSeq = proteinInfoObject.translatedReferenceSequence[0];
+                                const translatedSeq = proteinInfoObject.translatedFullRangeReferenceSequence[0];
+                                const proteoformToCompare =
+                                    proteinInfoObject.requestedProteoformObjectArray[i].sequence.replace(
+                                        /\[\w*\]|\(|\)|\./g,
+                                        ''
+                                    );
 
                                 let matrix = _this._getLongestCommonSubSequenceMatrix(
                                     translatedSeq,
