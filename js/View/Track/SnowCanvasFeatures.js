@@ -532,16 +532,27 @@ define(
 
                             if(proteinInfoObject.requestedProteoformObjectArray.length >= 1)
                             {
-                                console.info('longestCommonSeqLength:', proteinInfoObject.requestedProteoformObjectArray[0].lcsLength);
-                                console.info('scanId:', proteinInfoObject.requestedProteoformObjectArray[0].scanId);
-                                console.info('sequence:', proteinInfoObject.requestedProteoformObjectArray[0].sequence);
-                                console.info('arrMSScanMassArray:', proteinInfoObject.requestedProteoformObjectArray[0].arrMSScanMassArray);
-                                console.info('arrMSScanPeakAundance:', proteinInfoObject.requestedProteoformObjectArray[0].arrMSScanPeakAundance);
+                                let msScanMassTrackId = _this.config.msScanMassTrackId - 1;
+                                if(
+                                    msScanMassTrackId === undefined || isNaN(msScanMassTrackId) ||
+                                    msScanMassTrackId < 0 ||
+                                    msScanMassTrackId >= proteinInfoObject.requestedProteoformObjectArray.length.length
+                                )
+                                {
+                                    msScanMassTrackId = 0;
+                                }
+
+                                console.info('msScanMassTrackId:', msScanMassTrackId);
+                                console.info('longestCommonSeqLength:', proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].lcsLength);
+                                console.info('scanId:', proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].scanId);
+                                console.info('sequence:', proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].sequence);
+                                console.info('arrMSScanMassArray:', proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].arrMSScanMassArray);
+                                console.info('arrMSScanPeakAundance:', proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].arrMSScanPeakAundance);
 
                                 let mappingResultObjectArray = _this._calcMSScanMass(
-                                    proteinInfoObject.requestedProteoformObjectArray[0].sequence,
-                                    proteinInfoObject.requestedProteoformObjectArray[0].arrMSScanMassArray,
-                                    proteinInfoObject.requestedProteoformObjectArray[0].arrMSScanPeakAundance
+                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].sequence,
+                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].arrMSScanMassArray,
+                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].arrMSScanPeakAundance
                                 );
                                 console.info('mappingResultObjectArray:', mappingResultObjectArray);
 
@@ -549,16 +560,16 @@ define(
                                     leftBase,
                                     rightBase,
                                     mappingResultObjectArray,
-                                    proteinInfoObject.requestedProteoformObjectArray[0].sequence,
-                                    proteinInfoObject.requestedProteoformObjectArray[0]._start,
-                                    proteinInfoObject.requestedProteoformObjectArray[0].end
+                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].sequence,
+                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId]._start,
+                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].end
                                 );
 
                                 _this._publishDrawProteoformSequenceEvent(
-                                    proteinInfoObject.requestedProteoformObjectArray[0].sequence,
+                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].sequence,
                                     filteredMSScanMassMappingResultArray,
-                                    proteinInfoObject.requestedProteoformObjectArray[0]._start,
-                                    proteinInfoObject.requestedProteoformObjectArray[0].end,
+                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId]._start,
+                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].end,
                                     blockObject
                                 );
 

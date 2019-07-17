@@ -179,11 +179,11 @@ define(
                     proteoformSequence, filteredMSScanMassMappingResultArray,
                     proteoformStartPosition, proteoformEndPosition, block, _this
                 ){
-                    console.warn('snow/showProteoform received:',
+                    console.info('snow/showProteoform received:',
                         proteoformSequence, filteredMSScanMassMappingResultArray,
                         proteoformStartPosition, proteoformEndPosition, block
                     );
-                    console.warn('corresponding block in SnowSequenceTrack:',
+                    console.info('corresponding block in SnowSequenceTrack:',
                         _this.blockObjectArray[block.blockIndex]);
 
                     if( _this.blockObjectArray[block.blockIndex] === undefined ||
