@@ -487,53 +487,61 @@ define(
                         function (proteinInfoObject)
                         {
                             console.info('proteinInfoObject:', proteinInfoObject);
-                            let longestCommonSeq = {
-                                id: null,
-                                matrix: [],
-                                length: 0
-                            };
-                            for(let i=0; i< proteinInfoObject.requestedProteoformObjectArray.length; i++)
+                            for(let i=0; i < proteinInfoObject.requestedProteoformObjectArray.length; i++)
                             {
-                                //const translatedSeq = proteinInfoObject.translatedReferenceSequence[0];
-                                const translatedSeq = proteinInfoObject.translatedFullRangeReferenceSequence[0];
+                                // const translatedReferenceProteinSequence =
+                                //     proteinInfoObject.translatedReferenceSequence[0];
+                                const translatedReferenceProteinSequence =
+                                    proteinInfoObject.translatedFullRangeReferenceSequence[0];
                                 const proteoformToCompare =
                                     proteinInfoObject.requestedProteoformObjectArray[i].sequence.replace(
                                         /\[\w*\]|\(|\)|\./g,
                                         ''
                                     );
 
-                                let matrix = _this._getLongestCommonSubSequenceMatrix(
-                                    translatedSeq,
-                                    proteoformToCompare
-                                );
+                                proteinInfoObject.requestedProteoformObjectArray[i].lcsMatrix =
+                                    _this._getLongestCommonSubSequenceMatrix(
+                                        translatedReferenceProteinSequence,
+                                        proteoformToCompare
+                                    );
 
-                                let length = _this._getLcsMatrixLength(
-                                    translatedSeq,
-                                    proteoformToCompare,
-                                    matrix
-                                );
-
-                                if(length > longestCommonSeq.length)
-                                {
-                                    longestCommonSeq.id = i;
-                                    longestCommonSeq.matrix = matrix;
-                                    longestCommonSeq.length = length;
-                                }
+                                proteinInfoObject.requestedProteoformObjectArray[i].lcsLength =
+                                    _this._getLcsMatrixLength(
+                                        translatedReferenceProteinSequence,
+                                        proteoformToCompare,
+                                        proteinInfoObject.requestedProteoformObjectArray[i].lcsMatrix
+                                    );
                             }
 
-                            console.info('longestCommonSeq: ', longestCommonSeq);
-                            if(proteinInfoObject.requestedProteoformObjectArray.hasOwnProperty(longestCommonSeq.id))
-                            {
-                                console.info('scanId:', proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].scanId);
-                                console.info('sequence:', proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].sequence);
-                                console.info('arrMSScanMassArray:', proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].arrMSScanMassArray);
-                                console.info('arrMSScanPeakAundance:', proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].arrMSScanPeakAundance);
+                            proteinInfoObject.requestedProteoformObjectArray.sort(
+                                function(itemA, itemB) {
+                                    if(itemA.lcsLength < itemB.lcsLength)
+                                    {
+                                        return 1;
+                                    }
+                                    else if(itemA.lcsLength === itemB.lcsLength)
+                                    {
+                                        return 0;
+                                    }
+                                    else
+                                    {
+                                        return -1;
+                                    }
+                                }
+                            );
 
+                            if(proteinInfoObject.requestedProteoformObjectArray.length >= 1)
+                            {
+                                console.info('longestCommonSeqLength:', proteinInfoObject.requestedProteoformObjectArray[0].lcsLength);
+                                console.info('scanId:', proteinInfoObject.requestedProteoformObjectArray[0].scanId);
+                                console.info('sequence:', proteinInfoObject.requestedProteoformObjectArray[0].sequence);
+                                console.info('arrMSScanMassArray:', proteinInfoObject.requestedProteoformObjectArray[0].arrMSScanMassArray);
+                                console.info('arrMSScanPeakAundance:', proteinInfoObject.requestedProteoformObjectArray[0].arrMSScanPeakAundance);
 
                                 let mappingResultObjectArray = _this._calcMSScanMass(
-                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].sequence,
-                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].arrMSScanMassArray,
-                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].arrMSScanPeakAundance
+                                    proteinInfoObject.requestedProteoformObjectArray[0].sequence,
+                                    proteinInfoObject.requestedProteoformObjectArray[0].arrMSScanMassArray,
+                                    proteinInfoObject.requestedProteoformObjectArray[0].arrMSScanPeakAundance
                                 );
                                 console.info('mappingResultObjectArray:', mappingResultObjectArray);
 
@@ -541,16 +549,16 @@ define(
                                     leftBase,
                                     rightBase,
                                     mappingResultObjectArray,
-                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].sequence,
-                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id]._start,
-                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].end
+                                    proteinInfoObject.requestedProteoformObjectArray[0].sequence,
+                                    proteinInfoObject.requestedProteoformObjectArray[0]._start,
+                                    proteinInfoObject.requestedProteoformObjectArray[0].end
                                 );
 
                                 _this._publishDrawProteoformSequenceEvent(
-                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].sequence,
+                                    proteinInfoObject.requestedProteoformObjectArray[0].sequence,
                                     filteredMSScanMassMappingResultArray,
-                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id]._start,
-                                    proteinInfoObject.requestedProteoformObjectArray[longestCommonSeq.id].end,
+                                    proteinInfoObject.requestedProteoformObjectArray[0]._start,
+                                    proteinInfoObject.requestedProteoformObjectArray[0].end,
                                     blockObject
                                 );
 
