@@ -14,7 +14,7 @@ define(
     ],
     function (
         declare,
-        request,
+        dojoRequest,
         domConstruct,
         dojoDeferred,
         dojoTopic,
@@ -130,9 +130,9 @@ define(
 
                 _queryFeatures: function(refName, startPos, endPos)
                 {
-                    let requestPromise = request(
-                        'http://192.168.254.9:12345/' + refName + '/' +
-                        startPos + '..' + endPos + '/uniprot_id',
+                    let requestPromise = dojoRequest(
+                        'http://192.168.254.9:12080' + '/ref/' + refName + '/' +
+                        startPos + '..' + endPos,
                         {
                             method: 'GET',
                             headers: {
