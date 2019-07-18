@@ -556,12 +556,15 @@ define(
                             className: 'Snow_translatedSequence'
                         }
                     );
+
+                    var tableWidthPercent = (charWidth * proteoformSequence.length);
                     var table  = domConstruct.create('table',
                         {
                             className: 'Snow_translatedSequence offset'+offset+(bigTiles ? ' big' : ''),
                             style:
                                 {
-                                    width: (charWidth * proteoformSequence.length) + "%"
+                                    // width: (charWidth * proteoformSequence.length) + "%"
+                                    width: tableWidthPercent <= 100 ? tableWidthPercent + '%' : '100%'
                                 }
                         },
                         container
@@ -570,9 +573,10 @@ define(
                     table.style.left = (charWidth*offset/3) + "%";
 
                     var blockWidth = blockLength * scale;
-                    var tableWidthScale = 100 / (charWidth * proteoformSequence.length);
-                    var tableActualWidth = blockWidth / tableWidthScale;
-                    var spanActualWidth = (tableActualWidth - proteoformSequence.length) / proteoformSequence.length;
+                    // var tableWidthScale = 100 / (charWidth * proteoformSequence.length);
+                    // var tableActualWidth = blockWidth / tableWidthScale;
+                    // var spanActualWidth = (tableActualWidth - proteoformSequence.length) / proteoformSequence.length;
+                    var spanActualWidth = blockWidth / proteoformSequence.length;
 
 
                     charWidth = 100/ proteoformSequence.length + "%";
