@@ -9,7 +9,6 @@ define(
         'JBrowse/View/Track/CanvasFeatures',
         'JBrowse/Util',
         'JBrowse/CodonTable',
-        // 'JBrowse/View/Track/_YScaleMixin',
         'SnowPlugin/View/Track/SnowHistogramTrack'
     ],
     function (
@@ -21,7 +20,6 @@ define(
         CanvasFeatures,
         Util,
         CodonTable,
-        // YScaleMixin,
         SnowHistogramTrack
     ) {
         return declare(

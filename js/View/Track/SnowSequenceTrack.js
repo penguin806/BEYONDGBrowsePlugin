@@ -548,7 +548,7 @@ define(
                 ){
                     var charSize = this.getCharacterMeasurements("aminoAcid");
                     var bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
-                    var charWidth = 100/(blockLength / 3);
+                    var charWidth = 100 / (blockLength / 3);
 
                     var container = domConstruct.create(
                         'div',
@@ -558,13 +558,14 @@ define(
                     );
 
                     var tableWidthPercent = (charWidth * proteoformSequence.length);
+                    tableWidthPercent = tableWidthPercent <= 100 ? tableWidthPercent : 100;
                     var table  = domConstruct.create('table',
                         {
                             className: 'Snow_translatedSequence offset'+offset+(bigTiles ? ' big' : ''),
                             style:
                                 {
                                     // width: (charWidth * proteoformSequence.length) + "%"
-                                    width: tableWidthPercent <= 100 ? tableWidthPercent + '%' : '100%'
+                                    width: tableWidthPercent + '%'
                                 }
                         },
                         container
@@ -576,10 +577,10 @@ define(
                     // var tableWidthScale = 100 / (charWidth * proteoformSequence.length);
                     // var tableActualWidth = blockWidth / tableWidthScale;
                     // var spanActualWidth = (tableActualWidth - proteoformSequence.length) / proteoformSequence.length;
-                    var spanActualWidth = blockWidth / proteoformSequence.length;
+                    var spanActualWidth = blockWidth * (tableWidthPercent * 0.01) / proteoformSequence.length;
 
 
-                    charWidth = 100/ proteoformSequence.length + "%";
+                    charWidth = 100 / proteoformSequence.length + "%";
 
                     var drawChars = scale >= charSize.w;
                     if( drawChars )

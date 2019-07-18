@@ -7,7 +7,8 @@ define([
         'dojo/_base/lang',
         'dojo/dom-construct',
         // 'JBrowse/View/Track/BlockBased',
-        'JBrowse/View/Track/CanvasFeatures'
+        'JBrowse/View/Track/CanvasFeatures',
+        'JBrowse/View/Track/_YScaleMixin'
     ],
     function (
         declare,
@@ -15,16 +16,18 @@ define([
         lang,
         domConstruct,
         // BlockBasedTrack
-        CanvasFeatures
+        CanvasFeatures,
+        _YScaleMixin
     ) {
         return declare(
             [
-                CanvasFeatures
+                CanvasFeatures,
+                _YScaleMixin
             ],
             {
 
-                constructor: function ( args ) {
-                    
+                constructor: function ( args ){
+
                 },
 
                 _defaultConfig: function () {
@@ -34,7 +37,8 @@ define([
                         {
                             histograms: {
                                 height: 100,
-                                color: '#fd79a8'
+                                color: '#fd79a8',
+                                maxValue: 100000.0
                             }
                         }
                     );
@@ -43,17 +47,12 @@ define([
                 },
 
                 fillBlock: function ( renderArgs ) {
-                    // var blockIndex = renderArgs.blockIndex;
-                    // var block = renderArgs.block;
-                    // var leftBase = renderArgs.leftBase;
-                    // var rightBase = renderArgs.rightBase;
-                    // var scale = renderArgs.scale;
 
                     // Todo: Check if the user's browser support HTML canvas element
                     this.fillHistograms( renderArgs );
                 },
 
-                fillHistograms: function ( args ) {
+                fillHistograms: function ( renderArgs ) {
                     var histData = [
                         // { key: "632.0333849", value: "2988.667223" , label: null },
                         // { key: "680.5928342", value: "1155.390511" , label: null },
@@ -77,16 +76,15 @@ define([
                         // { key: "2276.080739", value: "9873.694419" , label: null }
                     ];
 
-                    if(args.hasOwnProperty('dataToDraw'))
+                    if(renderArgs.hasOwnProperty('dataToDraw'))
                     {
-                        this._drawHistograms(args, args.dataToDraw);
+                        this._drawHistograms(renderArgs, renderArgs.dataToDraw);
                     }
                     else {
                         // Generating test data
-                        histData = this._generateRandomData(histData, args.leftBase);
-                        // Todo: Remove the code above, Query feature histogram data from STORE
-                        // and push into histData Object
-                        this._drawHistograms(args, histData);
+                        histData = this._generateRandomData(histData, renderArgs.leftBase);
+
+                        this._drawHistograms(renderArgs, histData);
                     }
 
                 },
@@ -98,29 +96,33 @@ define([
                     }
 
                     var _this = this;
-                    // First we're going to find the max value
-                    var maxValue = histData.length > 0 ? histData[0].value : 0;
-                    array.forEach(histData,function (item, index) {
-                        if(maxValue < item.value)
-                        {
-                            maxValue = item.value;
-                        }
-                    });
+                    // First we're going to find the max value (Deprecated: use fixed value instead)
+                    // var maxValue = histData.length > 0 ? histData[0].value : 0;
+                    // array.forEach(histData,function (item, index) {
+                    //     if(maxValue < item.value)
+                    //     {
+                    //         maxValue = item.value;
+                    //     }
+                    // });
+                    // var minVal = this.config.histograms.minValue || 0.0;
+                    var maxValue = this.config.histograms.maxValue || 100000.0;
 
                     var block = viewArgs.block;
-                    var histogramHeight = this.config.histograms.height;
+                    var histogramHeight = this.config.histograms.height || 100;
                     var trackTotalHeight = histogramHeight + 100;
-                    var scale = viewArgs.scale; // 0.019079618407631848
+                    var scaleLevel = viewArgs.scale;
                     var leftBase = viewArgs.leftBase;
                     var rightBase = viewArgs.rightBase;
-                    // var minVal = this.config.histograms.min;
+                    var blockLengthWithoutScale = rightBase - leftBase;
+                    var blockActualWidth = blockLengthWithoutScale * scaleLevel;
 
                     // Calc the diff between max(last) and min(first) key
                     var keyMin = parseFloat(histData[0].key);
                     var keyMax = parseFloat(histData[histData.length - 1].key);
-                    var keyDiff = Math.ceil(keyMax - keyMin);
-                    // Calc the scale level
-                    var keyScale = parseFloat(keyDiff) / (rightBase - leftBase - 1);
+                    var keyDiffRange = (keyMax - keyMin) || 100;
+
+                    var offsetAtStartAndEnd = blockActualWidth * 0.1;
+                    var keyScale = (blockActualWidth - offsetAtStartAndEnd * 2) / keyDiffRange;
 
                     domConstruct.empty(block.domNode);
                     var c = block.featureCanvas =
@@ -129,12 +131,13 @@ define([
                             {
                                 height: trackTotalHeight,
                                 width: block.domNode.offsetWidth + 1,
-                                style: {
+                                style:
+                                {
                                     cursor: 'default',
                                     height: trackTotalHeight + 'px',
                                     position: 'absolute'
                                 },
-                                innerHTML: 'Browser doesn\'t support HTML canvas element',
+                                innerHTML: 'HTML5 Canvas Block',
                                 className: 'canvas-track canvas-track-histograms'
                             },
                             block.domNode
@@ -150,16 +153,16 @@ define([
                     // Draw the X-Axis line
                     ctx.beginPath();
                     ctx.moveTo(0,trackTotalHeight);
-                    ctx.lineTo(Math.ceil((rightBase - leftBase + 1)*scale),trackTotalHeight);
+                    ctx.lineTo(Math.ceil((rightBase - leftBase + 1)*scaleLevel),trackTotalHeight);
                     ctx.stroke();
                     // Prepare for the arrow
                     ctx.beginPath();
 
-                    // Todo: Scale the canvas
                     array.forEach(histData,function (item, index) {
                         var barHeight = item.value / maxValue * histogramHeight;
                         var barWidth = 3;
-                        var barLeft_X = (parseFloat(item.key) - keyMin) / keyScale * scale;
+                        var keyPosition = (parseFloat(item.key) - keyMin) * keyScale;
+                        var barLeft_X = offsetAtStartAndEnd + keyPosition;
                         var barLeft_Y = trackTotalHeight - barHeight;
                         // Draw histogram
                         ctx.fillRect(
@@ -169,7 +172,7 @@ define([
                             barHeight
                         );
 
-                        if(item.label != null)
+                        if(item.label !== undefined && item.label != null)
                         {
                             // Draw arrow above the histogram column
                             _this._drawArrow(
@@ -187,6 +190,8 @@ define([
                         }
                     });
                     ctx.stroke();
+
+                    this._makeHistogramYScale(histogramHeight, maxValue);
 
                     // Todo: Beautify
                     // Todo: After rendering the histogram, scale the Y-axis
@@ -250,7 +255,27 @@ define([
                     }, this);
 
                     return newHistData;
-                }
+                },
+
+                _makeHistogramYScale: function( histogramHeight, maxValue ) {
+                    if(
+                        this.yscaleParams &&
+                        this.yscaleParams.height === histogramHeight &&
+                        this.yscaleParams.max === maxValue &&
+                        this.yscaleParams.min === 0
+                    )
+                    {
+                        return;
+                    }
+
+                    this.yscaleParams = {
+                        height: histogramHeight,
+                        min: 0,
+                        max: maxValue
+                    };
+
+                    this.makeYScale(this.yscaleParams);
+                },
 
             }
         );
