@@ -22,7 +22,8 @@ define([
                     this.browser = browser;
                     var locateButtonDomNode = this._generateLocateButton();
 
-                    console.log( "SnowPlugin plugin starting" );
+                    // console.log( "SnowPlugin plugin starting" );
+                    console.info('高通量多组学序列数据可视化浏览器 v1.0\nadmin@xuefeng.space\n指导老师: 钟坚成');
                     browser.afterMilestone('initView', function() {
                             var menuBar = browser.menuBar;
                             menuBar.appendChild(locateButtonDomNode);
