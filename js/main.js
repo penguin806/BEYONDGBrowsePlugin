@@ -85,7 +85,7 @@ define([
                 _queryProteinRegion: function (proteinName, finishCallback)
                 {
                     dojoRequest(
-                        'http://192.168.254.9:12080' + '/locate/' + proteinName,
+                        'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1') + ':12080' + '/locate/' + proteinName,
                         {
                             method: 'GET',
                             headers: {

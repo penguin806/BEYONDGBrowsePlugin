@@ -129,7 +129,7 @@ define(
                 _queryFeatures: function(refName, startPos, endPos)
                 {
                     let requestPromise = dojoRequest(
-                        'http://192.168.254.9:12080' + '/ref/' + refName + '/' +
+                        'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1') + ':12080' + '/ref/' + refName + '/' +
                         startPos + '..' + endPos,
                         {
                             method: 'GET',
