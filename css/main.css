@@ -1,0 +1,137 @@
+.Snow_translatedSequence {
+    position: relative;
+    border-width: 0;
+    border-collapse: collapse;
+    overflow: visible;
+}
+
+.Snow_translatedSequence table {
+    border-collapse: separate !important;
+    border-spacing: 1px;
+    z-index: 10;
+}
+
+.Snow_translatedSequence.frame0 {
+    background-color: #929292;
+}
+
+.Snow_translatedSequence.frame1 {
+    background-color: #B0B0B0;
+}
+
+.Snow_translatedSequence.frame2 {
+    background-color: #E0E0E0;
+}
+
+.Snow_translatedSequence td.Snow_aminoAcid {
+    text-align: center;
+    z-index: 2000;
+    position: relative;
+
+    color: black;
+    font-family: "Comic Sans MS", cursive, sans-serif;
+    font-weight: bold;
+    text-shadow: white 1px 1px 6px;
+    /*padding: 3ch;*/
+    background: #89c3fde6;
+    transition: all 0.2s ease-in-out;
+}
+
+.Snow_translatedSequence td.Snow_aminoAcid_circle {
+    border-radius: 50%;
+}
+
+/*.Snow_translatedSequence td.Snow_aminoAcid:hover {*/
+    /*box-shadow: #2d3436 2px 3px 8px;*/
+/*}*/
+
+.Snow_translatedSequence td.Snow_aminoAcid_animation:hover {
+    box-shadow: #2d3436 2px 3px 8px;
+    transform: rotate(360deg);
+}
+
+.Snow_translatedSequence td.Snow_aminoAcid_stop {
+    background-color: #ff93bae6;
+}
+
+.Snow_translatedSequence td.Snow_aminoAcid_start {
+    background-color: #7df6d5e6;
+}
+
+.Snow_translatedSequence td.Snow_aminoAcid_mark_left_bottom::after {
+    content: "";
+    position: absolute;
+    left: -1%;
+    top: 0;
+    border-left: 0.12em solid #d63031;
+    border-bottom: 0.2em solid #d63031;
+    width: 18%;
+    height: 98%;
+}
+
+.Snow_translatedSequence td.Snow_aminoAcid_mark_right_top::after {
+    content: "";
+    position: absolute;
+    left: 82%;
+    top: 0;
+    border-right: 0.12em solid #d63031;
+    border-top: 0.18em solid #d63031;
+    width: 18%;
+    height: 98%;
+}
+
+
+/*.Snow_translatedSequence td.Snow_aminoAcid_mark_left_top::after {*/
+    /*content: "";*/
+    /*position: absolute;*/
+    /*left: 1.4em;*/
+    /*top: 1.8em;*/
+    /*border-right: 0.6em solid transparent;*/
+    /*border-top: 1.2em solid #d63031;*/
+/*}*/
+/*.Snow_translatedSequence td.Snow_aminoAcid_mark_left_bottom::after {*/
+    /*content: "";*/
+    /*position: absolute;*/
+    /*left: -0.12em;*/
+    /*top: 0;*/
+    /*border-left: 0.12em solid #d63031;*/
+    /*border-bottom: 0.2em solid #d63031;*/
+    /*width: 0.5em;*/
+    /*height: 5em;*/
+/*}*/
+/*.Snow_translatedSequence td.Snow_aminoAcid_mark_left_bottom::after {*/
+    /*content: "";*/
+    /*position: absolute;*/
+    /*left: 1.4em;*/
+    /*top: 2em;*/
+    /*border-left: 0.6em solid #d63031;*/
+    /*border-top: 1.2em solid transparent;*/
+/*}*/
+/*.Snow_translatedSequence td.Snow_aminoAcid_mark_right_top::after {*/
+    /*content: "";*/
+    /*position: absolute;*/
+    /*left: calc(100% - 0.52em);*/
+    /*top: 0em;*/
+    /*border-right: 0.12em solid #d63031;*/
+    /*border-top: 0.2em solid #d63031;*/
+    /*width: 0.5em;*/
+    /*height: 5em;*/
+/*}*/
+/*.Snow_translatedSequence td.Snow_aminoAcid_mark_right_top::after {*/
+    /*content: "";*/
+    /*position: absolute;*/
+    /*left: calc(100% - 2em);*/
+    /*top: 2em;*/
+    /*border-left: 0.6em solid transparent;*/
+    /*border-top: 1.2em solid #d63031;*/
+/*}*/
+
+/*Triangle Mark*/
+/*.Snow_translatedSequence td.Snow_aminoAcid_mark_right_bottom::after {*/
+    /*content: "";*/
+    /*position: absolute;*/
+    /*left: calc(100% - 2em);*/
+    /*top: 2.2em;*/
+    /*border-right: 0.6em solid #d63031;*/
+    /*border-top: 1.2em solid transparent;*/
+/*}*/
