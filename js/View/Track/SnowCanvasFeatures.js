@@ -487,6 +487,11 @@ define(
                             console.info('proteinInfoObject:', proteinInfoObject);
                             for(let i=0; i < proteinInfoObject.requestedProteoformObjectArray.length; i++)
                             {
+                                console.debug('proteinInfoObject.translatedFullRangeReferenceSequence:',
+                                    proteinInfoObject.translatedFullRangeReferenceSequence);
+                                console.debug('proteinInfoObject.requestedProteoformObjectArray[i].sequence:',
+                                    proteinInfoObject.requestedProteoformObjectArray[i].sequence);
+
                                 // const translatedReferenceProteinSequence =
                                 //     proteinInfoObject.translatedReferenceSequence[0];
                                 const translatedReferenceProteinSequence =
@@ -645,6 +650,6 @@ define(
 
             }
         );
-        
+
     }
 );

@@ -28,6 +28,7 @@ define(
             ],
             {
                 constructor: function ( args ) {
+                    window.snowSequenceTrack = this;
                     let _this = this;
                     _this.blockObjectArray = [];
 
@@ -240,7 +241,6 @@ define(
 
 
                 fillBlock: function(args){
-
                     var blockIndex = args.blockIndex;
                     var blockObject = args.block;
                     var leftBase = args.leftBase;
@@ -265,7 +265,8 @@ define(
                     this.heightUpdate( blur.offsetHeight+2*blur.offsetTop, blockIndex );
 
                     // if we are zoomed in far enough to draw bases, then draw them
-                    if ( scale >= 1.3 ) {
+                    if ( scale >= 1.3 )
+                    {
                         this.store.getReferenceSequence(
                             {
                                 ref: this.refSeq.name,
@@ -292,9 +293,8 @@ define(
                             }
                         );
                     }
-                    // otherwise, just draw a sort of line (possibly dotted) that
-                    // suggests there are bases there if you zoom in far enough
-                    else {
+                    else
+                    {
                         blur.innerHTML = '<span class="zoom">Zoom in to see sequence</span>';
                         args.finishCallback();
                     }
@@ -370,7 +370,6 @@ define(
                         }
                     }
 
-
                     // Do not render forward strand sequence
                     if( false )
                     {
@@ -389,8 +388,6 @@ define(
                         if( this.config.showForwardStrand )
                             seqNode.appendChild( this._renderSeqTr( blockStart, blockEnd, blockSeq, scale ));
                     }
-
-
                     // Do not render reverse strand sequence and translation
                     if( false )
                     {

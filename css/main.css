@@ -80,6 +80,16 @@
     height: 98%;
 }
 
+.Snow_translatedSequence td.Snow_annotation_mark::after {
+    content: "";
+    position: absolute;
+    left: 46%;
+    top: 20%;
+    border: 0.15em solid #d63031;
+    width: 0;
+    height: 0;
+}
+
 
 /*.Snow_translatedSequence td.Snow_aminoAcid_mark_left_top::after {*/
     /*content: "";*/

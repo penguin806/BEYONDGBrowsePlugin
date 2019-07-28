@@ -24,11 +24,11 @@ define(
                 ActionBarDialog
             ],
             {
-                autofocus: false,
-                title: 'Locate by protein name',
-
                 constructor: function( args )
                 {
+                    // this.autofocus = false;
+                    this.title = 'Locate by protein name';
+
                     this.browser = args.browser;
                     this.setCallback    = args.setCallback || function() {};
                     this.cancelCallback = args.cancelCallback || function() {};

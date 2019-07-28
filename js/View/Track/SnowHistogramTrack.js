@@ -196,7 +196,7 @@ define([
                     // Todo: Beautify
                     // Todo: After rendering the histogram, scale the Y-axis
                 },
-                
+
                 _drawArrow: function (context, fromX, fromY, toX, toY){
                     var headLength = 5;
                     var angle = Math.atan2(toY-fromY,toX-fromX);
