@@ -1,6 +1,7 @@
 define(
     [
         'dojo/_base/declare',
+        'dojo/_base/lang',
         'dojo/dom-class',
         'dojo/dom-construct',
         'dijit/focus',
@@ -11,6 +12,7 @@ define(
     ],
     function(
         declare,
+        dojoLang,
         domClass,
         domConstruct,
         focus,
@@ -79,7 +81,7 @@ define(
                     _this.set(
                         'content',
                         [
-                            domConstruct.create('label', { "for": 'protein_name_string', innerHTML: 'Protein Name' } ),
+                            domConstruct.create('label', { "for": 'protein_name_string', innerHTML: 'Protein Name ' } ),
                             this.proteinNameInput.domNode
                         ]
                     );
@@ -88,14 +90,14 @@ define(
                 },
 
                 getProteinName: function() {
-                    var proteinNameInputContent = this.proteinNameInput.get('value')
+                    var proteinNameInputContent = this.proteinNameInput.get('value');
                     return proteinNameInputContent;
                 },
 
                 hide: function() {
                     this.inherited(arguments);
                     window.setTimeout(
-                        dojo.hitch( this, 'destroyRecursive' ),
+                        dojoLang.hitch( this, 'destroyRecursive' ),
                         500
                     );
                 }

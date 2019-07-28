@@ -83,7 +83,7 @@
 .Snow_translatedSequence td.Snow_annotation_mark::after {
     content: "";
     position: absolute;
-    left: 46%;
+    left: 47%;
     top: 20%;
     border: 0.15em solid #d63031;
     width: 0;

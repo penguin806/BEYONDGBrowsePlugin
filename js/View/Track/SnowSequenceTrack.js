@@ -4,22 +4,34 @@ define(
         'dojo/_base/array',
         'dojo/_base/lang',
         'dojo/dom-construct',
+        'dojo/dom-attr',
         'dojo/dom-class',
+        'dojo/Deferred',
         'dojo/query',
         'dojo/topic',
+        'dojo/request',
         'JBrowse/View/Track/Sequence',
-        'JBrowse/Util'
+        'JBrowse/View/TrackConfigEditor',
+        'JBrowse/View/ConfirmDialog',
+        'JBrowse/Util',
+        '../Dialog/SnowAnnotationDialog'
     ],
     function(
         declare,
-        array,
-        lang,
+        dojoArray,
+        dojoLang,
         domConstruct,
+        domAttr,
         domClass,
+        dojoDeferred,
         dojoQuery,
         dojoTopic,
+        dojoRequest,
         Sequence,
-        Util
+        TrackConfigEditor,
+        ConfirmDialog,
+        Util,
+        SnowAnnotationDialog
     )
     {
         return declare(
@@ -27,10 +39,10 @@ define(
                 Sequence
             ],
             {
-                constructor: function ( args ) {
-                    window.snowSequenceTrack = this;
+                constructor: function (args) {
                     let _this = this;
                     _this.blockObjectArray = [];
+                    window.snowSequenceTrack = _this;
 
                     // Subscribe draw proteoform event from module <SnowCanvasFeatures>
                     dojoTopic.subscribe(
@@ -45,10 +57,9 @@ define(
                     );
                 },
 
-
                 _defaultConfig: function(){
                     var oldConfig = this.inherited(arguments);
-                    var newConfig = lang.mixin(
+                    var newConfig = dojoLang.mixin(
                         oldConfig,{
                             showTranslation1st: true,
                             showTranslation2nd: false,
@@ -60,25 +71,25 @@ define(
                     return newConfig;
                 },
 
-
                 _trackMenuOptions: function() {
-                    var that = this;
-                    return [
+                    var _this = this;
+                    // var oldTrackMenuOptions = _this.inherited(arguments);
+
+                    var newTrackMenuOptions = [
                         {
                             label: 'About this track',
                             title: 'About track: '+(this.key||this.name),
                             iconClass: 'jbrowseIconHelp',
                             action: 'contentDialog',
-                            content: dojo.hitch(this,'_trackDetailsContent')
+                            content: dojoLang.hitch(this,'_trackDetailsContent')
                         },
                         {
                             label: 'Pin to top',
                             type: 'dijit/CheckedMenuItem',
                             title: "make this track always visible at the top of the view",
-                            checked: that.isPinned(),
-                            //iconClass: 'dijitIconDelete',
+                            checked: _this.isPinned(),
                             onClick: function() {
-                                that.browser.publish( '/jbrowse/v1/v/tracks/'+( this.checked ? 'pin' : 'unpin' ), [ that.name ] );
+                                _this.browser.publish( '/jbrowse/v1/v/tracks/'+( this.checked ? 'pin' : 'unpin' ), [ _this.name ] );
                             }
                         },
                         {
@@ -86,10 +97,10 @@ define(
                             title: "edit this track's configuration",
                             iconClass: 'dijitIconConfigure',
                             action: function() {
-                                new TrackConfigEditor( that.config )
+                                new TrackConfigEditor( _this.config )
                                     .show( function( result ) {
                                         // replace this track's configuration
-                                        that.browser.publish( '/jbrowse/v1/v/tracks/replace', [result.conf] );
+                                        _this.browser.publish( '/jbrowse/v1/v/tracks/replace', [result.conf] );
                                     });
                             }
                         },
@@ -101,7 +112,7 @@ define(
                                 new ConfirmDialog({ title: 'Delete track?', message: 'Really delete this track?' })
                                     .show( function( confirmed ) {
                                         if( confirmed )
-                                            that.browser.publish( '/jbrowse/v1/v/tracks/delete', [that.config] );
+                                            _this.browser.publish( '/jbrowse/v1/v/tracks/delete', [_this.config] );
                                     });
                             }
                         },
@@ -111,28 +122,28 @@ define(
                         {
                             label: 'Show Amino Acid Translation 1',
                             type: 'dijit/CheckedMenuItem',
-                            checked: !!that.config.showTranslation1st,
+                            checked: !!_this.config.showTranslation1st,
                             onClick: function(event){
-                                that.config.showTranslation1st = this.checked;
-                                that.changed();
+                                _this.config.showTranslation1st = this.checked;
+                                _this.changed();
                             }
                         },
                         {
                             label: 'Show Amino Acid Translation 2',
                             type: 'dijit/CheckedMenuItem',
-                            checked: !!that.config.showTranslation2nd,
+                            checked: !!_this.config.showTranslation2nd,
                             onClick: function(event){
-                                that.config.showTranslation2nd = this.checked;
-                                that.changed();
+                                _this.config.showTranslation2nd = this.checked;
+                                _this.changed();
                             }
                         },
                         {
                             label: 'Show Amino Acid Translation 3',
                             type: 'dijit/CheckedMenuItem',
-                            checked: !!that.config.showTranslation3rd,
+                            checked: !!_this.config.showTranslation3rd,
                             onClick: function(event){
-                                that.config.showTranslation3rd = this.checked;
-                                that.changed();
+                                _this.config.showTranslation3rd = this.checked;
+                                _this.changed();
                             }
                         },
                         {
@@ -141,12 +152,12 @@ define(
                         {
                             label: 'Draw Spans with Circle-Style',
                             type: 'dijit/CheckedMenuItem',
-                            checked: !!that.config.drawCircle,
+                            checked: !!_this.config.drawCircle,
                             onClick: function (event) {
-                                that.config.drawCircle = this.checked;
+                                _this.config.drawCircle = this.checked;
                                 //that.changed();
                                 //console.log(dojoQuery('.Snow_aminoAcid_circle'));
-                                if(!!that.config.drawCircle) {
+                                if(!!_this.config.drawCircle) {
                                     dojoQuery('.Snow_translatedSequence td.Snow_aminoAcid')
                                         .toggleClass('Snow_aminoAcid_circle',true);
                                 }
@@ -159,11 +170,11 @@ define(
                         {
                             label: 'Enable Animation when Hover',
                             type: 'dijit/CheckedMenuItem',
-                            checked: !!that.config.animationEnabled,
+                            checked: !!_this.config.animationEnabled,
                             onClick: function (event) {
-                                that.config.animationEnabled = this.checked;
+                                _this.config.animationEnabled = this.checked;
                                 //that.changed();
-                                if(!!that.config.animationEnabled) {
+                                if(!!_this.config.animationEnabled) {
                                     dojoQuery('.Snow_translatedSequence td.Snow_aminoAcid')
                                         .toggleClass('Snow_aminoAcid_animation',true);
                                 }
@@ -174,6 +185,8 @@ define(
                             }
                         }
                     ];
+
+                    return newTrackMenuOptions;
                 },
 
                 _drawProteoformSequenceEventCallback: function(
@@ -230,7 +243,7 @@ define(
                     _this.blockObjectArray[block.blockIndex].domNode.appendChild(newProteoformSequenceDiv);
 
                     let totalHeight = 0;
-                    array.forEach(
+                    dojoArray.forEach(
                         _this.blockObjectArray[block.blockIndex].domNode.childNodes,
                         function( table ) {
                             totalHeight += (table.clientHeight || table.offsetHeight);
@@ -239,20 +252,28 @@ define(
                     this.heightUpdate( totalHeight, block.blockIndex );
                 },
 
-
-                fillBlock: function(args){
+                fillBlock: function(args) {
+                    var _this = this;
                     var blockIndex = args.blockIndex;
                     var blockObject = args.block;
                     var leftBase = args.leftBase;
                     var rightBase = args.rightBase;
                     var scale = args.scale;
-
                     var leftExtended = leftBase - 2;
                     var rightExtended = rightBase + 2;
+                    _this.blockObjectArray[blockIndex] = blockObject;
+                    var renderAnnotationMarkDeferred = new dojoDeferred();
 
-                    var thisB = this;
-                    thisB.blockObjectArray[blockIndex] = blockObject;
-
+                    renderAnnotationMarkDeferred.then(
+                        function () {
+                            _this._renderAnnotationMark(
+                                _this.refSeq.name,
+                                blockObject,
+                                leftBase,
+                                rightBase
+                            );
+                        }
+                    );
                     var blur = domConstruct.create(
                         'div',
                         {
@@ -279,7 +300,8 @@ define(
                                 }
                                 else {
                                     domConstruct.empty( blockObject.domNode );
-                                    thisB._fillSequenceBlock( blockObject, blockIndex, scale, seq );
+                                    _this._fillSequenceBlock( blockObject, blockIndex, scale, seq );
+                                    renderAnnotationMarkDeferred.resolve(true);
                                 }
                                 args.finishCallback();
                             },
@@ -299,7 +321,6 @@ define(
                         args.finishCallback();
                     }
                 },
-
 
                 _fillSequenceBlock: function( block, blockIndex, scale, seq ) {
                     seq = seq.replace(/\s/g,this.nbsp);
@@ -416,30 +437,31 @@ define(
                     }
 
                     var totalHeight = 0;
-                    array.forEach( block.domNode.childNodes, function( table ) {
+                    dojoArray.forEach( block.domNode.childNodes, function( table ) {
                         totalHeight += (table.clientHeight || table.offsetHeight);
                     });
                     this.heightUpdate( totalHeight, blockIndex );
                 },
 
-
-                _renderTranslation: function( seq, offset, blockStart, blockEnd, blockLength, scale, reverse ) {
+                _renderTranslation: function(
+                    seq, offset, blockStart,
+                    blockEnd, blockLength, scale, reverse
+                ) {
                     seq = reverse ? Util.revcom( seq ) : seq;
 
                     var extraBases = (seq.length - offset) % 3;
                     var seqSliced = seq.slice( offset, seq.length - extraBases );
 
                     // Object describe how to mark the aminoAcid
-                    var aminoAcidMarks = {
-                        index: [0,1],
-                        type: [
-                            //        "Snow_aminoAcid_mark_left_top",
-                            "Snow_aminoAcid_mark_left_bottom",
-                            "Snow_aminoAcid_mark_right_top"
-                            //        ,"Snow_aminoAcid_mark_right_bottom"
-                        ]
-                    };
-                    // Todo: remove this, read from data store
+                    // var aminoAcidMarks = {
+                    //     index: [0,1],
+                    //     type: [
+                    //         //        "Snow_aminoAcid_mark_left_top",
+                    //         "Snow_aminoAcid_mark_left_bottom",
+                    //         "Snow_aminoAcid_mark_right_top"
+                    //         //        ,"Snow_aminoAcid_mark_right_bottom"
+                    //     ]
+                    // };
 
                     var translated = "";
                     for( var i = 0; i < seqSliced.length; i += 3 ) {
@@ -461,21 +483,27 @@ define(
                         {
                             className: 'Snow_translatedSequence'
                         } );
+
+                    var tableWidthPercent = charWidth * translated.length;
                     var table  = domConstruct.create('table',
                         {
                             className: 'Snow_translatedSequence offset'+offset+(bigTiles ? ' big' : ''),
                             style:
                                 {
-                                    width: (charWidth * translated.length) + "%"
+                                    width: tableWidthPercent + "%"
                                 }
                         }, container
                     );
                     var tr = domConstruct.create('tr', {}, table );
 
-                    table.style.left = (
-                        reverse ? 100 - charWidth * (translated.length + offset / 3)
-                            : charWidth*offset/3
-                    ) + "%";
+                    var tableLeftOffsetPercent = reverse ? 100 - charWidth * (translated.length + offset / 3)
+                        : charWidth*offset/3;
+                    table.style.left = tableLeftOffsetPercent + "%";
+                    container.snowSequenceOffset = tableLeftOffsetPercent;
+                    container.snowSequenceWidth = tableWidthPercent;
+                    var blockRegion = blockEnd - blockStart;
+                    var blockStartExtended = blockStart + blockRegion * tableLeftOffsetPercent * 0.01;
+                    var blockEndExtended = blockStart + translated.length * 3;
 
                     var blockWidth = blockLength * scale;
                     var tableWidthScale = 100 / (charWidth * translated.length);
@@ -493,17 +521,24 @@ define(
                     if( drawChars )
                         table.className += ' big';
 
-                    for( var i=0; i<translated.length; i++ ) {
-                        var aminoAcidSpan = document.createElement('td');
+                    for( var i = 0; i < translated.length; i++ ) {
+                        // var aminoAcidSpan = document.createElement('td');
+                        var aminoAcidSpan = domConstruct.create(
+                            'td',
+                            {
+                                snowSeqPosition: blockStartExtended + i * 3
+                            },
+                            tr
+                        );
                         var originalCodon = orientedSeqSliced.slice(3 * i, 3 * i + 3)
                         originalCodon = reverse ? originalCodon.split("").reverse().join("") : originalCodon;
                         aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_'+translated.charAt(i).toLowerCase();
 
                         // However, if it's known to be a start/stop, apply those CSS classes instead.
-                        if (this._codonStarts.indexOf(originalCodon.toUpperCase()) != -1) {
+                        if (this._codonStarts.indexOf(originalCodon.toUpperCase()) !== -1) {
                             aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_start';
                         }
-                        else if (this._codonStops.indexOf(originalCodon.toUpperCase()) != -1) {
+                        else if (this._codonStops.indexOf(originalCodon.toUpperCase()) !== -1) {
                             aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_stop';
                         }
 
@@ -536,7 +571,6 @@ define(
                     }
                     return container;
                 },
-
 
                 _renderProteoformSequence: function(
                     proteoformSequence, offset,
@@ -609,7 +643,128 @@ define(
                         tr.appendChild(aminoAcidSpan);
                     }
                     return container;
+                },
+
+                _renderAnnotationMark: function (refName, blockObject, blockStart, blockEnd) {
+                    console.debug('_renderAnnotationMark', refName, blockObject, blockStart, blockEnd);
+
+                    var _this = this;
+                    var renderAnnotationDeferred = new dojoDeferred();
+                    var blockDomNode = blockObject.domNode;
+                    var frameDomNode = blockDomNode.firstChild;
+                    var allAminoAcidCell = dojoQuery(".Snow_aminoAcid", frameDomNode);
+                    // Add dblclick event handler on all AmioAcid table cell
+                    allAminoAcidCell.on('dblclick', function (event) {
+                            console.debug('dblclick on .Snow_aminoAcid:', arguments);
+                            var finishCallback = function () {
+                                _this.browser.publish( '/jbrowse/v1/n/tracks/redraw' );
+                            };
+                            var thisAminoAcidCellPosition = domAttr.get(event.target, 'snowseqposition');
+
+                            // dojoLang.hitch(
+                            //     _this,
+                            //     _this._loadSpecificAnnotationAndPopupModal,
+                            //     refName,
+                            //     thisAminoAcidCellPosition,
+                            //     finishCallback
+                            // );
+
+                            _this._loadSpecificAnnotationAndPopupModal(
+                                refName,
+                                thisAminoAcidCellPosition,
+                                finishCallback
+                            );
+                        }
+                    );
+
+                    var blockRegion = blockEnd - blockStart;
+                    var blockStartExtended = blockStart + blockRegion * frameDomNode.snowSequenceOffset * 0.01;
+                    var blockEndExtended = blockStart + allAminoAcidCell.length * 3;
+                    var requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
+                        + ':12080' + '/annotation/query/' + refName + '/' + blockStartExtended + '..' + blockEndExtended;
+
+                    dojoRequest(
+                        requestUrl,
+                        {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': null
+                            },
+                            handleAs: 'json'
+                        }
+                    ).then(
+                        function (annotationObjectArray) {
+                            console.info('annotationObjectArray:', annotationObjectArray);
+                            renderAnnotationDeferred.resolve(annotationObjectArray);
+                        },
+                        function (errorReason) {
+                            console.error('Error', requestUrl, errorReason);
+                        }
+                    );
+
+                    renderAnnotationDeferred.then(
+                        function (annotationObjectArray) {
+                            for(var i=0; i<allAminoAcidCell.length; i++)
+                            {
+                                var thisCellPosition = domAttr.get(allAminoAcidCell[i], 'snowseqposition');
+                                for(var j=0; j<annotationObjectArray.length; j++)
+                                {
+                                    if(typeof annotationObjectArray[j] != "object")
+                                    {
+                                        console.error(annotationObjectArray[j]);
+                                        break;
+                                    }
+                                    var thisAnnotationPosition = annotationObjectArray[j].position;
+                                    if(Math.abs(thisCellPosition - thisAnnotationPosition) <= 2)
+                                    {
+                                        // Match! Add style
+                                        domClass.add(allAminoAcidCell[i], 'Snow_annotation_mark');
+                                    }
+                                }
+                            }
+                        },
+                        function (errorReason) {
+                        }
+                    )
+
+                },
+
+                _loadSpecificAnnotationAndPopupModal: function (name, position, finishCallback) {
+                    var requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
+                        + ':12080' + '/annotation/query/' + name + '/' + position + '..' + position;
+
+                    dojoRequest(
+                        requestUrl,
+                        {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': null
+                            },
+                            handleAs: 'json'
+                        }
+                    ).then(
+                        function (annotationObjectArray) {
+                            console.info('annotationObjectArray:', annotationObjectArray);
+                            var annotationDialog = new SnowAnnotationDialog(
+                                {
+                                    refName: name,
+                                    position: position,
+                                    annotationObjectArray: annotationObjectArray,
+                                    browser: this.browser,
+                                    setCallback: function () {
+                                        finishCallback();
+                                    }
+                                }
+                            );
+                            annotationDialog.show();
+
+                        },
+                        function (errorReason) {
+                            console.error('Error', requestUrl, errorReason);
+                        }
+                    );
                 }
+
 
             }
         );

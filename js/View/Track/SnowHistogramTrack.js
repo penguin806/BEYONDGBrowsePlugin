@@ -32,17 +32,18 @@ define([
 
                 _defaultConfig: function () {
                     var oldConfig = this.inherited(arguments);
-                    var newConfig = lang.mixin(
-                        oldConfig,
-                        {
-                            histograms: {
-                                height: 100,
-                                color: '#fd79a8',
-                                maxValue: 100000.0
-                            }
+                    var newConfig = {
+                        histograms: {
+                            height: 100,
+                            color: '#fd79a8',
+                            maxValue: 100000.0
                         }
-                    );
+                    };
 
+                    newConfig = lang.mixin(
+                        lang.clone(oldConfig),
+                        newConfig
+                    );
                     return newConfig;
                 },
 
