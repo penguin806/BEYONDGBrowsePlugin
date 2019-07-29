@@ -657,7 +657,7 @@ define(
                     allAminoAcidCell.on('dblclick', function (event) {
                             console.debug('dblclick on .Snow_aminoAcid:', arguments);
                             var finishCallback = function () {
-                                _this.browser.publish( '/jbrowse/v1/n/tracks/redraw' );
+                                domClass.add(event.target, 'Snow_annotation_mark');
                             };
                             var thisAminoAcidCellPosition = domAttr.get(event.target, 'snowseqposition');
 
@@ -752,7 +752,25 @@ define(
                                     annotationObjectArray: annotationObjectArray,
                                     browser: this.browser,
                                     setCallback: function () {
-                                        finishCallback();
+                                        // Make sure the annotation is successfully inserted
+                                        dojoRequest(
+                                            requestUrl,
+                                            {
+                                                method: 'GET',
+                                                headers: {
+                                                    'X-Requested-With': null
+                                                },
+                                                handleAs: 'json'
+                                            }
+                                        ).then(
+                                            function (annotationObjectArray) {
+                                                if(typeof annotationObjectArray == "object" && annotationObjectArray.length > 0)
+                                                {
+                                                    finishCallback();
+                                                }
+                                            }
+                                        );
+
                                     }
                                 }
                             );

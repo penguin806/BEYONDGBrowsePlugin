@@ -39,7 +39,7 @@ define(
                     this.browser = args.browser;
                     this.annotationExistAtThisPosition =
                         ! (typeof args.annotationObjectArray != "object"
-                            && args.annotationObjectArray.length === 0);
+                            || args.annotationObjectArray.length === 0);
 
                     this.setCallback    = args.setCallback || function() {};
                     this.cancelCallback = args.cancelCallback || function() {};
@@ -64,7 +64,8 @@ define(
                             iconClass: 'dijitIconSave',
                             label: 'Save',
                             onClick:function() {
-                                dojoLang.hitch(_this, 'insertSpecificAnnotation');
+                                // dojoLang.hitch(_this, 'insertSpecificAnnotation');
+                                _this.insertSpecificAnnotation();
                                 _this.setCallback && _this.setCallback();
                                 _this.hide();
                             }
@@ -75,22 +76,23 @@ define(
 
                 show: function( callback ) {
                     var _this = this;
-                    var annotationExists = false;
                     domClass.add( this.domNode, 'annotationDialog' );
 
                     _this.annotationTimeInput = new dijitTextBox(
                         {
                             id: 'annotation_version_string',
                             value: this.annotationExistAtThisPosition ? _this.annotationObjectArray[0].time : '',
-                            placeHolder: ''
+                            placeHolder: '',
+                            style: "width: 100%"
                         }
                     );
 
                     _this.annotationContentInput = new dijitTextArea(
                         {
                             id: 'annotation_content_string',
-                            value: this.annotationExistAtThisPosition ? _this.annotationObjectArray[0].content : '',
-                            placeHolder: ''
+                            value: this.annotationExistAtThisPosition ? _this.annotationObjectArray[0].contents : '',
+                            placeHolder: '',
+                            style: "width: 100%"
                         }
                     );
 
