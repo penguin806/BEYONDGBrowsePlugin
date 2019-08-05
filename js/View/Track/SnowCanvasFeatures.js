@@ -435,8 +435,8 @@ define(
                         {
                             // Execute when Retrieving reference genome sequence complete
                             let translatedProteinSequence = _this._translateGenomeSequenceToProtein(refGenomeSeq, false);
-                            console.info('refGenomeSeq:', refGenomeSeq);
-                            console.info('translatedProteinSequence:', translatedProteinSequence);
+                            console.info('refGenomeSeq:', leftBase, rightBase, refGenomeSeq);
+                            console.info('translatedProteinSequence:', leftBase, rightBase, translatedProteinSequence);
                             proteinInfoObject.translatedReferenceSequence = translatedProteinSequence;
 
                             // Return promise from dojo request
@@ -451,21 +451,22 @@ define(
                         {
                             if(recordObjectArray !== undefined && recordObjectArray.length > 0)
                             {
+                                let fullRangeLeftPos = parseInt(recordObjectArray[0]._start);
+                                let fullRangeRightPos = parseInt(recordObjectArray[0].end);
                                 _this.store.getReferenceSequence(
                                     {
                                         ref: _this.refSeq.name,
-                                        start: parseInt(recordObjectArray[0]._start),
-                                        end: parseInt(recordObjectArray[0].end)
+                                        start: fullRangeLeftPos,
+                                        end: fullRangeRightPos
                                     },
                                     function( fullRangeReferenceGenomeSequence ) {
                                         let translatedFullRangeProteinSequence =
                                             _this._translateGenomeSequenceToProtein(fullRangeReferenceGenomeSequence, false);
-                                        console.info('fullRangeReferenceGenomeSequence:', fullRangeReferenceGenomeSequence);
-                                        console.info('translatedFullRangeProteinSequence:', translatedFullRangeProteinSequence);
+                                        console.info('fullRangeReferenceGenomeSequence:', fullRangeLeftPos, fullRangeRightPos, fullRangeReferenceGenomeSequence);
+                                        console.info('translatedFullRangeProteinSequence:', fullRangeLeftPos, fullRangeRightPos, translatedFullRangeProteinSequence);
                                         proteinInfoObject.translatedFullRangeReferenceSequence = translatedFullRangeProteinSequence;
 
-                                        let parsedRecords = _this._parseRequestedObject(recordObjectArray);
-                                        proteinInfoObject.requestedProteoformObjectArray = parsedRecords;
+                                        proteinInfoObject.requestedProteoformObjectArray = _this._parseRequestedObject(recordObjectArray);
                                         mapTranslatedProteinSequenceToRequestedProteoformDeferred.resolve(proteinInfoObject);
                                     },
                                     function(errorReason) {
@@ -487,16 +488,17 @@ define(
                             console.info('proteinInfoObject:', proteinInfoObject);
                             for(let i=0; i < proteinInfoObject.requestedProteoformObjectArray.length; i++)
                             {
-                                console.debug('proteinInfoObject.translatedFullRangeReferenceSequence:',
-                                    proteinInfoObject.translatedFullRangeReferenceSequence);
-                                console.debug('proteinInfoObject.requestedProteoformObjectArray[i].sequence:',
-                                    proteinInfoObject.requestedProteoformObjectArray[i].sequence);
+                                // 2019-08-04
+                                // console.debug('proteinInfoObject.translatedFullRangeReferenceSequence:',
+                                //     proteinInfoObject.translatedFullRangeReferenceSequence);
+                                // console.debug('proteinInfoObject.requestedProteoformObjectArray[i].sequence:',
+                                //     proteinInfoObject.requestedProteoformObjectArray[i].sequence);
 
                                 // const translatedReferenceProteinSequence =
                                 //     proteinInfoObject.translatedReferenceSequence[0];
                                 const translatedReferenceProteinSequence =
                                     proteinInfoObject.translatedFullRangeReferenceSequence[0];
-                                const proteoformToCompare =
+                                const proteoformRemoveModificationToCompare =
                                     proteinInfoObject.requestedProteoformObjectArray[i].sequence.replace(
                                         /\[\w*\]|\(|\)|\./g,
                                         ''
@@ -505,13 +507,13 @@ define(
                                 proteinInfoObject.requestedProteoformObjectArray[i].lcsMatrix =
                                     _this._getLongestCommonSubSequenceMatrix(
                                         translatedReferenceProteinSequence,
-                                        proteoformToCompare
+                                        proteoformRemoveModificationToCompare
                                     );
 
                                 proteinInfoObject.requestedProteoformObjectArray[i].lcsLength =
                                     _this._getLcsMatrixLength(
                                         translatedReferenceProteinSequence,
-                                        proteoformToCompare,
+                                        proteoformRemoveModificationToCompare,
                                         proteinInfoObject.requestedProteoformObjectArray[i].lcsMatrix
                                     );
                             }

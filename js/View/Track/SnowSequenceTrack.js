@@ -43,6 +43,9 @@ define(
                     let _this = this;
                     _this.blockObjectArray = [];
                     window.snowSequenceTrack = _this;
+                    window.debug_printSeq = function (refName, startPos, endPos) {
+                        _this._printRefSeqAndConceptualTranslation(_this, refName, startPos, endPos)
+                    };
 
                     // Subscribe draw proteoform event from module <SnowCanvasFeatures>
                     dojoTopic.subscribe(
@@ -63,7 +66,10 @@ define(
                         oldConfig,{
                             showTranslation1st: true,
                             showTranslation2nd: false,
-                            showTranslation3rd: false
+                            showTranslation3rd: false,
+                            showTranslationReverse1st: false,
+                            showTranslationReverse2nd: false,
+                            showTranslationReverse3rd: false,
                         });
                     newConfig.drawCircle = !!oldConfig.drawCircle || true;
                     newConfig.animationEnabled = !!oldConfig.animationEnabled || true;
@@ -120,7 +126,7 @@ define(
                             type: 'dijit/MenuSeparator'
                         },
                         {
-                            label: 'Show Amino Acid Translation 1',
+                            label: 'Show AminoAcid Translation F1',
                             type: 'dijit/CheckedMenuItem',
                             checked: !!_this.config.showTranslation1st,
                             onClick: function(event){
@@ -129,7 +135,7 @@ define(
                             }
                         },
                         {
-                            label: 'Show Amino Acid Translation 2',
+                            label: 'Show AminoAcid Translation F2',
                             type: 'dijit/CheckedMenuItem',
                             checked: !!_this.config.showTranslation2nd,
                             onClick: function(event){
@@ -138,11 +144,38 @@ define(
                             }
                         },
                         {
-                            label: 'Show Amino Acid Translation 3',
+                            label: 'Show AminoAcid Translation F3',
                             type: 'dijit/CheckedMenuItem',
                             checked: !!_this.config.showTranslation3rd,
                             onClick: function(event){
                                 _this.config.showTranslation3rd = this.checked;
+                                _this.changed();
+                            }
+                        },
+                        {
+                            label: 'Show AminoAcid Translation R1',
+                            type: 'dijit/CheckedMenuItem',
+                            checked: !!_this.config.showTranslationReverse1st,
+                            onClick: function(event){
+                                _this.config.showTranslationReverse1st = this.checked;
+                                _this.changed();
+                            }
+                        },
+                        {
+                            label: 'Show AminoAcid Translation R2',
+                            type: 'dijit/CheckedMenuItem',
+                            checked: !!_this.config.showTranslationReverse2nd,
+                            onClick: function(event){
+                                _this.config.showTranslationReverse2nd = this.checked;
+                                _this.changed();
+                            }
+                        },
+                        {
+                            label: 'Show AminoAcid Translation R3',
+                            type: 'dijit/CheckedMenuItem',
+                            checked: !!_this.config.showTranslationReverse3rd,
+                            onClick: function(event){
+                                _this.config.showTranslationReverse3rd = this.checked;
                                 _this.changed();
                             }
                         },
@@ -168,7 +201,7 @@ define(
                             }
                         },
                         {
-                            label: 'Enable Animation when Hover',
+                            label: 'Enable Hover Animation',
                             type: 'dijit/CheckedMenuItem',
                             checked: !!_this.config.animationEnabled,
                             onClick: function (event) {
@@ -324,7 +357,6 @@ define(
 
                 _fillSequenceBlock: function( block, blockIndex, scale, seq ) {
                     seq = seq.replace(/\s/g,this.nbsp);
-
                     var blockStart = block.startBase;
                     var blockEnd = block.endBase;
                     var blockSeq = seq.substring( 2, seq.length - 2 );
@@ -336,15 +368,20 @@ define(
                     var extStartSeq = seq.substring( 0, seq.length - 2 );
                     var extEndSeq = seq.substring( 2 );
 
+                    var translationToShow = [
+                        this.config.showTranslation1st,
+                        this.config.showTranslation2nd,
+                        this.config.showTranslation3rd,
+                        //].reverse();
+                        this.config.showTranslationReverse1st,
+                        this.config.showTranslationReverse2nd,
+                        this.config.showTranslationReverse3rd
+                    ];
+
                     // Render forward strand translation
-                    if( true )
+                    if( translationToShow[0] || translationToShow[1] || translationToShow[2] )
                     {
                         //if( this.config.showForwardStrand && this.config.showTranslation ) {
-                        var translationToShow = [
-                            this.config.showTranslation1st,
-                            this.config.showTranslation2nd,
-                            this.config.showTranslation3rd
-                        ].reverse();
 
                         var frameDiv = [];
                         // array.forEach(translationToShow,function(configItem, i){
@@ -357,7 +394,6 @@ define(
                         //             domClass.add( translatedDiv, "frame" + frame );
                         //         }
                         // }, this);
-
                         // for(var i = 0; i < 3; i++)
                         // {
                         //     if(translationToShow[i])
@@ -391,35 +427,34 @@ define(
                         }
                     }
 
-                    // Do not render forward strand sequence
-                    if( false )
-                    {
-                        // make a table to contain the sequences
-                        var charSize = this.getCharacterMeasurements('sequence');
-                        var bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
-                        var seqNode;
-                        if( this.config.showReverseStrand || this.config.showForwardStrand )
-                            seqNode = domConstruct.create(
-                                "table", {
-                                    className: "sequence" + (bigTiles ? ' big' : '') + (this.config.showColor ? '' : ' nocolor'),
-                                    style: { width: "100%" }
-                                }, block.domNode);
-
-                        // add a table for the forward strand
-                        if( this.config.showForwardStrand )
-                            seqNode.appendChild( this._renderSeqTr( blockStart, blockEnd, blockSeq, scale ));
-                    }
+                    // Render forward strand sequence
+                    // if( false )
+                    // {
+                    //     // make a table to contain the sequences
+                    //     var charSize = this.getCharacterMeasurements('sequence');
+                    //     var bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
+                    //     var seqNode;
+                    //     if( this.config.showReverseStrand || this.config.showForwardStrand )
+                    //         seqNode = domConstruct.create(
+                    //             "table", {
+                    //                 className: "sequence" + (bigTiles ? ' big' : '') + (this.config.showColor ? '' : ' nocolor'),
+                    //                 style: { width: "100%" }
+                    //             }, block.domNode);
+                    //
+                    //     // add a table for the forward strand
+                    //     if( this.config.showForwardStrand )
+                    //         seqNode.appendChild( this._renderSeqTr( blockStart, blockEnd, blockSeq, scale ));
+                    // }
                     // Do not render reverse strand sequence and translation
-                    if( false )
+                    if( true )
                     {
-                        // and one for the reverse strand
-                        // if( this.config.showReverseStrand ) {
-                        var comp = this._renderSeqTr( blockStart, blockEnd, Util.complement(blockSeq), scale );
-                        comp.className = 'revcom';
-                        seqNode.appendChild( comp );
+                        // // and one for the reverse strand
+                        // // if( this.config.showReverseStrand ) {
+                        // var comp = this._renderSeqTr( blockStart, blockEnd, Util.complement(blockSeq), scale );
+                        // comp.className = 'revcom';
+                        // seqNode.appendChild( comp );
 
-
-                        if( false )
+                        if( translationToShow[3] || translationToShow[4] || translationToShow[5] )
                         {
                             // if( this.config.showTranslation ) {
                             var frameDiv = [];
@@ -431,7 +466,14 @@ define(
                                 domClass.add( translatedDiv, "frame" + frame );
                             }
                             for( var i = 0; i < 3; i++ ) {
-                                block.domNode.appendChild( frameDiv[i] );
+                                if(translationToShow[ 3 + i ])
+                                {
+                                    block.domNode.appendChild( frameDiv[i] );
+                                }
+                                else
+                                {
+                                    domConstruct.destroy( frameDiv[i] );
+                                }
                             }
                         }
                     }
@@ -530,7 +572,7 @@ define(
                             },
                             tr
                         );
-                        var originalCodon = orientedSeqSliced.slice(3 * i, 3 * i + 3)
+                        var originalCodon = orientedSeqSliced.slice(3 * i, 3 * i + 3);
                         originalCodon = reverse ? originalCodon.split("").reverse().join("") : originalCodon;
                         aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_'+translated.charAt(i).toLowerCase();
 
@@ -781,8 +823,63 @@ define(
                             console.error('Error', requestUrl, errorReason);
                         }
                     );
-                }
+                },
 
+                _getTranslationSequence: function(
+                    _this, sequence, offset, reverse
+                ) {
+                    sequence = reverse ? Util.revcom( sequence ) : sequence;
+
+                    var extraBases = (sequence.length - offset) % 3;
+                    var seqSliced = sequence.slice( offset, sequence.length - extraBases );
+
+                    var translated = "";
+                    for( var i = 0; i < seqSliced.length; i += 3 ) {
+                        var nextCodon = seqSliced.slice(i, i + 3);
+                        var aminoAcid = _this._codonTable[nextCodon] || _this.nbsp;
+                        translated += aminoAcid;
+                    }
+                    translated = reverse ? translated.split("").reverse().join("") : translated;
+                    return translated;
+                },
+
+                _printRefSeqAndConceptualTranslation: function (_this, refName, startPos, endPos) {
+                    _this.store.getReferenceSequence(
+                        {
+                            ref: refName,
+                            start: startPos,
+                            end: endPos
+                        },
+                        function (refGenomeSequence) {
+                            var leftover = (refGenomeSequence.length - 2) % 3;
+                            var extStartSeq = refGenomeSequence.substring(0, refGenomeSequence.length - 2);
+                            var extEndSeq = refGenomeSequence.substring(2);
+
+                            let refGenomeSequenceReverse = refGenomeSequence.split("").reverse().join("");
+                            console.info('refGenomeSequence', refName, startPos, endPos, refGenomeSequence);
+                            console.info('refGenomeSequenceReverse', refName, startPos, endPos, refGenomeSequenceReverse);
+
+                            for (var i = 0; i < 3; i++) {
+                                let transStart = startPos + i;
+                                let frame = (transStart % 3 + 3) % 3;
+                                let translatedProteinSeq = _this._getTranslationSequence(_this, extEndSeq, i, false);
+                                console.info('translatedProteinSeq', refName, startPos, endPos, 'frame' + frame, 'forward', translatedProteinSeq);
+                            }
+
+                            for (var i = 0; i < 3; i++) {
+                                let transStart = startPos + 1 - i;
+                                let leftover = (refGenomeSequence.length - 2) % 3;
+                                let frame = (transStart % 3 + 3 + leftover) % 3;
+                                let translatedProteinSeqReverse = _this._getTranslationSequence(_this, extStartSeq, i, true);
+                                console.info('translatedProteinSeq', refName, startPos, endPos, 'frame' + frame, 'reverse', translatedProteinSeqReverse);
+                            }
+
+                        },
+                        function (error) {
+                            console.error(error);
+                        }
+                    )
+                }
 
             }
         );
