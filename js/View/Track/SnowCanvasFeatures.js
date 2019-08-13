@@ -376,9 +376,11 @@ define(
                 )
                 {
                     // let proteoformSequenceLengthWithoutModification = proteoformSequence.replace(/\[\w*\]|\(|\)|\./g,'').length;
-                    let proteoformSequenceLength = proteoformSequence.length;
-                    let lengthPerAminoAcid = (proteoformEndPosition - proteoformStartPosition)
-                        / proteoformSequenceLength;
+                    // let proteoformSequenceLength = proteoformSequence.length;
+                    // let lengthPerAminoAcid = (proteoformEndPosition - proteoformStartPosition)
+                    //    / proteoformSequenceLength;
+                    // 2019-08-14
+                    let lengthPerAminoAcid = 3;
 
                     let newResultObjectArray = [];
                     for(let index in mappingResultObjectArray)
@@ -407,6 +409,36 @@ define(
                         proteoformSequence, filteredMSScanMassMappingResultArray,
                         proteoformStartPosition, proteoformEndPosition, block
                     );
+                },
+
+                _formatProteoformSequenceString: function(
+                    proteoformSequence, isReverse
+                )
+                {
+                    let proteoformSequenceWithoutPrefixAndSuffix =
+                        proteoformSequence.replace(/(.*\.)(.*)(\..*)/, '$2');
+                    let proteoformSequenceWithoutParentheses =
+                        proteoformSequenceWithoutPrefixAndSuffix.replace(/\(|\)/g, '');
+                    // Example:
+                    // A.TKAARKSAPATGGVKKPHRYRPGTVALREIRRYQKST(ELLIRKLPFQRLVREIAQDFKTDLRFQSSAV)[Acetyl]MALQEASEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA.
+                    // -> TKAARKSAPATGGVKKPHRYRPGTVALREIRRYQKSTELLIRKLPFQRLVREIAQDFKTDLRFQSSAV[Acetyl]MALQEASEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA
+
+                    if(isReverse)
+                    {
+                        return proteoformSequenceWithoutParentheses.replace(
+                                /\[.*\]/g,
+                                function(modification)
+                                {
+                                    return modification.split('').reverse().join('')
+                                }
+                            ).split('').reverse().join('');
+                        // -> AREGRIRRALQIDKPMITVRKAHIACLNTDEFLGVLYAESAEQLAM[Acetyl]VASSQFRLDTKFDQAIERVLRQFPLKRILLETSKQYRRIERLAVTGPRYRHPKKVGGTAPASKRAAKT
+                    }
+                    else
+                    {
+                        return proteoformSequenceWithoutParentheses;
+                    }
+
                 },
 
                 fillBlock: function(renderArgs)
@@ -499,14 +531,30 @@ define(
                             //    implemented using Longest Common Sequence (LCS) algorithm
                             for(let i=0; i < proteinInfoObject.requestedProteoformObjectArray.length; i++)
                             {
+                                // 2019-08-14: At first, we format proteoform sequence of each scan.
+                                //             If strand is <->, reverse sequence, arrMSScanMassArray, arrMSScanPeakAundance
+                                proteinInfoObject.requestedProteoformObjectArray[i].sequence =
+                                    _this._formatProteoformSequenceString(
+                                        proteinInfoObject.requestedProteoformObjectArray[i].sequence,
+                                        proteinInfoObject.requestedProteoformObjectArray[i].strand === '-' ? true : false
+                                    );
+                                if(proteinInfoObject.requestedProteoformObjectArray[i].strand === '-')
+                                {
+                                    proteinInfoObject.requestedProteoformObjectArray[i].arrMSScanMassArray =
+                                        proteinInfoObject.requestedProteoformObjectArray[i].arrMSScanMassArray.reverse();
+                                    proteinInfoObject.requestedProteoformObjectArray[i].arrMSScanPeakAundance =
+                                        proteinInfoObject.requestedProteoformObjectArray[i].arrMSScanPeakAundance.reverse();
+                                }
+
                                 // 2019-08-04
                                 // console.debug('proteinInfoObject.translatedFullRangeReferenceSequence:',
                                 //     proteinInfoObject.translatedFullRangeReferenceSequence);
                                 // console.debug('proteinInfoObject.requestedProteoformObjectArray[i].sequence:',
                                 //     proteinInfoObject.requestedProteoformObjectArray[i].sequence);
-
                                 // const translatedReferenceProteinSequence =
                                 //     proteinInfoObject.translatedReferenceSequence[0];
+
+                                // Todo: compare with each of translatedFullRangeReferenceSequence (currently 3 sequence)
                                 const translatedReferenceProteinSequence =
                                     proteinInfoObject.translatedFullRangeReferenceSequence[0];
                                 const proteoformRemoveModificationToCompare =
