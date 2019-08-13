@@ -430,16 +430,17 @@ define(
                         requestedProteoformObjectArray: null
                     };
 
+                    // 1. Retrieve reference genome sequence within current block:
                     getReferenceSequenceDeferred.then(
                         function (refGenomeSeq)
                         {
-                            // Execute when Retrieving reference genome sequence complete
+                            // 2. Translate genome sequence into conceptual protein sequence
                             let translatedProteinSequence = _this._translateGenomeSequenceToProtein(refGenomeSeq, false);
                             console.info('refGenomeSeq:', leftBase, rightBase, refGenomeSeq);
                             console.info('translatedProteinSequence:', leftBase, rightBase, translatedProteinSequence);
                             proteinInfoObject.translatedReferenceSequence = translatedProteinSequence;
 
-                            // Return promise from dojo request
+                            // 3. Query BeyondGBrowse backend, return 'promise' produced by dojo/request
                             return _this._queryFeatures(_this.refSeq.name, leftBase, rightBase);
                         },
                         function (errorReason)
@@ -449,10 +450,13 @@ define(
                     ).then(
                         function (recordObjectArray)
                         {
+                            // 4. If region of this block is included in database, BeyondGBrowse backend will response with a json array,
+                            //    which contains <start & end position>, <proteoform sequence>, <strand (forward/reverse)>, <msScan mass&intensity> of all scan(s)
                             if(recordObjectArray !== undefined && recordObjectArray.length > 0)
                             {
                                 let fullRangeLeftPos = parseInt(recordObjectArray[0]._start);
                                 let fullRangeRightPos = parseInt(recordObjectArray[0].end);
+                                // 5. Retrieve reference genome sequence within ENTIRE proteoform region
                                 _this.store.getReferenceSequence(
                                     {
                                         ref: _this.refSeq.name,
@@ -460,6 +464,8 @@ define(
                                         end: fullRangeRightPos
                                     },
                                     function( fullRangeReferenceGenomeSequence ) {
+                                        // 6. Translate reference genome sequence for entire proteoform into conceptual protein sequence,
+                                        //    currently three forward translation only, Todo: using reverse translation if the proteoform strand is <->
                                         let translatedFullRangeProteinSequence =
                                             _this._translateGenomeSequenceToProtein(fullRangeReferenceGenomeSequence, false);
                                         console.info('fullRangeReferenceGenomeSequence:', fullRangeLeftPos, fullRangeRightPos, fullRangeReferenceGenomeSequence);
@@ -467,6 +473,8 @@ define(
                                         proteinInfoObject.translatedFullRangeReferenceSequence = translatedFullRangeProteinSequence;
 
                                         proteinInfoObject.requestedProteoformObjectArray = _this._parseRequestedObject(recordObjectArray);
+                                        // 7. Fill <Conceptual protein sequence of this block>, <Conceptual protein sequence of entire proteoform region>,
+                                        //    <json array responded from backend> into object <proteinInfoObject>, call resolve() to pass <proteinInfoObject> to <mapTranslatedProteinSequenceToRequestedProteoformDeferred>
                                         mapTranslatedProteinSequenceToRequestedProteoformDeferred.resolve(proteinInfoObject);
                                     },
                                     function(errorReason) {
@@ -486,6 +494,9 @@ define(
                         function (proteinInfoObject)
                         {
                             console.info('proteinInfoObject:', proteinInfoObject);
+                            // 8. Sort the json array responded from BeyondGBrowse backend (DESCEND),
+                            //    according to the SIMILARITY between proteoform and conceptual protein sequence,
+                            //    implemented using Longest Common Sequence (LCS) algorithm
                             for(let i=0; i < proteinInfoObject.requestedProteoformObjectArray.length; i++)
                             {
                                 // 2019-08-04
@@ -503,6 +514,8 @@ define(
                                         /\[\w*\]|\(|\)|\./g,
                                         ''
                                     );
+                                // Todo: reverse <proteoformRemoveModificationToCompare> if the strand is <->
+                                // const proteoformRemoveModificationToCompare = proteoformRemoveModificationToCompare.split('').reverse().join();
 
                                 proteinInfoObject.requestedProteoformObjectArray[i].lcsMatrix =
                                     _this._getLongestCommonSubSequenceMatrix(
@@ -537,11 +550,12 @@ define(
 
                             if(proteinInfoObject.requestedProteoformObjectArray.length >= 1)
                             {
+                                // Read configuration file, determine which rank of scan to take
                                 let msScanMassTrackId = _this.config.msScanMassTrackId - 1;
                                 if(
                                     msScanMassTrackId === undefined || isNaN(msScanMassTrackId) ||
                                     msScanMassTrackId < 0 ||
-                                    msScanMassTrackId >= proteinInfoObject.requestedProteoformObjectArray.length.length
+                                    msScanMassTrackId >= proteinInfoObject.requestedProteoformObjectArray.length
                                 )
                                 {
                                     msScanMassTrackId = 0;
@@ -554,6 +568,7 @@ define(
                                 console.info('arrMSScanMassArray:', proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].arrMSScanMassArray);
                                 console.info('arrMSScanPeakAundance:', proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].arrMSScanPeakAundance);
 
+                                // 9. Calculating MsScanMass and mapping with proteoform ions
                                 let mappingResultObjectArray = _this._calcMSScanMass(
                                     proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].sequence,
                                     proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].arrMSScanMassArray,
@@ -561,6 +576,7 @@ define(
                                 );
                                 console.info('mappingResultObjectArray:', mappingResultObjectArray);
 
+                                // 10. Take out the parts that needed for current view block
                                 let filteredMSScanMassMappingResultArray = _this._filterMSScanMassMappingResultForCurrentBlock(
                                     leftBase,
                                     rightBase,
@@ -570,6 +586,7 @@ define(
                                     proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].end
                                 );
 
+                                // 11. Draw proteoform sequence at the bottom of SnowSequenceTrack, including ions and modification mark
                                 _this._publishDrawProteoformSequenceEvent(
                                     proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].sequence,
                                     filteredMSScanMassMappingResultArray,
@@ -580,6 +597,9 @@ define(
 
                                 console.info('filteredMSScanMassMappingResultArray:', filteredMSScanMassMappingResultArray);
                                 renderArgs.dataToDraw = filteredMSScanMassMappingResultArray;
+                                // 12. Draw protein mass spectrum histogram within current block region
+                                //     X-Axis: m/z
+                                //     Y-Axis: intensity
                                 _this.fillHistograms(renderArgs);
                             }
 
