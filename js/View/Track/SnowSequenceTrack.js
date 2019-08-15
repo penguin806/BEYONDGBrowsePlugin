@@ -42,6 +42,7 @@ define(
                 constructor: function (args) {
                     let _this = this;
                     _this.blockObjectArray = [];
+                    _this.proteoformScanIdArray = [];
                     window.snowSequenceTrack = _this;
                     window.debug_printSeq = function (refName, startPos, endPos) {
                         _this._printRefSeqAndConceptualTranslation(_this, refName, startPos, endPos)
@@ -223,66 +224,146 @@ define(
                 },
 
                 _drawProteoformSequenceEventCallback: function(
-                    proteoformSequence, filteredMSScanMassMappingResultArray,
-                    proteoformStartPosition, proteoformEndPosition, block, _this
+                    proteoformSequence, proteoformStartPosition, proteoformEndPosition,
+                    isReverseStrand, scanId, mSScanMassMappingResultArray, _this
                 ){
-                    console.info('snow/showProteoform received:',
-                        proteoformSequence, filteredMSScanMassMappingResultArray,
-                        proteoformStartPosition, proteoformEndPosition, block
-                    );
-                    console.info('corresponding block in SnowSequenceTrack:',
-                        _this.blockObjectArray[block.blockIndex]);
-
-                    if( _this.blockObjectArray[block.blockIndex] === undefined ||
-                        _this.blockObjectArray[block.blockIndex].startBase !== block.startBase ||
-                        _this.blockObjectArray[block.blockIndex].endBase !== block.endBase
-                    )
+                    // 2019-08-16: New implementation:
+                    if(_this.proteoformScanIdArray.hasOwnProperty(scanId) && _this.proteoformScanIdArray[scanId] === true)
                     {
-                        console.error('Block do not match!');
                         return;
                     }
 
-                    let blockLengthPerSequenceCharacter =
-                        (proteoformEndPosition - proteoformStartPosition) / proteoformSequence.length;
-                    let startOffset = (block.startBase - proteoformStartPosition) / blockLengthPerSequenceCharacter;
-                    let endOffset = (proteoformEndPosition - block.endBase) / blockLengthPerSequenceCharacter;
-                    let proteoformSequenceOfCurrentBlock =
-                        proteoformSequence.substring(
-                            Math.round(startOffset),
-                            Math.round(proteoformSequence.length - endOffset)
-                        );
+                    _this.proteoformScanIdArray[scanId] = true;
+                    let lengthPerAminoAcidCharacter = 3;
+                    let snowSequenceTrackBlocks = _this.blocks;
+                    let detailArrayOfProteoformSequence = [];
 
-                    let modificationPositionArray = [];
-                    for(let i=0; i<filteredMSScanMassMappingResultArray.length; i++)
+                    for(let index = 0; index < proteoformSequence.length; index++)
                     {
-                        if(filteredMSScanMassMappingResultArray[i].hasOwnProperty('position'))
+                        let currentAminoAcidDetail = {
+                            aminoAcidCharacter: undefined,
+                            bIonFlag: false,
+                            yIonFlag: false,
+                            modification: undefined
+                        };
+
+                        if(proteoformSequence.charAt(index) !== '[' && proteoformSequence.charAt(index) !== ']')
                         {
-                            modificationPositionArray.push(
-                                filteredMSScanMassMappingResultArray[i].position - Math.round(startOffset)
-                            );
+                            currentAminoAcidDetail.aminoAcidCharacter = proteoformSequence.charAt(index);
+                            for(let i = 0; i < mSScanMassMappingResultArray.length; i++)
+                            {
+                                if(mSScanMassMappingResultArray[i].position === index)
+                                {
+                                    currentAminoAcidDetail.bIonFlag = true;
+                                    break;
+                                }
+                            }
+                            detailArrayOfProteoformSequence.push(currentAminoAcidDetail);
+                        }
+                        else
+                        {
+                            // Modification
+                            if(detailArrayOfProteoformSequence.length <= 0)
+                            {
+                                continue;
+                            }
+                            currentAminoAcidDetail = detailArrayOfProteoformSequence[currentAminoAcidDetail.length - 1];
+                            for(index++; index < proteoformSequence.length; index++)
+                            {
+                                let modificationType = "";
+                                if(proteoformSequence.charAt(index) !== '[' && proteoformSequence.charAt(index) !== ']')
+                                {
+                                    modificationType += proteoformSequence.charAt(index);
+                                }
+                                else
+                                {
+                                    detailArrayOfProteoformSequence[currentAminoAcidDetail.length - 1].modification =
+                                        modificationType;
+                                    index++;
+                                    break;
+                                }
+                            }
+                        }
+
+                    }
+
+
+
+                    for(let blockIndex in snowSequenceTrackBlocks)
+                    {
+                        if( snowSequenceTrackBlocks.hasOwnProperty(blockIndex)
+                            && typeof snowSequenceTrackBlocks[blockIndex] == "object" )
+                        {
+                            // Currently visible block
+                            let blockStartBase = snowSequenceTrackBlocks[blockIndex].startBase;
+                            let blockEndBase = snowSequenceTrackBlocks[blockIndex].endBase;
+
+
+
+
+
                         }
                     }
 
-                    let newProteoformSequenceDiv = _this._renderProteoformSequence(
-                        proteoformSequenceOfCurrentBlock,
-                        0,
-                        _this.blockObjectArray[block.blockIndex].startBase,
-                        _this.blockObjectArray[block.blockIndex].endBase,
-                        _this.blockObjectArray[block.blockIndex].endBase - _this.blockObjectArray[block.blockIndex].startBase,
-                        _this.blockObjectArray[block.blockIndex].scale,
-                        modificationPositionArray
-                    );
-                    domClass.add( newProteoformSequenceDiv, "snow_proteoform_frame" );
-                    _this.blockObjectArray[block.blockIndex].domNode.appendChild(newProteoformSequenceDiv);
 
-                    let totalHeight = 0;
-                    dojoArray.forEach(
-                        _this.blockObjectArray[block.blockIndex].domNode.childNodes,
-                        function( table ) {
-                            totalHeight += (table.clientHeight || table.offsetHeight);
-                        }
-                    );
-                    this.heightUpdate( totalHeight, block.blockIndex );
+                    // Old implementation
+                    // console.info('snow/showProteoform received:',
+                    //     proteoformSequence, filteredMSScanMassMappingResultArray,
+                    //     proteoformStartPosition, proteoformEndPosition, block
+                    // );
+                    // console.info('corresponding block in SnowSequenceTrack:',
+                    //     _this.blockObjectArray[block.blockIndex]);
+                    //
+                    // if( _this.blockObjectArray[block.blockIndex] === undefined ||
+                    //     _this.blockObjectArray[block.blockIndex].startBase !== block.startBase ||
+                    //     _this.blockObjectArray[block.blockIndex].endBase !== block.endBase
+                    // )
+                    // {
+                    //     console.error('Block do not match!');
+                    //     return;
+                    // }
+                    //
+                    // let blockLengthPerSequenceCharacter =
+                    //     (proteoformEndPosition - proteoformStartPosition) / proteoformSequence.length;
+                    // let startOffset = (block.startBase - proteoformStartPosition) / blockLengthPerSequenceCharacter;
+                    // let endOffset = (proteoformEndPosition - block.endBase) / blockLengthPerSequenceCharacter;
+                    // let proteoformSequenceOfCurrentBlock =
+                    //     proteoformSequence.substring(
+                    //         Math.round(startOffset),
+                    //         Math.round(proteoformSequence.length - endOffset)
+                    //     );
+                    //
+                    // let modificationPositionArray = [];
+                    // for(let i=0; i<filteredMSScanMassMappingResultArray.length; i++)
+                    // {
+                    //     if(filteredMSScanMassMappingResultArray[i].hasOwnProperty('position'))
+                    //     {
+                    //         modificationPositionArray.push(
+                    //             filteredMSScanMassMappingResultArray[i].position - Math.round(startOffset)
+                    //         );
+                    //     }
+                    // }
+                    //
+                    // let newProteoformSequenceDiv = _this._renderProteoformSequence(
+                    //     proteoformSequenceOfCurrentBlock,
+                    //     0,
+                    //     _this.blockObjectArray[block.blockIndex].startBase,
+                    //     _this.blockObjectArray[block.blockIndex].endBase,
+                    //     _this.blockObjectArray[block.blockIndex].endBase - _this.blockObjectArray[block.blockIndex].startBase,
+                    //     _this.blockObjectArray[block.blockIndex].scale,
+                    //     modificationPositionArray
+                    // );
+                    // domClass.add( newProteoformSequenceDiv, "snow_proteoform_frame" );
+                    // _this.blockObjectArray[block.blockIndex].domNode.appendChild(newProteoformSequenceDiv);
+                    //
+                    // let totalHeight = 0;
+                    // dojoArray.forEach(
+                    //     _this.blockObjectArray[block.blockIndex].domNode.childNodes,
+                    //     function( table ) {
+                    //         totalHeight += (table.clientHeight || table.offsetHeight);
+                    //     }
+                    // );
+                    // this.heightUpdate( totalHeight, block.blockIndex );
                 },
 
                 fillBlock: function(args) {
