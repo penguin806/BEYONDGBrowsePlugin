@@ -234,21 +234,26 @@ define(
                     }
 
                     _this.proteoformScanIdArray[scanId] = true;
-                    let lengthPerAminoAcidCharacter = 3;
+                    const lengthPerAminoAcidCharacter = 3;
                     let snowSequenceTrackBlocks = _this.blocks;
                     let detailArrayOfProteoformSequence = [];
 
                     for(let index = 0; index < proteoformSequence.length; index++)
                     {
                         let currentAminoAcidDetail = {
+                            isEmpty: false,
+                            isReverse: isReverseStrand,
+                            scan: scanId,
+                            leftPosition: undefined,
                             aminoAcidCharacter: undefined,
                             bIonFlag: false,
                             yIonFlag: false,
-                            modification: undefined
+                            modification: undefined,
                         };
 
                         if(proteoformSequence.charAt(index) !== '[' && proteoformSequence.charAt(index) !== ']')
                         {
+                            currentAminoAcidDetail.leftPosition = proteoformStartPosition + lengthPerAminoAcidCharacter * index;
                             currentAminoAcidDetail.aminoAcidCharacter = proteoformSequence.charAt(index);
                             for(let i = 0; i < mSScanMassMappingResultArray.length; i++)
                             {
@@ -288,7 +293,8 @@ define(
                     }
 
 
-
+                    let firstAttachedBlockIndex = _this.firstAttached;
+                    let lastAttachedBlockIndex = _this.lastAttached;
                     for(let blockIndex in snowSequenceTrackBlocks)
                     {
                         if( snowSequenceTrackBlocks.hasOwnProperty(blockIndex)
@@ -297,10 +303,77 @@ define(
                             // Currently visible block
                             let blockStartBase = snowSequenceTrackBlocks[blockIndex].startBase;
                             let blockEndBase = snowSequenceTrackBlocks[blockIndex].endBase;
+                            let aminoAcidCharactersPerBlock = (blockEndBase - blockStartBase) / lengthPerAminoAcidCharacter;
+                            let detailArrayOfProteoformInThisBlock = [];
 
+                            for(let index in detailArrayOfProteoformSequence)
+                            {
+                                if(
+                                    detailArrayOfProteoformSequence.hasOwnProperty(index) &&
+                                    typeof detailArrayOfProteoformSequence[index] == "object" &&
+                                    detailArrayOfProteoformSequence[index].leftPosition >= blockStartBase &&
+                                    detailArrayOfProteoformSequence[index].leftPosition < blockEndBase
+                                )
+                                {
+                                    detailArrayOfProteoformInThisBlock.push(detailArrayOfProteoformSequence[index]);
+                                }
+                            }
 
+                            if(detailArrayOfProteoformInThisBlock.length !== aminoAcidCharactersPerBlock)
+                            {
+                                let emptyAminoAcidDetail = {
+                                    isEmpty: true,
+                                    isReverse: undefined,
+                                    scan: undefined,
+                                    leftPosition: undefined,
+                                    aminoAcidCharacter: undefined,
+                                    bIonFlag: undefined,
+                                    yIonFlag: undefined,
+                                    modification: undefined,
+                                };
+                                if(blockIndex === firstAttachedBlockIndex)
+                                {
+                                    // First visible block
+                                    while(detailArrayOfProteoformInThisBlock.length < aminoAcidCharactersPerBlock)
+                                    {
+                                        detailArrayOfProteoformInThisBlock.unshift(emptyAminoAcidDetail);
+                                    }
+                                }
+                                else if(blockIndex === lastAttachedBlockIndex)
+                                {
+                                    // Last visible block
+                                    while(detailArrayOfProteoformInThisBlock.length < aminoAcidCharactersPerBlock)
+                                    {
+                                        detailArrayOfProteoformInThisBlock.push(emptyAminoAcidDetail);
+                                    }
+                                }
+                                else
+                                {
+                                    console.error('detailArrayOfProteoformInThisBlock is not full!', blockIndex, detailArrayOfProteoformInThisBlock);
+                                }
+                            }
 
+                            // Start rendering proteoform sequence
+                            let newProteoformSequenceDiv = _this._renderProteoformSequence(
+                                proteoformSequenceOfCurrentBlock,
+                                0,
+                                _this.blockObjectArray[block.blockIndex].startBase,
+                                _this.blockObjectArray[block.blockIndex].endBase,
+                                _this.blockObjectArray[block.blockIndex].endBase - _this.blockObjectArray[block.blockIndex].startBase,
+                                _this.blockObjectArray[block.blockIndex].scale,
+                                modificationPositionArray
+                            );
+                            domClass.add( newProteoformSequenceDiv, "snow_proteoform_frame" );
+                            _this.blockObjectArray[block.blockIndex].domNode.appendChild(newProteoformSequenceDiv);
 
+                            let totalHeight = 0;
+                            dojoArray.forEach(
+                                _this.blockObjectArray[block.blockIndex].domNode.childNodes,
+                                function( table ) {
+                                    totalHeight += (table.clientHeight || table.offsetHeight);
+                                }
+                            );
+                            this.heightUpdate( totalHeight, block.blockIndex );
 
                         }
                     }
@@ -696,6 +769,78 @@ define(
                 },
 
                 _renderProteoformSequence: function(
+                    detailArrayOfProteoformInThisBlock, offset,
+                    blockStart, blockEnd,
+                    blockLength, scale
+                ){
+                    var charSize = this.getCharacterMeasurements("aminoAcid");
+                    var bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
+                    var charWidth = 100 / (blockLength / 3);
+
+                    var container = domConstruct.create(
+                        'div',
+                        {
+                            className: 'Snow_translatedSequence'
+                        }
+                    );
+
+                    var tableWidthPercent = (charWidth * detailArrayOfProteoformInThisBlock.length);
+                    tableWidthPercent = tableWidthPercent <= 100 ? tableWidthPercent : 100;
+                    var table  = domConstruct.create('table',
+                        {
+                            className: 'Snow_translatedSequence offset'+offset+(bigTiles ? ' big' : ''),
+                            style:
+                                {
+                                    // width: (charWidth * proteoformSequence.length) + "%"
+                                    width: tableWidthPercent + '%'
+                                }
+                        },
+                        container
+                    );
+                    var tr = domConstruct.create('tr', {}, table );
+                    table.style.left = (charWidth * offset / 3) + "%";
+
+                    var blockWidth = blockLength * scale;
+                    // var tableWidthScale = 100 / (charWidth * proteoformSequence.length);
+                    // var tableActualWidth = blockWidth / tableWidthScale;
+                    // var spanActualWidth = (tableActualWidth - proteoformSequence.length) / proteoformSequence.length;
+                    var spanActualWidth = blockWidth * (tableWidthPercent * 0.01) / detailArrayOfProteoformInThisBlock.length;
+
+                    charWidth = 100 / detailArrayOfProteoformInThisBlock.length + "%";
+                    var drawChars = scale >= charSize.w;
+                    if( drawChars )
+                        table.className += ' big';
+
+                    for( var i = 0; i < detailArrayOfProteoformInThisBlock.length; i++ ) {
+                        var aminoAcidSpan = document.createElement('td');
+                        aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_' + proteoformSequence.charAt(i).toLowerCase();
+
+                        if(this.config.drawCircle)
+                        {
+                            aminoAcidSpan.className += ' Snow_aminoAcid_circle';
+                        }
+                        if(this.config.animationEnabled)
+                        {
+                            aminoAcidSpan.className += ' Snow_aminoAcid_animation';
+                        }
+                        // Modification mark
+                        if(modificationPositionArray.indexOf(i) !== -1)
+                        {
+                            aminoAcidSpan.className += ' Snow_aminoAcid_mark_right_top';
+                        }
+
+                        aminoAcidSpan.style.width = charWidth;
+                        aminoAcidSpan.style.height = spanActualWidth + 'px';
+                        if( drawChars ) {
+                            aminoAcidSpan.innerHTML = proteoformSequence.charAt( i );
+                        }
+                        tr.appendChild(aminoAcidSpan);
+                    }
+                    return container;
+                },
+
+                // Deprecated
+                _renderProteoformSequence_Old: function(
                     proteoformSequence, offset,
                     blockStart, blockEnd,
                     blockLength, scale, modificationPositionArray
