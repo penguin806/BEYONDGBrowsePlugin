@@ -401,13 +401,13 @@ define(
                 },
 
                 _publishDrawProteoformSequenceEvent: function(
-                    proteoformSequence, filteredMSScanMassMappingResultArray,
-                    proteoformStartPosition, proteoformEndPosition, block
+                    proteoformSequence, proteoformStartPosition, proteoformEndPosition,
+                    isReverseStrand, scanId, mSScanMassMappingResultArray
                 )
                 {
                     dojoTopic.publish('snow/showProteoform',
-                        proteoformSequence, filteredMSScanMassMappingResultArray,
-                        proteoformStartPosition, proteoformEndPosition, block
+                        proteoformSequence, proteoformStartPosition, proteoformEndPosition,
+                        isReverseStrand, scanId, mSScanMassMappingResultArray
                     );
                 },
 
@@ -609,12 +609,18 @@ define(
                                     msScanMassTrackId = 0;
                                 }
 
+                                let thisProteoformObject = proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId];
+                                let thisProteoformSequence = thisProteoformObject.sequence;
+                                let thisProteoformScanId = thisProteoformObject.scanId;
+                                let thisProteoformStartPosition = thisProteoformObject._start;
+                                let thisProteoformEndPosition = thisProteoformObject.end;
+                                let isThisProteoformReverse = thisProteoformObject.strand === '-' ? true : false;
                                 console.info('msScanMassTrackId:', msScanMassTrackId);
-                                console.info('longestCommonSeqLength:', proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].lcsLength);
-                                console.info('scanId:', proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].scanId);
-                                console.info('sequence:', proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].sequence);
-                                console.info('arrMSScanMassArray:', proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].arrMSScanMassArray);
-                                console.info('arrMSScanPeakAundance:', proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].arrMSScanPeakAundance);
+                                console.info('longestCommonSeqLength:', thisProteoformObject.lcsLength);
+                                console.info('scanId:', thisProteoformObject.scanId);
+                                console.info('sequence:', thisProteoformObject.sequence);
+                                console.info('arrMSScanMassArray:', thisProteoformObject.arrMSScanMassArray);
+                                console.info('arrMSScanPeakAundance:', thisProteoformObject.arrMSScanPeakAundance);
 
                                 // 9. Calculating MsScanMass and mapping with proteoform ions
                                 let mappingResultObjectArray = _this._calcMSScanMass(
@@ -636,11 +642,12 @@ define(
 
                                 // 11. Draw proteoform sequence at the bottom of SnowSequenceTrack, including ions and modification mark
                                 _this._publishDrawProteoformSequenceEvent(
-                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].sequence,
-                                    filteredMSScanMassMappingResultArray,
-                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId]._start,
-                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].end,
-                                    blockObject
+                                    thisProteoformSequence,
+                                    thisProteoformStartPosition,
+                                    thisProteoformEndPosition,
+                                    isThisProteoformReverse,
+                                    thisProteoformScanId,
+                                    mappingResultObjectArray
                                 );
 
                                 console.info('filteredMSScanMassMappingResultArray:', filteredMSScanMassMappingResultArray);
