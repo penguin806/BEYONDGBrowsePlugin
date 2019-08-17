@@ -426,7 +426,7 @@ define(
                     if(isReverse)
                     {
                         return proteoformSequenceWithoutParentheses.replace(
-                                /\[.*\]/g,
+                                /\[.*?\]/g,
                                 function(modification)
                                 {
                                     return modification.split('').reverse().join('')
@@ -559,7 +559,7 @@ define(
                                     proteinInfoObject.translatedFullRangeReferenceSequence[0];
                                 const proteoformRemoveModificationToCompare =
                                     proteinInfoObject.requestedProteoformObjectArray[i].sequence.replace(
-                                        /\[\w*\]|\(|\)|\./g,
+                                        /\[.*?\]|\(|\)|\./g,
                                         ''
                                     );
                                 // Todo: reverse <proteoformRemoveModificationToCompare> if the strand is <->
