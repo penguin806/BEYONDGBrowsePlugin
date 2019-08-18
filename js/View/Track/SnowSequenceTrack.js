@@ -10,6 +10,7 @@ define(
         'dojo/query',
         'dojo/topic',
         'dojo/request',
+        'dojo/on',
         'JBrowse/View/Track/Sequence',
         'JBrowse/View/TrackConfigEditor',
         'JBrowse/View/ConfirmDialog',
@@ -27,6 +28,7 @@ define(
         dojoQuery,
         dojoTopic,
         dojoRequest,
+        dojoOn,
         Sequence,
         TrackConfigEditor,
         ConfirmDialog,
@@ -816,7 +818,7 @@ define(
                     tableWidthPercent = tableWidthPercent <= 100 ? tableWidthPercent : 100;
                     var table  = domConstruct.create('table',
                         {
-                            className: 'Snow_translatedSequence offset'+offset+(bigTiles ? ' big' : ''),
+                            className: 'Snow_translatedSequence offset' + offset + (bigTiles ? ' big' : ''),
                             style:
                                 {
                                     // width: (charWidth * proteoformSequence.length) + "%"
@@ -829,10 +831,8 @@ define(
                     table.style.left = (charWidth * offset / 3) + "%";
 
                     var blockWidth = blockLength * scale;
-                    // var tableWidthScale = 100 / (charWidth * proteoformSequence.length);
-                    // var tableActualWidth = blockWidth / tableWidthScale;
-                    // var spanActualWidth = (tableActualWidth - proteoformSequence.length) / proteoformSequence.length;
-                    var aminoAcidTableCellActualWidth = blockWidth * (tableWidthPercent * 0.01) / (blockLength / 3);
+                    // var aminoAcidTableCellActualWidth = blockWidth * (tableWidthPercent * 0.01) / (blockLength / 3);
+                    var aminoAcidTableCellActualWidth = blockWidth * (tableWidthPercent * 0.01) / proteoformArrayLength;
 
                     charWidth = 100 / detailArrayOfProteoformInThisBlock.length + "%";
                     var drawChars = scale >= charSize.w;
@@ -869,7 +869,54 @@ define(
                             }
                             if(detailArrayOfProteoformInThisBlock[index].modification !== undefined)
                             {
-                                console.log('Todo: draw modification', detailArrayOfProteoformInThisBlock[index]);
+                                let modificationText = detailArrayOfProteoformInThisBlock[index].modification;
+                                modificationText = modificationText.replace(';', ';<br>')
+                                let modificationDivWidth = aminoAcidTableCellActualWidth / 2;
+                                let modificationDivHeight = aminoAcidTableCellActualWidth / 2;
+                                let modificationDivNode = domConstruct.create('div',
+                                    {
+                                        className: 'Snow_aminoAcid_modification_label',
+                                        style: {
+                                            width: modificationDivWidth + 'px',
+                                            height: modificationDivHeight + 'px'
+                                            // transform: 'translate( -' + modificationDivWidth/2 +
+                                            //     'px, ' + modificationDivHeight/2 + 'px)'
+                                        }
+                                    }
+                                );
+
+                                let modificationTextSpanNode = domConstruct.create('span',
+                                    {
+                                        className: 'Snow_aminoAcid_modification_text_span',
+                                        style: {
+                                            position: 'absolute',
+                                            top: '50%',
+                                            left: '50%',
+                                            transform: 'translate(-50%, -50%)'
+                                        },
+                                        innerHTML: modificationText
+                                    },
+                                    modificationDivNode
+                                );
+
+                                dojoOn(
+                                    modificationDivNode,
+                                    'mouseover',
+                                    function () {
+                                        modificationDivNode.style.width = modificationDivWidth * 2 + 'px';
+                                        modificationDivNode.style.height = modificationDivHeight * 2 + 'px';
+                                    }
+                                );
+                                dojoOn(
+                                    modificationDivNode,
+                                    'mouseout',
+                                    function () {
+                                        modificationDivNode.style.width = modificationDivWidth + 'px';
+                                        modificationDivNode.style.height = modificationDivHeight + 'px';
+                                    }
+                                );
+
+                                tr.appendChild(modificationDivNode);
                             }
 
                             if(detailArrayOfProteoformInThisBlock[index].headOrTailFlag.includes('HEAD'))
