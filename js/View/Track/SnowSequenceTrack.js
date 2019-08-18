@@ -866,6 +866,15 @@ define(
                             if(detailArrayOfProteoformInThisBlock[index].bIonFlag !== undefined)
                             {
                                 aminoAcidSpan.className += ' Snow_aminoAcid_mark_right_top';
+
+                                let bIonLabelNode = domConstruct.create('span',
+                                    {
+                                        className: 'Snow_aminoAcid_head_strand_bIon_label',
+                                        style: {},
+                                        innerHTML: detailArrayOfProteoformInThisBlock[index].bIonFlag
+                                    }
+                                );
+                                aminoAcidSpan.appendChild(bIonLabelNode);
                             }
                             if(detailArrayOfProteoformInThisBlock[index].modification !== undefined)
                             {
@@ -905,6 +914,7 @@ define(
                                     function () {
                                         modificationDivNode.style.width = modificationDivWidth * 2 + 'px';
                                         modificationDivNode.style.height = modificationDivHeight * 2 + 'px';
+                                        modificationDivNode.style.fontSize = 'x-small';
                                     }
                                 );
                                 dojoOn(
@@ -913,6 +923,7 @@ define(
                                     function () {
                                         modificationDivNode.style.width = modificationDivWidth + 'px';
                                         modificationDivNode.style.height = modificationDivHeight + 'px';
+                                        modificationDivNode.style.fontSize = 'xx-small';
                                     }
                                 );
 

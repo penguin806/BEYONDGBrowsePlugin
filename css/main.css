@@ -164,6 +164,18 @@
     transition: all 0.2s ease-in-out;
 }
 
+.Snow_translatedSequence td span.Snow_aminoAcid_head_strand_bIon_label {
+    color: #d63031;
+    text-align: center;
+    position: absolute;
+    bottom: 0;
+    right: 2%;
+    font-family: monospace;
+    font-weight: normal;
+    font-size: x-small;
+    line-height: normal;
+}
+
 /*.Snow_translatedSequence td.Snow_aminoAcid_mark_left_top::after {*/
     /*content: "";*/
     /*position: absolute;*/
