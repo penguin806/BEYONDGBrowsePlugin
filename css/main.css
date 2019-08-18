@@ -90,6 +90,60 @@
     height: 0;
 }
 
+.Snow_translatedSequence td span.Snow_aminoAcid_head_strand_scanId_label {
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px 4px;
+    position: absolute;
+    width: 120%;
+    top: 50%;
+    right: 110%;
+    transform: translateY(-50%);
+    font-family: monospace;
+    font-weight: normal;
+    font-size: x-small;
+}
+
+.Snow_translatedSequence td span.Snow_aminoAcid_head_strand_scanId_label::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent transparent black;
+}
+
+.Snow_translatedSequence td span.Snow_aminoAcid_tail_strand_scanId_label {
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px 4px;
+    position: absolute;
+    width: 120%;
+    top: 50%;
+    left: 110%;
+    transform: translateY(-50%);
+    font-family: monospace;
+    font-weight: normal;
+    font-size: x-small;
+}
+
+.Snow_translatedSequence td span.Snow_aminoAcid_tail_strand_scanId_label::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 100%;
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent black transparent transparent;
+}
+
 
 /*.Snow_translatedSequence td.Snow_aminoAcid_mark_left_top::after {*/
     /*content: "";*/

@@ -874,25 +874,35 @@ define(
 
                             if(detailArrayOfProteoformInThisBlock[index].headOrTailFlag.includes('HEAD'))
                             {
-                                let strandSpanAtHead = domConstruct.create('span',
+                                let headSpanInnerHTML = 'Strand: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
+                                headSpanInnerHTML += detailArrayOfProteoformInThisBlock[index].isReverse ? '-' : '+';
+                                headSpanInnerHTML += '</span>';
+                                headSpanInnerHTML += '<br>Scan: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
+                                headSpanInnerHTML +=  detailArrayOfProteoformInThisBlock[index].scan + '</span>';
+                                let strandAndScanIdSpanAtHead = domConstruct.create('span',
                                     {
-                                        className: 'Snow_aminoAcid_head_strand_label',
+                                        className: 'Snow_aminoAcid_head_strand_scanId_label',
                                         style: {},
-                                        innerHTML: detailArrayOfProteoformInThisBlock[index].isReverse ? '-' : '+'
+                                        innerHTML: headSpanInnerHTML
                                     }
                                 );
-                                aminoAcidSpan.appendChild(strandSpanAtHead);
+                                aminoAcidSpan.appendChild(strandAndScanIdSpanAtHead);
                             }
                             else if(detailArrayOfProteoformInThisBlock[index].headOrTailFlag.includes('TAIL'))
                             {
-                                let strandSpanAtTail = domConstruct.create('span',
+                                let tailSpanInnerHTML = 'Strand: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
+                                tailSpanInnerHTML += detailArrayOfProteoformInThisBlock[index].isReverse ? '-' : '+';
+                                tailSpanInnerHTML += '</span>';
+                                tailSpanInnerHTML += '<br>Scan: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
+                                tailSpanInnerHTML +=  detailArrayOfProteoformInThisBlock[index].scan + '</span>';
+                                let strandAndScanIdSpanAtHead = domConstruct.create('span',
                                     {
-                                        className: 'Snow_aminoAcid_tail_strand_label',
+                                        className: 'Snow_aminoAcid_tail_strand_scanId_label',
                                         style: {},
-                                        innerHTML: detailArrayOfProteoformInThisBlock[index].isReverse ? '-' : '+'
+                                        innerHTML: tailSpanInnerHTML
                                     }
                                 );
-                                aminoAcidSpan.appendChild(strandSpanAtTail);
+                                aminoAcidSpan.appendChild(strandAndScanIdSpanAtHead);
                             }
 
                         }
