@@ -26,7 +26,6 @@ define(
             [
                 CanvasFeatures,
                 CodonTable,
-                // YScaleMixin,
                 SnowHistogramTrack
             ],
             {
@@ -513,7 +512,12 @@ define(
                                         console.error('Retrieve full range genome sequence failed:', errorReason);
                                     }
                                 );
-
+                            }
+                            else
+                            {
+                                // Pass empty array to <fillHistograms> (Draw the X-Axis line)
+                                renderArgs.dataToDraw = [];
+                                _this.fillHistograms(renderArgs);
                             }
                         },
                         function (reasonWhyRequestFail)
@@ -621,6 +625,13 @@ define(
                                 console.info('sequence:', thisProteoformObject.sequence);
                                 console.info('arrMSScanMassArray:', thisProteoformObject.arrMSScanMassArray);
                                 console.info('arrMSScanPeakAundance:', thisProteoformObject.arrMSScanPeakAundance);
+                                // Update track label
+                                let originalLabelText = _this.labelHTML ? _this.labelHTML : "";
+                                let labelTextToAppend = ' (Scan: ' + thisProteoformObject.scanId + ')';
+                                if(!originalLabelText.includes(labelTextToAppend))
+                                {
+                                    _this.setLabel(originalLabelText + labelTextToAppend);
+                                }
 
                                 // 9. Calculating MsScanMass and mapping with proteoform ions
                                 let mappingResultObjectArray = _this._calcMSScanMass(

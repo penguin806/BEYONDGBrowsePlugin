@@ -49,7 +49,6 @@ define([
 
                 fillBlock: function ( renderArgs ) {
 
-                    // Todo: Check if the user's browser support HTML canvas element
                     this.fillHistograms( renderArgs );
                 },
 
@@ -91,11 +90,6 @@ define([
                 },
 
                 _drawHistograms: function (viewArgs, histData) {
-                    if(histData.length === 0)
-                    {
-                        return;
-                    }
-
                     var _this = this;
                     // First we're going to find the max value (Deprecated: use fixed value instead)
                     // var maxValue = histData.length > 0 ? histData[0].value : 0;
@@ -116,14 +110,6 @@ define([
                     var rightBase = viewArgs.rightBase;
                     var blockLengthWithoutScale = rightBase - leftBase;
                     var blockActualWidth = blockLengthWithoutScale * scaleLevel;
-
-                    // Calc the diff between max(last) and min(first) key
-                    var keyMin = parseFloat(histData[0].key);
-                    var keyMax = parseFloat(histData[histData.length - 1].key);
-                    var keyDiffRange = (keyMax - keyMin) || 100;
-
-                    var offsetAtStartAndEnd = blockActualWidth * 0.1;
-                    var keyScale = (blockActualWidth - offsetAtStartAndEnd * 2) / keyDiffRange;
 
                     domConstruct.empty(block.domNode);
                     var c = block.featureCanvas =
@@ -147,6 +133,7 @@ define([
                     // Done: Update Histogram Height
                     this.heightUpdate(trackTotalHeight, viewArgs.blockIndex);
                     var ctx = c.getContext('2d');
+                    _this._scaleCanvas(c);
                     ctx.fillStyle = this.config.histograms.color;
                     ctx.textAlign = "center";
                     ctx.font = "Arial";
@@ -156,8 +143,22 @@ define([
                     ctx.moveTo(0,trackTotalHeight);
                     ctx.lineTo(Math.ceil((rightBase - leftBase + 1)*scaleLevel),trackTotalHeight);
                     ctx.stroke();
+
+                    if(histData.length === 0)
+                    {
+                        // Empty Data
+                        return;
+                    }
+
                     // Prepare for the arrow
                     ctx.beginPath();
+                    // Calc the diff between max(last) and min(first) key
+                    var keyMin = parseFloat(histData[0].key);
+                    var keyMax = parseFloat(histData[histData.length - 1].key);
+                    var keyDiffRange = (keyMax - keyMin) || 100;
+
+                    var offsetAtStartAndEnd = blockActualWidth * 0.1;
+                    var keyScale = (blockActualWidth - offsetAtStartAndEnd * 2) / keyDiffRange;
 
                     array.forEach(histData,function (item, index) {
                         var barHeight = item.value / maxValue * histogramHeight;
