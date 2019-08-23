@@ -176,6 +176,10 @@
     line-height: normal;
 }
 
+span.locate-button {
+    line-height: 18px;
+}
+
 /*.Snow_translatedSequence td.Snow_aminoAcid_mark_left_top::after {*/
     /*content: "";*/
     /*position: absolute;*/
