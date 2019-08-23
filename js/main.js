@@ -20,11 +20,15 @@ define([
             {
                 constructor: function( args )
                 {
-                    // console.log( "SnowPlugin plugin starting" );
+                    console.log( "BEYONDGBrowse is starting" );
                     var browser = args.browser;
                     var _this = this;
-                    this.browser = browser;
+                    _this.browser = browser;
+                    browser.config.massSpectraTrackNum =
+                        browser.config.massSpectraTrackNum ? browser.config.massSpectraTrackNum : 0;
                     var locateButtonDomNode = this._generateLocateButton();
+                    _this._loadBeyondProteinTrackFromConfig();
+                    _this._subscribeShowMassSpectraTrackEvent();
 
                     console.info('高通量多组学序列数据可视化浏览器 v1.0\nadmin@xuefeng.space\n指导老师: 钟坚成');
                     browser.afterMilestone('initView', function() {
@@ -45,6 +49,101 @@ define([
                             );
                         }
                     );
+
+                    // Add MassSpectraTrack
+                    browser.afterMilestone(
+                        'completely initialized',
+                        function() {
+                            if(browser.config.massSpectraTrackNum > 0)
+                            {
+                                browser.publish('BEYONDGBrowse/showMassSpectraTrack');
+                            }
+                        }
+                    );
+                },
+
+                _subscribeShowMassSpectraTrackEvent: function() {
+                    var _this = this;
+
+                    function deleteAllMassSpectraTrack() {
+                        let trackConfigsByName = _this.browser.trackConfigsByName;
+                        let massSpectraTracksToDeleteArray = [];
+
+                        for(let key in trackConfigsByName)
+                        {
+                            if(trackConfigsByName.hasOwnProperty(key) && typeof trackConfigsByName[key] == "object")
+                            {
+                                if(
+                                    trackConfigsByName[key].hasOwnProperty('BEYONDGBrowseMassTrack') &&
+                                    trackConfigsByName[key].BEYONDGBrowseMassTrack === true
+                                )
+                                {
+                                    massSpectraTracksToDeleteArray.push(trackConfigsByName[key]);
+                                }
+                            }
+                        }
+
+                        _this.browser.publish( '/jbrowse/v1/v/tracks/delete', massSpectraTracksToDeleteArray);
+                    }
+
+                    _this.browser.subscribe(
+                        'BEYONDGBrowse/showMassSpectraTrack',
+                        function () {
+                            if(
+                                !_this.BEYONDGBrowseProteinTrack || !_this.BEYONDGBrowseProteinTrack.store
+                                || !_this.BEYONDGBrowseProteinTrack.urlTemplate
+                            ) {
+                                return;
+                            }
+                            if(
+                                !isNaN(_this.browser.config.massSpectraTrackNum) &&
+                                _this.browser.config.massSpectraTrackNum > 0
+                            ) {
+                                deleteAllMassSpectraTrack();
+                            }
+                            else {
+                                return;
+                            }
+
+                            for(let index = 0; index < _this.browser.config.massSpectraTrackNum; index++)
+                            {
+                                let newMassSpectraTrackConfig = {
+                                    type: 'SnowPlugin/View/Track/SnowCanvasFeatures',
+                                    label: '质谱轨道' + (index + 1),
+                                    key: '质谱轨道' + (index + 1),
+                                    store: _this.BEYONDGBrowseProteinTrack.store,
+                                    storeClass: _this.BEYONDGBrowseProteinTrack.storeClass,
+                                    urlTemplate: _this.BEYONDGBrowseProteinTrack.urlTemplate,
+                                    msScanMassTrackId: index + 1,
+                                    BEYONDGBrowseMassTrack: true
+                                };
+
+                                _this.browser.publish( '/jbrowse/v1/v/tracks/new', [ newMassSpectraTrackConfig ] );
+                                // _this.browser.publish( '/jbrowse/v1/v/tracks/show', [ newMassSpectraTrackConfig ] );
+                            }
+                        }
+                    );
+                },
+
+                _loadBeyondProteinTrackFromConfig: function() {
+                    var _this = this;
+                    var browserTrackConfig = _this.browser.config.tracks;
+                    window.BEYONDGBrowseProteinTrack = _this.BEYONDGBrowseProteinTrack = undefined;
+
+                    for(let index in browserTrackConfig)
+                    {
+                        if(browserTrackConfig.hasOwnProperty(index) && typeof browserTrackConfig[index] == "object")
+                        {
+                            if(
+                                browserTrackConfig[index].hasOwnProperty('BEYONDGBrowseProteinTrack') &&
+                                browserTrackConfig[index].BEYONDGBrowseProteinTrack === true
+                            )
+                            {
+                                window.BEYONDGBrowseProteinTrack = _this.BEYONDGBrowseProteinTrack = browserTrackConfig[index];
+                                return;
+                            }
+                        }
+                    }
                 },
 
                 _generateLocateButton: function ()
@@ -112,6 +211,7 @@ define([
                                     return;
                                 }
                                 _this.browser.config.massSpectraTrackNum = massTrackNumber;
+                                _this.browser.publish('BEYONDGBrowse/showMassSpectraTrack');
                             }
                         }
                     );

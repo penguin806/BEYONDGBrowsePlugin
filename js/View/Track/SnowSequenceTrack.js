@@ -119,7 +119,7 @@ define(
 
                     // Subscribe draw proteoform event from module <SnowCanvasFeatures>
                     dojoTopic.subscribe(
-                        'snow/showProteoform',
+                        'BEYONDGBrowse/showProteoform',
                         function(
                             proteoformSequence, proteoformStartPosition, proteoformEndPosition,
                             isReverseStrand, scanId, mSScanMassMappingResultArray

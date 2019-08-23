@@ -31,13 +31,14 @@ define(
             {
                 constructor: function(arg)
                 {
-                    this._codonTable = this.defaultCodonTable;
+                    this._codonTable = this._codonTable ? this._codonTable : this.defaultCodonTable;
                     //console.log(this.defaultCodonTable);
                     // this.makeYScale({
                     //     fixBounds: false,
                     //     min: 200,
                     //     max: 1000
                     // });
+
                 },
 
                 _getLongestCommonSubSequenceMatrix: function(str1, str2)
@@ -404,7 +405,7 @@ define(
                     isReverseStrand, scanId, mSScanMassMappingResultArray
                 )
                 {
-                    dojoTopic.publish('snow/showProteoform',
+                    dojoTopic.publish('BEYONDGBrowse/showProteoform',
                         proteoformSequence, proteoformStartPosition, proteoformEndPosition,
                         isReverseStrand, scanId, mSScanMassMappingResultArray
                     );
