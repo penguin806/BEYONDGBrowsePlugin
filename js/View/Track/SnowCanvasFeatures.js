@@ -222,7 +222,7 @@ define(
                     var dCurrentMassSUM=0.0;
                     var boolPTM=false;
                     var strPTM="";
-                    var dSpanThreshold=10;
+                    var dSpanThreshold=0.5;
 
 
                     function RecongnazieTheBIonPosition() {
