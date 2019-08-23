@@ -31,7 +31,14 @@ define(
             {
                 constructor: function(arg)
                 {
+                    let _this = this;
                     this._codonTable = this._codonTable ? this._codonTable : this.defaultCodonTable;
+                    // _this.browser.subscribe(
+                    //     '/jbrowse/v1/n/tracks/visibleChanged',
+                    //     function () {
+                    //         _this.redraw();
+                    //     }
+                    // );
                     //console.log(this.defaultCodonTable);
                     // this.makeYScale({
                     //     fixBounds: false,
@@ -405,7 +412,7 @@ define(
                     isReverseStrand, scanId, mSScanMassMappingResultArray
                 )
                 {
-                    dojoTopic.publish('BEYONDGBrowse/showProteoform',
+                    dojoTopic.publish('BEYONDGBrowse/addSingleProteoformScan',
                         proteoformSequence, proteoformStartPosition, proteoformEndPosition,
                         isReverseStrand, scanId, mSScanMassMappingResultArray
                     );
@@ -440,6 +447,27 @@ define(
                     }
 
                 },
+
+                // showRange: function(
+                //     first, last, startBase,
+                //     bpPerBlock, scale,
+                //     containerStart, containerEnd, finishCallback
+                // ) {
+                //     console.log(arguments);
+                //     let _this = this;
+                //     let oldFinishCallback = finishCallback ? finishCallback : function() {};
+                //     let newFinishCallback = function(){
+                //         oldFinishCallback();
+                //         _this.browser.publish('BEYONDGBrowse/drawProteoformScans');
+                //     };
+                //     _this.inherited(
+                //         arguments,
+                //         [
+                //             first, last, startBase, bpPerBlock, scale,
+                //             containerStart, containerEnd, newFinishCallback
+                //         ]
+                //     );
+                // },
 
                 fillBlock: function(renderArgs)
                 {
@@ -631,6 +659,7 @@ define(
                                 let labelTextToAppend = ' (Scan: ' + thisProteoformObject.scanId + ')';
                                 if(!originalLabelText.includes(labelTextToAppend))
                                 {
+                                    _this.scanId = thisProteoformObject.scanId;
                                     _this.setLabel(originalLabelText + labelTextToAppend);
                                 }
 

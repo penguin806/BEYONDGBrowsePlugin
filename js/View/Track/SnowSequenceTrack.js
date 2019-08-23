@@ -44,9 +44,8 @@ define(
                 constructor: function (args) {
                     let _this = this;
                     _this.blockObjectArray = [];
-                    _this.proteoformScanIdArray = [];
-                    window.snowSequenceTrack = _this;
-                    window.debug_printSeq = function (refName, startPos, endPos) {
+                    window.BEYONDGBrowseProteinTrack = _this;
+                    window.BEYONDGBrowse_DebugPrintReferenceGenomeSequence = function (refName, startPos, endPos) {
                         _this._printRefSeqAndConceptualTranslation(_this, refName, startPos, endPos)
                     };
 
@@ -117,19 +116,96 @@ define(
                         "GGT" : "G"
                     };
 
+                    _this._subscribeEvents();
+                },
+
+                _subscribeEvents: function() {
+                    let _this = this;
+                    _this.proteoformToDrawScanIdArray = [];
+
                     // Subscribe draw proteoform event from module <SnowCanvasFeatures>
+                    // Fill the proteoformToDraw Array
                     dojoTopic.subscribe(
-                        'BEYONDGBrowse/showProteoform',
+                        'BEYONDGBrowse/addSingleProteoformScan',
                         function(
                             proteoformSequence, proteoformStartPosition, proteoformEndPosition,
                             isReverseStrand, scanId, mSScanMassMappingResultArray
                         ){
-                            _this._drawProteoformSequenceEventCallback(
-                                proteoformSequence, proteoformStartPosition, proteoformEndPosition,
-                                isReverseStrand, scanId, mSScanMassMappingResultArray, _this
-                            );
+                            console.info('Event: BEYONDGBrowse/addSingleProteoformScan', arguments);
+                            _this.proteoformToDrawScanIdArray[scanId] = {
+                                proteoformSequence: proteoformSequence,
+                                proteoformStartPosition: proteoformStartPosition,
+                                proteoformEndPosition: proteoformEndPosition,
+                                isReverseStrand: isReverseStrand,
+                                scanId: scanId,
+                                mSScanMassMappingResultArray: mSScanMassMappingResultArray
+                            };
+
+                            drawProteoform();
                         }
                     );
+
+                    _this.browser.subscribe(
+                        '/jbrowse/v1/n/tracks/navigate',
+                        function () {
+                            _this.proteoformToDrawScanIdArray = [];
+                        }
+                    );
+
+                    // _this.browser.subscribe(
+                    //     '/jbrowse/v1/n/tracks/visibleChanged',
+                    //     function () {
+                    //         dojoQuery('.snow_proteoform_frame').forEach(domConstruct.destroy);
+                    //         drawProteoform();
+                    //     }
+                    // );
+
+                    // Draw proteoform
+                    function drawProteoform() {
+                        for(let index in _this.proteoformToDrawScanIdArray)
+                        {
+                            if(
+                                _this.proteoformToDrawScanIdArray.hasOwnProperty(index) &&
+                                typeof _this.proteoformToDrawScanIdArray[index] == "object"
+                            )
+                            {
+                                let proteoformObject = _this.proteoformToDrawScanIdArray[index];
+                                _this._drawProteoformSequenceEventCallback(
+                                    proteoformObject.proteoformSequence, proteoformObject.proteoformStartPosition,
+                                    proteoformObject.proteoformEndPosition, proteoformObject.isReverseStrand,
+                                    proteoformObject.scanId, proteoformObject.mSScanMassMappingResultArray,
+                                    _this
+                                );
+                            }
+                        }
+                    }
+
+                    // _this.browser.subscribe(
+                    //     '/jbrowse/v1/n/tracks/navigate',
+                    //     function () {
+                    //         drawProteoform();
+                    //     }
+                    // );
+                    // _this.browser.subscribe(
+                    //     '/jbrowse/v1/n/tracks/redraw',
+                    //     function () {
+                    //         drawProteoform();
+                    //     }
+                    // );
+                    // _this.browser.subscribe(
+                    //     '/jbrowse/v1/n/tracks/redrawFinished',
+                    //     function () {
+                    //         drawProteoform();
+                    //         // Empty the proteoformToDraw Array
+                    //         _this.proteoformToDrawScanIdArray = [];
+                    //     }
+                    // );
+                    // _this.browser.subscribe(
+                    //     '/jbrowse/v1/n/tracks/visibleChanged',
+                    //     function () {
+                    //         drawProteoform();
+                    //     }
+                    // );
                 },
 
                 _defaultConfig: function(){
@@ -303,7 +379,7 @@ define(
                     // {
                     //     return;
                     // }
-                    _this.proteoformScanIdArray[scanId] = true;
+                    // _this.proteoformScanIdArray[scanId] = true;
                     dojoQuery('.snow_proteoform_frame.scan_' + scanId).forEach(domConstruct.destroy);
 
                     const lengthPerAminoAcidCharacter = 3;
