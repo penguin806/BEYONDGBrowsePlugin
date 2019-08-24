@@ -50,11 +50,11 @@ define(
 
                 _getLongestCommonSubSequenceMatrix: function(str1, str2)
                 {
-                    var result = [];
-                    for (var i = -1; i < str1.length; i = i + 1)
+                    let result = [];
+                    for (let i = -1; i < str1.length; i = i + 1)
                     {
                         result[i] = [];
-                        for (var j = -1; j < str2.length; j = j + 1)
+                        for (let j = -1; j < str2.length; j = j + 1)
                         {
                             if (i === -1 || j === -1)
                             {
@@ -192,7 +192,7 @@ define(
                     this._sortArrMSScanMassAndArrMSScanPeakAundance(arrMSScanMass, arrMSScanPeakAundance);
 
                     //ACIDS MASS AND COMMON PTM MASS, THE mapACIDMass can be extended by adding other PTM
-                    var mapACIDMass=new Map([
+                    let mapACIDMass=new Map([
                         ["G",57.0215],
                         ["A",71.0371],
                         ["S",87.032],
@@ -221,26 +221,26 @@ define(
                         ["Phosphorylation",79.96633]
                     ]);
 
-                    var iSCANNO=936;
-                    var intCurrentPos=0;
-                    var arrBIonPosition = [];//B 离子的序列position
-                    var arrBIonNUM = [];//B 离子的质谱position
+                    let iSCANNO=936;
+                    let intCurrentPos=0;
+                    let arrBIonPosition = [];//B 离子的序列position
+                    let arrBIonNUM = [];//B 离子的质谱position
 
-                    var iCurrentSeqPositionWithoutPTM=0;
-                    var dCurrentMassSUM=0.0;
-                    var boolPTM=false;
-                    var strPTM="";
-                    var dSpanThreshold=0.5;
+                    let iCurrentSeqPositionWithoutPTM=0;
+                    let dCurrentMassSUM=0.0;
+                    let boolPTM=false;
+                    let strPTM="";
+                    let dSpanThreshold=0.5;
 
 
                     function RecongnazieTheBIonPosition() {
 
-                        var dSpan=dSpanThreshold;//the span threshold with mass and percusor
-                        for (var j = intCurrentPos; j < arrMSScanMass.length; j++) {
+                        let dSpan=dSpanThreshold;//the span threshold with mass and percusor
+                        for (let j = intCurrentPos; j < arrMSScanMass.length; j++) {
 
                             //收敛到一点，向后探索
 
-                            var doubleCheckMassDistance = arrMSScanMass[j] - dCurrentMassSUM;
+                            let doubleCheckMassDistance = arrMSScanMass[j] - dCurrentMassSUM;
                             console.log("sum:",dCurrentMassSUM,"POS:",j," mass:",arrMSScanMass[j]," span:",doubleCheckMassDistance);
 
                             if (doubleCheckMassDistance > dSpan)
@@ -268,9 +268,9 @@ define(
                         arrBIonPosition.push(iCurrentSeqPositionWithoutPTM);
                     }
 
-                    for (var i = 0; i < strSenquence.length; i++) {
+                    for (let i = 0; i < strSenquence.length; i++) {
 
-                        var dCurrentMass=mapACIDMass.get(strSenquence[i]);
+                        let dCurrentMass=mapACIDMass.get(strSenquence[i]);
                         //console.log(i,dCurrentMass)
 
                         if(dCurrentMass!==undefined && boolPTM===false)
@@ -327,15 +327,15 @@ define(
                     }
 
 
-                    var num = [1, 3, 4, 5, 6, 8, 9, 14, 20, 23, 31, 55, 99];
-                    var nearly = new Array(100);
+                    let num = [1, 3, 4, 5, 6, 8, 9, 14, 20, 23, 31, 55, 99];
+                    let nearly = new Array(100);
 
                     function calculate() {
-                        var base = 10;
-                        var swap;
-                        for (var i = 0; i < num.length; i++) {
-                            var s = check(num[i], base);
-                            for (var j = 0; j < nearly.length; j++) {
+                        let base = 10;
+                        let swap;
+                        for (let i = 0; i < num.length; i++) {
+                            let s = check(num[i], base);
+                            for (let j = 0; j < nearly.length; j++) {
                                 if (s < check(nearly[j], base)) {
                                     swap = num[i];
                                     num[i] = nearly[j];
@@ -347,7 +347,7 @@ define(
                         console.log(arrBIonPosition);
                         console.log(arrBIonNUM);
 
-                        var arrBionPositionAndNumObject = [];
+                        let arrBionPositionAndNumObject = [];
                         for(let i=0; i<arrBIonPosition.length && i<arrBIonNUM.length; i++)
                         {
                             let newObject = {};

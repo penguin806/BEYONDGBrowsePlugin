@@ -31,8 +31,8 @@ define([
                 },
 
                 _defaultConfig: function () {
-                    var oldConfig = this.inherited(arguments);
-                    var newConfig = {
+                    let oldConfig = this.inherited(arguments);
+                    let newConfig = {
                         histograms: {
                             height: 100,
                             color: '#fd79a8',
@@ -53,7 +53,7 @@ define([
                 },
 
                 fillHistograms: function ( renderArgs ) {
-                    var histData = [
+                    let histData = [
                         // { key: "632.0333849", value: "2988.667223" , label: null },
                         // { key: "680.5928342", value: "1155.390511" , label: null },
                         // { key: "710.411926", value: "1152.658037" , label: null },
@@ -90,29 +90,29 @@ define([
                 },
 
                 _drawHistograms: function (viewArgs, histData) {
-                    var _this = this;
+                    let _this = this;
                     // First we're going to find the max value (Deprecated: use fixed value instead)
-                    // var maxValue = histData.length > 0 ? histData[0].value : 0;
+                    // let maxValue = histData.length > 0 ? histData[0].value : 0;
                     // array.forEach(histData,function (item, index) {
                     //     if(maxValue < item.value)
                     //     {
                     //         maxValue = item.value;
                     //     }
                     // });
-                    // var minVal = this.config.histograms.minValue || 0.0;
-                    var maxValue = this.config.histograms.maxValue || 100000.0;
+                    // let minVal = this.config.histograms.minValue || 0.0;
+                    let maxValue = this.config.histograms.maxValue || 100000.0;
 
-                    var block = viewArgs.block;
-                    var histogramHeight = this.config.histograms.height || 100;
-                    var trackTotalHeight = histogramHeight + 100;
-                    var scaleLevel = viewArgs.scale;
-                    var leftBase = viewArgs.leftBase;
-                    var rightBase = viewArgs.rightBase;
-                    var blockLengthWithoutScale = rightBase - leftBase;
-                    var blockActualWidth = blockLengthWithoutScale * scaleLevel;
+                    let block = viewArgs.block;
+                    let histogramHeight = this.config.histograms.height || 100;
+                    let trackTotalHeight = histogramHeight + 100;
+                    let scaleLevel = viewArgs.scale;
+                    let leftBase = viewArgs.leftBase;
+                    let rightBase = viewArgs.rightBase;
+                    let blockLengthWithoutScale = rightBase - leftBase;
+                    let blockActualWidth = blockLengthWithoutScale * scaleLevel;
 
                     domConstruct.empty(block.domNode);
-                    var c = block.featureCanvas =
+                    let c = block.featureCanvas =
                         domConstruct.create(
                             'canvas',
                             {
@@ -132,7 +132,7 @@ define([
 
                     // Done: Update Histogram Height
                     this.heightUpdate(trackTotalHeight, viewArgs.blockIndex);
-                    var ctx = c.getContext('2d');
+                    let ctx = c.getContext('2d');
                     _this._scaleCanvas(c);
                     ctx.fillStyle = this.config.histograms.color;
                     ctx.textAlign = "center";
@@ -153,19 +153,19 @@ define([
                     // Prepare for the arrow
                     ctx.beginPath();
                     // Calc the diff between max(last) and min(first) key
-                    var keyMin = parseFloat(histData[0].key);
-                    var keyMax = parseFloat(histData[histData.length - 1].key);
-                    var keyDiffRange = (keyMax - keyMin) || 100;
+                    let keyMin = parseFloat(histData[0].key);
+                    let keyMax = parseFloat(histData[histData.length - 1].key);
+                    let keyDiffRange = (keyMax - keyMin) || 100;
 
-                    var offsetAtStartAndEnd = blockActualWidth * 0.1;
-                    var keyScale = (blockActualWidth - offsetAtStartAndEnd * 2) / keyDiffRange;
+                    let offsetAtStartAndEnd = blockActualWidth * 0.1;
+                    let keyScale = (blockActualWidth - offsetAtStartAndEnd * 2) / keyDiffRange;
 
                     array.forEach(histData,function (item, index) {
-                        var barHeight = item.value / maxValue * histogramHeight;
-                        var barWidth = 3;
-                        var keyPosition = (parseFloat(item.key) - keyMin) * keyScale;
-                        var barLeft_X = offsetAtStartAndEnd + keyPosition;
-                        var barLeft_Y = trackTotalHeight - barHeight;
+                        let barHeight = item.value / maxValue * histogramHeight;
+                        let barWidth = 3;
+                        let keyPosition = (parseFloat(item.key) - keyMin) * keyScale;
+                        let barLeft_X = offsetAtStartAndEnd + keyPosition;
+                        let barLeft_Y = trackTotalHeight - barHeight;
                         // Draw histogram
                         ctx.fillRect(
                             barLeft_X,
@@ -200,8 +200,8 @@ define([
                 },
 
                 _drawArrow: function (context, fromX, fromY, toX, toY){
-                    var headLength = 5;
-                    var angle = Math.atan2(toY-fromY,toX-fromX);
+                    let headLength = 5;
+                    let angle = Math.atan2(toY-fromY,toX-fromX);
                     context.moveTo(fromX, fromY);
                     context.lineTo(toX, toY);
                     context.lineTo(toX-headLength*Math.cos(angle-Math.PI/6),toY-headLength*Math.sin(angle-Math.PI/6));
@@ -217,10 +217,10 @@ define([
                         blockLeftBase = 0;
                     }
 
-                    var newHistData = lang.clone(histData);
-                    var minKey = 300;
-                    var minValue = 300;
-                    var tempIncrease = 1;
+                    let newHistData = lang.clone(histData);
+                    let minKey = 300;
+                    let minValue = 300;
+                    let tempIncrease = 1;
 
                     array.forEach(newHistData,function (item, index) {
                         item.key = minKey + 150 * index + Math.random() * 130;

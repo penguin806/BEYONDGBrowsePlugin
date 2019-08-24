@@ -37,8 +37,8 @@ define(
 
                 _fillActionBar: function( actionBar )
                 {
-                    var _this = this;
-                    var cancelButton = new Button(
+                    let _this = this;
+                    let cancelButton = new Button(
                         {
                             iconClass: 'dijitIconDelete', label: 'Cancel',
                             onClick: function() {
@@ -49,7 +49,7 @@ define(
                     );
                     cancelButton.placeAt( actionBar );
 
-                    var findButton = new Button(
+                    let findButton = new Button(
                         {
                             iconClass: 'dijitIconSave',
                             label: 'Save',
@@ -65,8 +65,8 @@ define(
                 },
 
                 show: function( callback ) {
-                    var _this = this;
-                    var massTrackNumber = _this.browser.config.massSpectraTrackNum ? _this.browser.config.massSpectraTrackNum : 0;
+                    let _this = this;
+                    let massTrackNumber = _this.browser.config.massSpectraTrackNum ? _this.browser.config.massSpectraTrackNum : 0;
                     domClass.add( this.domNode, 'massTrackSettingDialog' );
 
                     _this.massTrackNumberInput = new dijitNumberSpinner(
@@ -93,7 +93,7 @@ define(
                 },
 
                 getMassSpectraTrackNumber: function() {
-                    var massSpectraTrackNumber = this.massTrackNumberInput.getValue();
+                    let massSpectraTrackNumber = this.massTrackNumberInput.getValue();
                     return massSpectraTrackNumber;
                 },
 

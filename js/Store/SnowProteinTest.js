@@ -24,7 +24,6 @@ define(
                 getFeatures: function(query, featureCallback, finishCallback, errorCallback) {
 
                 }
-
             }
         );
     }

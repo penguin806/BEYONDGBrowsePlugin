@@ -38,8 +38,8 @@ define(
 
                 _fillActionBar: function( actionBar )
                 {
-                    var _this = this;
-                    var cancelButton = new Button(
+                    let _this = this;
+                    let cancelButton = new Button(
                         {
                             iconClass: 'dijitIconDelete', label: 'Cancel',
                             onClick: function() {
@@ -50,7 +50,7 @@ define(
                     );
                     cancelButton.placeAt( actionBar );
 
-                    var findButton = new Button(
+                    let findButton = new Button(
                         {
                             iconClass: 'dijitIconSearch',
                             label: 'Find',
@@ -66,7 +66,7 @@ define(
                 },
 
                 show: function( callback ) {
-                    var _this = this;
+                    let _this = this;
 
                     domClass.add( this.domNode, 'locateDialog' );
 
@@ -90,7 +90,7 @@ define(
                 },
 
                 getProteinName: function() {
-                    var proteinNameInputContent = this.proteinNameInput.get('value');
+                    let proteinNameInputContent = this.proteinNameInput.get('value');
                     return proteinNameInputContent;
                 },
 

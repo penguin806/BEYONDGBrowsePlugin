@@ -21,18 +21,18 @@ define([
                 constructor: function( args )
                 {
                     console.log( "BEYONDGBrowse is starting" );
-                    var browser = args.browser;
-                    var _this = this;
+                    let browser = args.browser;
+                    let _this = this;
                     _this.browser = browser;
                     browser.config.massSpectraTrackNum =
                         browser.config.massSpectraTrackNum ? browser.config.massSpectraTrackNum : 0;
-                    var locateButtonDomNode = this._generateLocateButton();
+                    let locateButtonDomNode = this._generateLocateButton();
                     _this._loadBeyondProteinTrackFromConfig();
                     _this._subscribeShowMassSpectraTrackEvent();
 
                     console.info('高通量多组学序列数据可视化浏览器 v1.0\nadmin@xuefeng.space\n指导老师: 钟坚成');
                     browser.afterMilestone('initView', function() {
-                            var menuBar = browser.menuBar;
+                            let menuBar = browser.menuBar;
                             menuBar.appendChild(locateButtonDomNode);
 
                             browser.addGlobalMenuItem(
@@ -63,7 +63,7 @@ define([
                 },
 
                 _subscribeShowMassSpectraTrackEvent: function() {
-                    var _this = this;
+                    let _this = this;
 
                     function deleteAllMassSpectraTrack() {
                         let trackConfigsByName = _this.browser.trackConfigsByName;
@@ -126,8 +126,8 @@ define([
                 },
 
                 _loadBeyondProteinTrackFromConfig: function() {
-                    var _this = this;
-                    var browserTrackConfig = _this.browser.config.tracks;
+                    let _this = this;
+                    let browserTrackConfig = _this.browser.config.tracks;
                     window.BEYONDGBrowseProteinTrack = _this.BEYONDGBrowseProteinTrack = undefined;
 
                     for(let index in browserTrackConfig)
@@ -148,8 +148,8 @@ define([
 
                 _generateLocateButton: function ()
                 {
-                    var _this = this;
-                    var locateButton = new dijitButton(
+                    let _this = this;
+                    let locateButton = new dijitButton(
                         {
                             className :"locate-button",
                             innerHTML:"<span class=\"icon\"></span> Locate",
@@ -164,15 +164,15 @@ define([
 
                 _displayLocateDialog: function (browserObject)
                 {
-                    var _this = this;
-                    var jumpToSpecificRegionCallback = function (proteinData) {
+                    let _this = this;
+                    let jumpToSpecificRegionCallback = function (proteinData) {
                         if(typeof proteinData !== "object" || proteinData.length < 1)
                         {
                             console.error("ERROR_PROTEIN_NOT_FOUND");
                             return;
                         }
 
-                        var location =
+                        let location =
                             proteinData[0].name + ':' +
                             proteinData[0]._start + '..' +
                             proteinData[0].end;
@@ -180,7 +180,7 @@ define([
                         browserObject && browserObject.navigateTo(location);
                     };
 
-                    var locateDialog = new SnowLocateDialog(
+                    let locateDialog = new SnowLocateDialog(
                         {
                             browser: browserObject,
                             setCallback: function (proteinName) {
@@ -199,9 +199,9 @@ define([
 
                 _displayMassTrackSettingDialog: function (browserObject)
                 {
-                    var _this = this;
+                    let _this = this;
 
-                    var massTrackSettingDialog = new SnowMassTrackSettingDialog(
+                    let massTrackSettingDialog = new SnowMassTrackSettingDialog(
                         {
                             browser: browserObject,
                             setCallback: function (massTrackNumber) {

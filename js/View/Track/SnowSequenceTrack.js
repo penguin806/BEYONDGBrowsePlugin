@@ -209,8 +209,8 @@ define(
                 },
 
                 _defaultConfig: function(){
-                    var oldConfig = this.inherited(arguments);
-                    var newConfig = dojoLang.mixin(
+                    let oldConfig = this.inherited(arguments);
+                    let newConfig = dojoLang.mixin(
                         oldConfig,{
                             showTranslation1st: true,
                             showTranslation2nd: false,
@@ -226,10 +226,10 @@ define(
                 },
 
                 _trackMenuOptions: function() {
-                    var _this = this;
-                    // var oldTrackMenuOptions = _this.inherited(arguments);
+                    let _this = this;
+                    // let oldTrackMenuOptions = _this.inherited(arguments);
 
-                    var newTrackMenuOptions = [
+                    let newTrackMenuOptions = [
                         {
                             label: 'About this track',
                             title: 'About track: '+(this.key||this.name),
@@ -612,16 +612,16 @@ define(
                 },
 
                 fillBlock: function(args) {
-                    var _this = this;
-                    var blockIndex = args.blockIndex;
-                    var blockObject = args.block;
-                    var leftBase = args.leftBase;
-                    var rightBase = args.rightBase;
-                    var scale = args.scale;
-                    var leftExtended = leftBase - 2;
-                    var rightExtended = rightBase + 2;
+                    let _this = this;
+                    let blockIndex = args.blockIndex;
+                    let blockObject = args.block;
+                    let leftBase = args.leftBase;
+                    let rightBase = args.rightBase;
+                    let scale = args.scale;
+                    let leftExtended = leftBase - 2;
+                    let rightExtended = rightBase + 2;
                     _this.blockObjectArray[blockIndex] = blockObject;
-                    var renderAnnotationMarkDeferred = new dojoDeferred();
+                    let renderAnnotationMarkDeferred = new dojoDeferred();
 
                     renderAnnotationMarkDeferred.then(
                         function () {
@@ -633,7 +633,7 @@ define(
                             );
                         }
                     );
-                    var blur = domConstruct.create(
+                    let blur = domConstruct.create(
                         'div',
                         {
                             className: 'sequence_blur',
@@ -683,18 +683,18 @@ define(
 
                 _fillSequenceBlock: function( block, blockIndex, scale, seq ) {
                     seq = seq.replace(/\s/g,this.nbsp);
-                    var blockStart = block.startBase;
-                    var blockEnd = block.endBase;
-                    var blockSeq = seq.substring( 2, seq.length - 2 );
-                    var blockLength = blockSeq.length;
+                    let blockStart = block.startBase;
+                    let blockEnd = block.endBase;
+                    let blockSeq = seq.substring( 2, seq.length - 2 );
+                    let blockLength = blockSeq.length;
 
-                    var extStart = blockStart-2;
-                    var extEnd = blockStart+2;
-                    var leftover = (seq.length - 2) % 3;
-                    var extStartSeq = seq.substring( 0, seq.length - 2 );
-                    var extEndSeq = seq.substring( 2 );
+                    let extStart = blockStart-2;
+                    let extEnd = blockStart+2;
+                    let leftover = (seq.length - 2) % 3;
+                    let extStartSeq = seq.substring( 0, seq.length - 2 );
+                    let extEndSeq = seq.substring( 2 );
 
-                    var translationToShow = [
+                    let translationToShow = [
                         this.config.showTranslation1st,
                         this.config.showTranslation2nd,
                         this.config.showTranslation3rd,
@@ -709,39 +709,39 @@ define(
                     {
                         //if( this.config.showForwardStrand && this.config.showTranslation ) {
 
-                        var frameDiv = [];
+                        let frameDiv = [];
                         // array.forEach(translationToShow,function(configItem, i){
                         //         if(!!configItem)
                         //         {
-                        //             var transStart = blockStart + i;
-                        //             var frame = (transStart % 3 + 3) % 3;
-                        //             var translatedDiv = this._renderTranslation( extEndSeq, i, blockStart, blockEnd, blockLength, scale );
+                        //             let transStart = blockStart + i;
+                        //             let frame = (transStart % 3 + 3) % 3;
+                        //             let translatedDiv = this._renderTranslation( extEndSeq, i, blockStart, blockEnd, blockLength, scale );
                         //             frameDiv[frame] = translatedDiv;
                         //             domClass.add( translatedDiv, "frame" + frame );
                         //         }
                         // }, this);
-                        // for(var i = 0; i < 3; i++)
+                        // for(let i = 0; i < 3; i++)
                         // {
                         //     if(translationToShow[i])
                         //     {
-                        //         var transStart = blockStart + i;
-                        //         var frame = (transStart % 3 + 3) % 3;
-                        //         var translatedDiv = this._renderTranslation( extEndSeq, i, blockStart, blockEnd, blockLength, scale );
+                        //         let transStart = blockStart + i;
+                        //         let frame = (transStart % 3 + 3) % 3;
+                        //         let translatedDiv = this._renderTranslation( extEndSeq, i, blockStart, blockEnd, blockLength, scale );
                         //         frameDiv[frame] = translatedDiv;
                         //         domClass.add( translatedDiv, "frame" + frame );
                         //     }
                         // }
                         // Code above cannot work properly
 
-                        for( var i = 0; i < 3; i++ ) {
-                            var transStart = blockStart + i;
-                            var frame = (transStart % 3 + 3) % 3;
-                            var translatedDiv = this._renderTranslation( extEndSeq, i, blockStart, blockEnd, blockLength, scale );
+                        for( let i = 0; i < 3; i++ ) {
+                            let transStart = blockStart + i;
+                            let frame = (transStart % 3 + 3) % 3;
+                            let translatedDiv = this._renderTranslation( extEndSeq, i, blockStart, blockEnd, blockLength, scale );
                             frameDiv[frame] = translatedDiv;
                             domClass.add( translatedDiv, "frame" + frame );
                         }
 
-                        for( var i = 2; i >= 0; i-- ) {
+                        for( let i = 2; i >= 0; i-- ) {
                             if(translationToShow[i])
                             {
                                 block.domNode.appendChild( frameDiv[i] );
@@ -757,9 +757,9 @@ define(
                     // if( false )
                     // {
                     //     // make a table to contain the sequences
-                    //     var charSize = this.getCharacterMeasurements('sequence');
-                    //     var bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
-                    //     var seqNode;
+                    //     let charSize = this.getCharacterMeasurements('sequence');
+                    //     let bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
+                    //     let seqNode;
                     //     if( this.config.showReverseStrand || this.config.showForwardStrand )
                     //         seqNode = domConstruct.create(
                     //             "table", {
@@ -776,22 +776,22 @@ define(
                     {
                         // // and one for the reverse strand
                         // // if( this.config.showReverseStrand ) {
-                        // var comp = this._renderSeqTr( blockStart, blockEnd, Util.complement(blockSeq), scale );
+                        // let comp = this._renderSeqTr( blockStart, blockEnd, Util.complement(blockSeq), scale );
                         // comp.className = 'revcom';
                         // seqNode.appendChild( comp );
 
                         if( translationToShow[3] || translationToShow[4] || translationToShow[5] )
                         {
                             // if( this.config.showTranslation ) {
-                            var frameDiv = [];
-                            for(var i = 0; i < 3; i++) {
-                                var transStart = blockStart + 1 - i;
-                                var frame = (transStart % 3 + 3 + leftover) % 3;
-                                var translatedDiv = this._renderTranslation( extStartSeq, i, blockStart, blockEnd, blockLength, scale, true );
+                            let frameDiv = [];
+                            for(let i = 0; i < 3; i++) {
+                                let transStart = blockStart + 1 - i;
+                                let frame = (transStart % 3 + 3 + leftover) % 3;
+                                let translatedDiv = this._renderTranslation( extStartSeq, i, blockStart, blockEnd, blockLength, scale, true );
                                 frameDiv[frame] = translatedDiv;
                                 domClass.add( translatedDiv, "frame" + frame );
                             }
-                            for( var i = 0; i < 3; i++ ) {
+                            for( let i = 0; i < 3; i++ ) {
                                 if(translationToShow[ 3 + i ])
                                 {
                                     block.domNode.appendChild( frameDiv[i] );
@@ -804,7 +804,7 @@ define(
                         }
                     }
 
-                    var totalHeight = 0;
+                    let totalHeight = 0;
                     dojoArray.forEach( block.domNode.childNodes, function( table ) {
                         totalHeight += (table.clientHeight || table.offsetHeight);
                     });
@@ -817,11 +817,11 @@ define(
                 ) {
                     seq = reverse ? Util.revcom( seq ) : seq;
 
-                    var extraBases = (seq.length - offset) % 3;
-                    var seqSliced = seq.slice( offset, seq.length - extraBases );
+                    let extraBases = (seq.length - offset) % 3;
+                    let seqSliced = seq.slice( offset, seq.length - extraBases );
 
                     // Object describe how to mark the aminoAcid
-                    // var aminoAcidMarks = {
+                    // let aminoAcidMarks = {
                     //     index: [0,1],
                     //     type: [
                     //         //        "Snow_aminoAcid_mark_left_top",
@@ -831,29 +831,29 @@ define(
                     //     ]
                     // };
 
-                    var translated = "";
-                    for( var i = 0; i < seqSliced.length; i += 3 ) {
-                        var nextCodon = seqSliced.slice(i, i + 3);
-                        var aminoAcid = this._codonTable[nextCodon] || this.nbsp;
+                    let translated = "";
+                    for( let i = 0; i < seqSliced.length; i += 3 ) {
+                        let nextCodon = seqSliced.slice(i, i + 3);
+                        let aminoAcid = this._codonTable[nextCodon] || this.nbsp;
                         translated += aminoAcid;
                     }
 
                     translated = reverse ? translated.split("").reverse().join("") : translated; // Flip the translated seq for left-to-right rendering
-                    var orientedSeqSliced = reverse ? seqSliced.split("").reverse().join("") : seqSliced;
+                    let orientedSeqSliced = reverse ? seqSliced.split("").reverse().join("") : seqSliced;
 
-                    var charSize = this.getCharacterMeasurements("aminoAcid");
-                    var bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
+                    let charSize = this.getCharacterMeasurements("aminoAcid");
+                    let bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
 
-                    var charWidth = 100/(blockLength / 3);
+                    let charWidth = 100/(blockLength / 3);
 
-                    var container = domConstruct.create(
+                    let container = domConstruct.create(
                         'div',
                         {
                             className: 'Snow_translatedSequence'
                         } );
 
-                    var tableWidthPercent = charWidth * translated.length;
-                    var table  = domConstruct.create('table',
+                    let tableWidthPercent = charWidth * translated.length;
+                    let table  = domConstruct.create('table',
                         {
                             className: 'Snow_translatedSequence offset'+offset+(bigTiles ? ' big' : ''),
                             style:
@@ -862,21 +862,21 @@ define(
                                 }
                         }, container
                     );
-                    var tr = domConstruct.create('tr', {}, table );
+                    let tr = domConstruct.create('tr', {}, table );
 
-                    var tableLeftOffsetPercent = reverse ? 100 - charWidth * (translated.length + offset / 3)
+                    let tableLeftOffsetPercent = reverse ? 100 - charWidth * (translated.length + offset / 3)
                         : charWidth*offset/3;
                     table.style.left = tableLeftOffsetPercent + "%";
                     container.snowSequenceOffset = tableLeftOffsetPercent;
                     container.snowSequenceWidth = tableWidthPercent;
-                    var blockRegion = blockEnd - blockStart;
-                    var blockStartExtended = blockStart + blockRegion * tableLeftOffsetPercent * 0.01;
-                    var blockEndExtended = blockStart + translated.length * 3;
+                    let blockRegion = blockEnd - blockStart;
+                    let blockStartExtended = blockStart + blockRegion * tableLeftOffsetPercent * 0.01;
+                    let blockEndExtended = blockStart + translated.length * 3;
 
-                    var blockWidth = blockLength * scale;
-                    var tableWidthScale = 100 / (charWidth * translated.length);
-                    var tableActualWidth = blockWidth / tableWidthScale;
-                    var spanActualWidth = (tableActualWidth - translated.length) / translated.length;
+                    let blockWidth = blockLength * scale;
+                    let tableWidthScale = 100 / (charWidth * translated.length);
+                    let tableActualWidth = blockWidth / tableWidthScale;
+                    let spanActualWidth = (tableActualWidth - translated.length) / translated.length;
                     // Need to minus the space between each two span (border-spacing: 1px)
                     // console.log('blockWidth: ' + blockWidth);
                     // console.log('tableWidthScale: ' + tableWidthScale);
@@ -885,20 +885,20 @@ define(
 
                     charWidth = 100/ translated.length + "%";
 
-                    var drawChars = scale >= charSize.w;
+                    let drawChars = scale >= charSize.w;
                     if( drawChars )
                         table.className += ' big';
 
-                    for( var i = 0; i < translated.length; i++ ) {
-                        // var aminoAcidSpan = document.createElement('td');
-                        var aminoAcidSpan = domConstruct.create(
+                    for( let i = 0; i < translated.length; i++ ) {
+                        // let aminoAcidSpan = document.createElement('td');
+                        let aminoAcidSpan = domConstruct.create(
                             'td',
                             {
                                 snowSeqPosition: blockStartExtended + i * 3
                             },
                             tr
                         );
-                        var originalCodon = orientedSeqSliced.slice(3 * i, 3 * i + 3);
+                        let originalCodon = orientedSeqSliced.slice(3 * i, 3 * i + 3);
                         originalCodon = reverse ? originalCodon.split("").reverse().join("") : originalCodon;
                         aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_'+translated.charAt(i).toLowerCase();
 
@@ -945,21 +945,21 @@ define(
                     offset, blockStart, blockEnd,
                     blockLength, scale
                 ){
-                    var proteoformArrayLength = detailArrayOfProteoformInThisBlock.length;
-                    var charSize = this.getCharacterMeasurements("aminoAcid");
-                    var bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
-                    var charWidth = 100 / (proteoformArrayLength / 3);
+                    let proteoformArrayLength = detailArrayOfProteoformInThisBlock.length;
+                    let charSize = this.getCharacterMeasurements("aminoAcid");
+                    let bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
+                    let charWidth = 100 / (proteoformArrayLength / 3);
 
-                    var container = domConstruct.create(
+                    let container = domConstruct.create(
                         'div',
                         {
                             className: 'Snow_translatedSequence'
                         }
                     );
 
-                    var tableWidthPercent = (charWidth * detailArrayOfProteoformInThisBlock.length);
+                    let tableWidthPercent = (charWidth * detailArrayOfProteoformInThisBlock.length);
                     tableWidthPercent = tableWidthPercent <= 100 ? tableWidthPercent : 100;
-                    var table  = domConstruct.create('table',
+                    let table  = domConstruct.create('table',
                         {
                             className: 'Snow_translatedSequence offset' + offset + (bigTiles ? ' big' : ''),
                             style:
@@ -970,20 +970,20 @@ define(
                         },
                         container
                     );
-                    var tr = domConstruct.create('tr', {}, table );
+                    let tr = domConstruct.create('tr', {}, table );
                     table.style.left = (charWidth * offset / 3) + "%";
 
-                    var blockWidth = blockLength * scale;
-                    // var aminoAcidTableCellActualWidth = blockWidth * (tableWidthPercent * 0.01) / (blockLength / 3);
-                    var aminoAcidTableCellActualWidth = blockWidth * (tableWidthPercent * 0.01) / proteoformArrayLength;
+                    let blockWidth = blockLength * scale;
+                    // let aminoAcidTableCellActualWidth = blockWidth * (tableWidthPercent * 0.01) / (blockLength / 3);
+                    let aminoAcidTableCellActualWidth = blockWidth * (tableWidthPercent * 0.01) / proteoformArrayLength;
 
                     charWidth = 100 / detailArrayOfProteoformInThisBlock.length + "%";
-                    var drawChars = scale >= charSize.w;
+                    let drawChars = scale >= charSize.w;
                     if( drawChars )
                         table.className += ' big';
 
-                    for( var index = 0; index < detailArrayOfProteoformInThisBlock.length; index++ ) {
-                        var aminoAcidSpan = document.createElement('td');
+                    for( let index = 0; index < detailArrayOfProteoformInThisBlock.length; index++ ) {
+                        let aminoAcidSpan = document.createElement('td');
                         aminoAcidSpan.style.width = charWidth;
                         aminoAcidSpan.style.height = aminoAcidTableCellActualWidth + 'px';
 
@@ -1119,20 +1119,20 @@ define(
                     blockStart, blockEnd,
                     blockLength, scale, modificationPositionArray
                 ){
-                    var charSize = this.getCharacterMeasurements("aminoAcid");
-                    var bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
-                    var charWidth = 100 / (blockLength / 3);
+                    let charSize = this.getCharacterMeasurements("aminoAcid");
+                    let bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
+                    let charWidth = 100 / (blockLength / 3);
 
-                    var container = domConstruct.create(
+                    let container = domConstruct.create(
                         'div',
                         {
                             className: 'Snow_translatedSequence'
                         }
                     );
 
-                    var tableWidthPercent = (charWidth * proteoformSequence.length);
+                    let tableWidthPercent = (charWidth * proteoformSequence.length);
                     tableWidthPercent = tableWidthPercent <= 100 ? tableWidthPercent : 100;
-                    var table  = domConstruct.create('table',
+                    let table  = domConstruct.create('table',
                         {
                             className: 'Snow_translatedSequence offset'+offset+(bigTiles ? ' big' : ''),
                             style:
@@ -1143,24 +1143,24 @@ define(
                         },
                         container
                     );
-                    var tr = domConstruct.create('tr', {}, table );
+                    let tr = domConstruct.create('tr', {}, table );
                     table.style.left = (charWidth*offset/3) + "%";
 
-                    var blockWidth = blockLength * scale;
-                    // var tableWidthScale = 100 / (charWidth * proteoformSequence.length);
-                    // var tableActualWidth = blockWidth / tableWidthScale;
-                    // var spanActualWidth = (tableActualWidth - proteoformSequence.length) / proteoformSequence.length;
-                    var spanActualWidth = blockWidth * (tableWidthPercent * 0.01) / proteoformSequence.length;
+                    let blockWidth = blockLength * scale;
+                    // let tableWidthScale = 100 / (charWidth * proteoformSequence.length);
+                    // let tableActualWidth = blockWidth / tableWidthScale;
+                    // let spanActualWidth = (tableActualWidth - proteoformSequence.length) / proteoformSequence.length;
+                    let spanActualWidth = blockWidth * (tableWidthPercent * 0.01) / proteoformSequence.length;
 
 
                     charWidth = 100 / proteoformSequence.length + "%";
 
-                    var drawChars = scale >= charSize.w;
+                    let drawChars = scale >= charSize.w;
                     if( drawChars )
                         table.className += ' big';
 
-                    for( var i=0; i<proteoformSequence.length; i++ ) {
-                        var aminoAcidSpan = document.createElement('td');
+                    for( let i=0; i<proteoformSequence.length; i++ ) {
+                        let aminoAcidSpan = document.createElement('td');
                         aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_'+proteoformSequence.charAt(i).toLowerCase();
 
                         if(this.config.drawCircle)
@@ -1190,18 +1190,18 @@ define(
                 _renderAnnotationMark: function (refName, blockObject, blockStart, blockEnd) {
                     console.debug('_renderAnnotationMark', refName, blockObject, blockStart, blockEnd);
 
-                    var _this = this;
-                    var renderAnnotationDeferred = new dojoDeferred();
-                    var blockDomNode = blockObject.domNode;
-                    var frameDomNode = blockDomNode.firstChild;
-                    var allAminoAcidCell = dojoQuery(".Snow_aminoAcid", frameDomNode);
+                    let _this = this;
+                    let renderAnnotationDeferred = new dojoDeferred();
+                    let blockDomNode = blockObject.domNode;
+                    let frameDomNode = blockDomNode.firstChild;
+                    let allAminoAcidCell = dojoQuery(".Snow_aminoAcid", frameDomNode);
                     // Add dblclick event handler on all AmioAcid table cell
                     allAminoAcidCell.on('dblclick', function (event) {
                             console.debug('dblclick on .Snow_aminoAcid:', arguments);
-                            var finishCallback = function () {
+                            let finishCallback = function () {
                                 domClass.add(event.target, 'Snow_annotation_mark');
                             };
-                            var thisAminoAcidCellPosition = domAttr.get(event.target, 'snowseqposition');
+                            let thisAminoAcidCellPosition = domAttr.get(event.target, 'snowseqposition');
 
                             // dojoLang.hitch(
                             //     _this,
@@ -1219,10 +1219,10 @@ define(
                         }
                     );
 
-                    var blockRegion = blockEnd - blockStart;
-                    var blockStartExtended = blockStart + blockRegion * frameDomNode.snowSequenceOffset * 0.01;
-                    var blockEndExtended = blockStart + allAminoAcidCell.length * 3;
-                    var requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
+                    let blockRegion = blockEnd - blockStart;
+                    let blockStartExtended = blockStart + blockRegion * frameDomNode.snowSequenceOffset * 0.01;
+                    let blockEndExtended = blockStart + allAminoAcidCell.length * 3;
+                    let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
                         + ':12080' + '/annotation/query/' + refName + '/' + blockStartExtended + '..' + blockEndExtended;
 
                     dojoRequest(
@@ -1246,17 +1246,17 @@ define(
 
                     renderAnnotationDeferred.then(
                         function (annotationObjectArray) {
-                            for(var i=0; i<allAminoAcidCell.length; i++)
+                            for(let i=0; i<allAminoAcidCell.length; i++)
                             {
-                                var thisCellPosition = domAttr.get(allAminoAcidCell[i], 'snowseqposition');
-                                for(var j=0; j<annotationObjectArray.length; j++)
+                                let thisCellPosition = domAttr.get(allAminoAcidCell[i], 'snowseqposition');
+                                for(let j=0; j<annotationObjectArray.length; j++)
                                 {
                                     if(typeof annotationObjectArray[j] != "object")
                                     {
                                         console.error(annotationObjectArray[j]);
                                         break;
                                     }
-                                    var thisAnnotationPosition = annotationObjectArray[j].position;
+                                    let thisAnnotationPosition = annotationObjectArray[j].position;
                                     if(Math.abs(thisCellPosition - thisAnnotationPosition) <= 2)
                                     {
                                         // Match! Add style
@@ -1272,7 +1272,7 @@ define(
                 },
 
                 _loadSpecificAnnotationAndPopupModal: function (name, position, finishCallback) {
-                    var requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
+                    let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
                         + ':12080' + '/annotation/query/' + name + '/' + position + '..' + position;
 
                     dojoRequest(
@@ -1287,7 +1287,7 @@ define(
                     ).then(
                         function (annotationObjectArray) {
                             console.info('annotationObjectArray:', annotationObjectArray);
-                            var annotationDialog = new SnowAnnotationDialog(
+                            let annotationDialog = new SnowAnnotationDialog(
                                 {
                                     refName: name,
                                     position: position,
@@ -1330,13 +1330,13 @@ define(
                 ) {
                     sequence = reverse ? Util.revcom( sequence ) : sequence;
 
-                    var extraBases = (sequence.length - offset) % 3;
-                    var seqSliced = sequence.slice( offset, sequence.length - extraBases );
+                    let extraBases = (sequence.length - offset) % 3;
+                    let seqSliced = sequence.slice( offset, sequence.length - extraBases );
 
-                    var translated = "";
-                    for( var i = 0; i < seqSliced.length; i += 3 ) {
-                        var nextCodon = seqSliced.slice(i, i + 3);
-                        var aminoAcid = _this._codonTable[nextCodon] || _this.nbsp;
+                    let translated = "";
+                    for( let i = 0; i < seqSliced.length; i += 3 ) {
+                        let nextCodon = seqSliced.slice(i, i + 3);
+                        let aminoAcid = _this._codonTable[nextCodon] || _this.nbsp;
                         translated += aminoAcid;
                     }
                     translated = reverse ? translated.split("").reverse().join("") : translated;
@@ -1351,22 +1351,22 @@ define(
                             end: endPos
                         },
                         function (refGenomeSequence) {
-                            var leftover = (refGenomeSequence.length - 2) % 3;
-                            var extStartSeq = refGenomeSequence.substring(0, refGenomeSequence.length - 2);
-                            var extEndSeq = refGenomeSequence.substring(2);
+                            let leftover = (refGenomeSequence.length - 2) % 3;
+                            let extStartSeq = refGenomeSequence.substring(0, refGenomeSequence.length - 2);
+                            let extEndSeq = refGenomeSequence.substring(2);
 
                             let refGenomeSequenceReverse = refGenomeSequence.split("").reverse().join("");
                             console.info('refGenomeSequence', refName, startPos, endPos, refGenomeSequence);
                             console.info('refGenomeSequenceReverse', refName, startPos, endPos, refGenomeSequenceReverse);
 
-                            for (var i = 0; i < 3; i++) {
+                            for (let i = 0; i < 3; i++) {
                                 let transStart = startPos + i;
                                 let frame = (transStart % 3 + 3) % 3;
                                 let translatedProteinSeq = _this._getTranslationSequence(_this, extEndSeq, i, false);
                                 console.info('translatedProteinSeq', refName, startPos, endPos, 'frame' + frame, 'forward', translatedProteinSeq);
                             }
 
-                            for (var i = 0; i < 3; i++) {
+                            for (let i = 0; i < 3; i++) {
                                 let transStart = startPos + 1 - i;
                                 let leftover = (refGenomeSequence.length - 2) % 3;
                                 let frame = (transStart % 3 + 3 + leftover) % 3;
