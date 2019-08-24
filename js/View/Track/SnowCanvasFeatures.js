@@ -772,6 +772,7 @@ define(
 
                                 console.info('filteredMSScanMassMappingResultArray:', filteredMSScanMassMappingResultArray);
                                 renderArgs.dataToDraw = filteredMSScanMassMappingResultArray;
+                                renderArgs.showMzValue = _this.config.showMzValue === true;
                                 // 12. Draw protein mass spectrum histogram within current block region
                                 //     X-Axis: m/z
                                 //     Y-Axis: intensity

@@ -105,6 +105,7 @@ define([
                     let block = viewArgs.block;
                     let histogramHeight = this.config.histograms.height || 100;
                     let trackTotalHeight = histogramHeight + 100;
+                    let bottomLineHeight = 10;
                     let scaleLevel = viewArgs.scale;
                     let leftBase = viewArgs.leftBase;
                     let rightBase = viewArgs.rightBase;
@@ -134,14 +135,15 @@ define([
                     this.heightUpdate(trackTotalHeight, viewArgs.blockIndex);
                     let ctx = c.getContext('2d');
                     _this._scaleCanvas(c);
-                    ctx.fillStyle = this.config.histograms.color;
+                    ctx.fillStyle = _this.config.histograms.color || '#fd79a8';
                     ctx.textAlign = "center";
-                    ctx.font = "Arial";
+                    ctx.font = "10px sans-serif";
+                    ctx.lineWidth = 1;
 
                     // Draw the X-Axis line
                     ctx.beginPath();
-                    ctx.moveTo(0,trackTotalHeight);
-                    ctx.lineTo(Math.ceil((rightBase - leftBase + 1)*scaleLevel),trackTotalHeight);
+                    ctx.moveTo(0, trackTotalHeight - bottomLineHeight);
+                    ctx.lineTo(Math.ceil((rightBase - leftBase + 1)*scaleLevel), trackTotalHeight - bottomLineHeight);
                     ctx.stroke();
 
                     if(histData.length === 0)
@@ -150,8 +152,6 @@ define([
                         return;
                     }
 
-                    // Prepare for the arrow
-                    ctx.beginPath();
                     // Calc the diff between max(last) and min(first) key
                     let keyMin = parseFloat(histData[0].key);
                     let keyMax = parseFloat(histData[histData.length - 1].key);
@@ -165,14 +165,20 @@ define([
                         let barWidth = 3;
                         let keyPosition = (parseFloat(item.key) - keyMin) * keyScale;
                         let barLeft_X = offsetAtStartAndEnd + keyPosition;
-                        let barLeft_Y = trackTotalHeight - barHeight;
+                        let barLeft_Y = trackTotalHeight - barHeight - bottomLineHeight;
                         // Draw histogram
+                        ctx.save();
+                        ctx.shadowOffsetX = 2;
+                        ctx.shadowOffsetY = 0;
+                        ctx.shadowBlur = 2;
+                        ctx.shadowColor = "#999";
                         ctx.fillRect(
                             barLeft_X,
                             barLeft_Y,
                             barWidth,
                             barHeight
                         );
+                        ctx.restore();
 
                         if(item.label !== undefined && item.label != null)
                         {
@@ -186,20 +192,35 @@ define([
                             );
                             // Draw label above the arrow
                             ctx.fillText(item.label,barLeft_X + 1, barLeft_Y - 75);
+
+                            ctx.save();
+                            ctx.fillStyle = '#2d3436';
+                            ctx.font = "9px sans-serif";
                             // Draw value above the label
                             ctx.fillText((Math.round(item.value * 100) / 100).toString(),
                                 barLeft_X + 1, barLeft_Y - 85);
+                            if(true)
+                            {
+                                // Draw key under the X-axis
+                                ctx.fillStyle = '#7f8c8d';
+                                ctx.fillText((Math.round(item.key * 100) / 100).toString(),
+                                    barLeft_X + 1, trackTotalHeight);
+                            }
+                            ctx.restore();
                         }
                     });
-                    ctx.stroke();
 
-                    this._makeHistogramYScale(histogramHeight, maxValue);
+                    this._makeHistogramYScale(trackTotalHeight, histogramHeight, maxValue, bottomLineHeight);
 
                     // Todo: Beautify
                     // Todo: After rendering the histogram, scale the Y-axis
                 },
 
                 _drawArrow: function (context, fromX, fromY, toX, toY){
+                    context.save();
+                    // Prepare for the arrow
+                    context.beginPath();
+                    context.strokeStyle = '#7f8c8d';
                     let headLength = 5;
                     let angle = Math.atan2(toY-fromY,toX-fromX);
                     context.moveTo(fromX, fromY);
@@ -207,7 +228,9 @@ define([
                     context.lineTo(toX-headLength*Math.cos(angle-Math.PI/6),toY-headLength*Math.sin(angle-Math.PI/6));
                     context.moveTo(toX, toY);
                     context.lineTo(toX-headLength*Math.cos(angle+Math.PI/6),toY-headLength*Math.sin(angle+Math.PI/6));
-                    // Call this function several times, then context.stroke()
+                    // Call this function several times
+                    context.stroke();
+                    context.restore();
                 },
 
                 // For demo/testing only
@@ -259,10 +282,10 @@ define([
                     return newHistData;
                 },
 
-                _makeHistogramYScale: function( histogramHeight, maxValue ) {
+                _makeHistogramYScale: function(trackTotalHeight ,histogramHeight, maxValue, bottomLineHeight ) {
                     if(
                         this.yscaleParams &&
-                        this.yscaleParams.height === histogramHeight &&
+                        // this.yscaleParams.height === trackTotalHeight &&
                         this.yscaleParams.max === maxValue &&
                         this.yscaleParams.min === 0
                     )
@@ -271,10 +294,11 @@ define([
                     }
 
                     this.yscaleParams = {
-                        height: histogramHeight,
+                        height: trackTotalHeight - bottomLineHeight,
                         min: 0,
                         max: maxValue
                     };
+                    this.height = trackTotalHeight - bottomLineHeight;
 
                     this.makeYScale(this.yscaleParams);
                 },
