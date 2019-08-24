@@ -212,12 +212,12 @@ define(
                     let oldConfig = this.inherited(arguments);
                     let newConfig = dojoLang.mixin(
                         oldConfig,{
-                            showTranslation1st: true,
+                            showTranslation1st: false,
                             showTranslation2nd: false,
-                            showTranslation3rd: false,
+                            showTranslation3rd: true,
                             showTranslationReverse1st: false,
                             showTranslationReverse2nd: false,
-                            showTranslationReverse3rd: false,
+                            showTranslationReverse3rd: true
                         });
                     newConfig.drawCircle = !!oldConfig.drawCircle || true;
                     newConfig.animationEnabled = !!oldConfig.animationEnabled || true;

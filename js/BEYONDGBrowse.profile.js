@@ -13,7 +13,7 @@ var profile = {
 
     basePath: '../../../src',
     packages: [
-        {name: 'SnowPlugin', location: '../plugins/SnowPlugin/js' }
+        {name: 'BEYONDGBrowse', location: '../plugins/BEYONDGBrowse/js' }
     ],
 
     layerOptimize: 'closure',
@@ -21,9 +21,9 @@ var profile = {
     selectorEngine: 'acme',
 
     layers: {
-        'SnowPlugin/main': {
+        'BEYONDGBrowse/main': {
             include: [
-                'SnowPlugin',
+                'BEYONDGBrowse',
             ],
             exclude: [ 'JBrowse' ]
         }
@@ -56,7 +56,7 @@ var profile = {
 
         // Files that should not be copied when the “mini” compiler flag is set to true.
         miniExclude: function (filename, mid) {
-            return ! ( /^SnowPlugin/.test(mid) );
+            return ! ( /^BEYONDGBrowse/.test(mid) );
         }
     }
 };

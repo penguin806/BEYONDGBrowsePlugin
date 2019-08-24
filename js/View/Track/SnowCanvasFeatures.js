@@ -2,22 +2,28 @@
 define(
     [
         'dojo/_base/declare',
+        'dojo/_base/lang',
         'dojo/request',
         'dojo/dom-construct',
         'dojo/Deferred',
         'dojo/topic',
         'JBrowse/View/Track/CanvasFeatures',
+        'JBrowse/View/TrackConfigEditor',
+        'JBrowse/View/ConfirmDialog',
         'JBrowse/Util',
         'JBrowse/CodonTable',
-        'SnowPlugin/View/Track/SnowHistogramTrack'
+        './SnowHistogramTrack'
     ],
     function (
         declare,
+        dojoLang,
         dojoRequest,
         domConstruct,
         dojoDeferred,
         dojoTopic,
         CanvasFeatures,
+        TrackConfigEditor,
+        ConfirmDialog,
         Util,
         CodonTable,
         SnowHistogramTrack
@@ -46,6 +52,79 @@ define(
                     //     max: 1000
                     // });
 
+                },
+
+                _defaultConfig: function(){
+                    let oldConfig = this.inherited(arguments);
+                    let newConfig = dojoLang.mixin(
+                        oldConfig,{
+                            showMzValue: false
+                        });
+
+                    return newConfig;
+                },
+
+                _trackMenuOptions: function() {
+                    let _this = this;
+                    // let oldTrackMenuOptions = _this.inherited(arguments);
+
+                    let newTrackMenuOptions = [
+                        {
+                            label: 'About this track',
+                            title: 'About track: '+(this.key||this.name),
+                            iconClass: 'jbrowseIconHelp',
+                            action: 'contentDialog',
+                            content: dojoLang.hitch(this,'_trackDetailsContent')
+                        },
+                        {
+                            label: 'Pin to top',
+                            type: 'dijit/CheckedMenuItem',
+                            title: "make this track always visible at the top of the view",
+                            checked: _this.isPinned(),
+                            onClick: function() {
+                                _this.browser.publish( '/jbrowse/v1/v/tracks/'+( this.checked ? 'pin' : 'unpin' ), [ _this.name ] );
+                            }
+                        },
+                        {
+                            label: 'Edit config',
+                            title: "edit this track's configuration",
+                            iconClass: 'dijitIconConfigure',
+                            action: function() {
+                                new TrackConfigEditor( _this.config )
+                                    .show( function( result ) {
+                                        // replace this track's configuration
+                                        _this.browser.publish( '/jbrowse/v1/v/tracks/replace', [result.conf] );
+                                    });
+                            }
+                        },
+                        {
+                            label: 'Delete track',
+                            title: "delete this track",
+                            iconClass: 'dijitIconDelete',
+                            action: function() {
+                                new ConfirmDialog({ title: 'Delete track?', message: 'Really delete this track?' })
+                                    .show( function( confirmed ) {
+                                        if( confirmed )
+                                            _this.browser.publish( '/jbrowse/v1/v/tracks/delete', [_this.config] );
+                                    });
+                            }
+                        },
+                        {
+                            type: 'dijit/MenuSeparator'
+                        },
+                        {
+                            label: 'Show M/Z Value',
+                            type: 'dijit/CheckedMenuItem',
+                            checked: !!_this.config.showMzValue,
+                            onClick: function(event){
+                                _this.config.showMzValue = this.checked;
+                                _this.changed();
+                            }
+                        }
+                    ];
+
+
+                    return newTrackMenuOptions;
                 },
 
                 _getLongestCommonSubSequenceMatrix: function(str1, str2)

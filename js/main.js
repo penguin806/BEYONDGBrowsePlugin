@@ -108,7 +108,7 @@ define([
                             for(let index = 0; index < _this.browser.config.massSpectraTrackNum; index++)
                             {
                                 let newMassSpectraTrackConfig = {
-                                    type: 'SnowPlugin/View/Track/SnowCanvasFeatures',
+                                    type: 'BEYONDGBrowse/View/Track/SnowCanvasFeatures',
                                     label: '质谱轨道' + (index + 1),
                                     key: '质谱轨道' + (index + 1),
                                     store: _this.BEYONDGBrowseProteinTrack.store,
