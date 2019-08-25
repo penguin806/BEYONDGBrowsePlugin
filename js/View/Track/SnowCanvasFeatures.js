@@ -38,7 +38,8 @@ define(
                 constructor: function(arg)
                 {
                     let _this = this;
-                    this._codonTable = this._codonTable ? this._codonTable : this.defaultCodonTable;
+                    _this._codonTable = this._codonTable ? this._codonTable : this.defaultCodonTable;
+                    _this.originalLabelText = _this.config.label || "";
                     // _this.browser.subscribe(
                     //     '/jbrowse/v1/n/tracks/visibleChanged',
                     //     function () {
@@ -744,12 +745,11 @@ define(
                                 console.info('arrMSScanMassArray:', thisProteoformObject.arrMSScanMassArray);
                                 console.info('arrMSScanPeakAundance:', thisProteoformObject.arrMSScanPeakAundance);
                                 // Update track label
-                                let originalLabelText = _this.labelHTML ? _this.labelHTML : "";
                                 let labelTextToAppend = ' (Scan: ' + thisProteoformObject.scanId + ')';
-                                if(!originalLabelText.includes(labelTextToAppend))
+                                if(_this.originalLabelText + labelTextToAppend !== _this.labelHTML)
                                 {
                                     _this.scanId = thisProteoformObject.scanId;
-                                    _this.setLabel(originalLabelText + labelTextToAppend);
+                                    _this.setLabel(_this.originalLabelText + labelTextToAppend);
                                 }
 
                                 // 9. Calculating MsScanMass and mapping with proteoform ions
