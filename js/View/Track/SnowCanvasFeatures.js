@@ -771,12 +771,23 @@ define(
                                 );
 
                                 console.info('filteredMSScanMassMappingResultArray:', filteredMSScanMassMappingResultArray);
-                                renderArgs.dataToDraw = filteredMSScanMassMappingResultArray;
                                 renderArgs.showMzValue = _this.config.showMzValue === true;
                                 // 12. Draw protein mass spectrum histogram within current block region
                                 //     X-Axis: m/z
                                 //     Y-Axis: intensity
-                                _this.fillHistograms(renderArgs);
+                                let isAlignByIonPosition = true;
+                                if(isAlignByIonPosition)
+                                {
+                                    renderArgs.mappingResultObjectArray = mappingResultObjectArray;
+                                    renderArgs.proteoformStartPosition = thisProteoformStartPosition;
+                                    renderArgs.scanId = thisProteoformScanId;
+                                    _this.fillHistograms(renderArgs, true)
+                                }
+                                else
+                                {
+                                    renderArgs.dataToDraw = filteredMSScanMassMappingResultArray;
+                                    _this.fillHistograms(renderArgs, false);
+                                }
                             }
 
                         }

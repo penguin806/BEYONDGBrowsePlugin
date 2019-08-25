@@ -48,45 +48,191 @@ define([
                 },
 
                 fillBlock: function ( renderArgs ) {
-
                     this.fillHistograms( renderArgs );
                 },
 
-                fillHistograms: function ( renderArgs ) {
+                fillHistograms: function ( renderArgs, isAlignByIonPosition ) {
+                    let _this = this;
                     let histData = [
-                        // { key: "632.0333849", value: "2988.667223" , label: null },
-                        // { key: "680.5928342", value: "1155.390511" , label: null },
-                        // { key: "710.411926", value: "1152.658037" , label: null },
-                        // { key: "749.4333483", value: "1729.825008" , label: null },
-                        // { key: "831.3868395", value: "1264.8382" , label: null },
-                        // { key: "853.488464", value: "1913.211091" , label: "B1" },
-                        // { key: "868.6782834", value: "3533.121477" , label: null },
-                        // { key: "1156.646592", value: "1052.036554" , label: "B2" },
-                        // { key: "1194.012072", value: "935.1523377" , label: null },
-                        // { key: "1289.746934", value: "2645.348555" , label: null },
-                        // { key: "1407.809556", value: "673.3459446" , label: "B3" },
-                        // { key: "1438.879551", value: "1615.504777" , label: null },
-                        // { key: "1549.889269", value: "2041.588973" , label: "B4" },
-                        // { key: "1651.942614", value: "1593.798358" , label: null },
-                        // { key: "1790.011013", value: "1352.322675" , label: null },
-                        // { key: "1947.576779", value: "1256.54348" , label: null },
-                        // { key: "2169.220591", value: "1257.662272" , label: null },
-                        // { key: "2197.030845", value: "932.6885953" , label: null },
-                        // { key: "2251.280739", value: "3531.849469" , label: null },
-                        // { key: "2276.080739", value: "9873.694419" , label: null }
+                        // Example:
+                        // {
+                        //     "key": 10604.08939,
+                        //     "value": 5616.92,
+                        //     "label": "A5",
+                        //     "amino_acid": "L",
+                        //     "position": 90
+                        // },
+                        // {
+                        //     "key": 10762.17255,
+                        //     "value": 27003.31,
+                        //     "label": "A6",
+                        //     "amino_acid": "T",
+                        //     "position": 92
+                        // }
                     ];
 
-                    if(renderArgs.hasOwnProperty('dataToDraw'))
+                    if(
+                        isAlignByIonPosition === true &&
+                        renderArgs.hasOwnProperty('mappingResultObjectArray') &&
+                        renderArgs.hasOwnProperty('proteoformStartPosition') &&
+                        renderArgs.hasOwnProperty('scanId')
+                    )
                     {
-                        this._drawHistograms(renderArgs, renderArgs.dataToDraw);
+                        _this._drawHistograms_v2(
+                            renderArgs, renderArgs.mappingResultObjectArray,
+                            renderArgs.proteoformStartPosition, renderArgs.scanId
+                        );
                     }
-                    else {
+                    else if(renderArgs.hasOwnProperty('dataToDraw'))
+                    {
+                        _this._drawHistograms(renderArgs, renderArgs.dataToDraw);
+                    }
+                    else if (renderArgs.debug === true) {
                         // Generating test data
                         histData = this._generateRandomData(histData, renderArgs.leftBase);
 
-                        this._drawHistograms(renderArgs, histData);
+                        _this._drawHistograms(renderArgs, histData);
+                    }
+                },
+
+                _drawHistograms_v2: function (
+                    viewArgs, mappingResultObjectArray, proteoformStartPosition, scanId
+                ) {
+                    let _this = this;
+                    let maxValue = this.config.histograms.maxValue || 100000.0;
+
+                    let block = viewArgs.block;
+                    let histogramHeight = this.config.histograms.height || 100;
+                    let trackTotalHeight = histogramHeight + 100;
+                    let bottomLineHeight = 10;
+                    let blockScaleLevel = viewArgs.scale;
+                    let blockStartBase = viewArgs.leftBase;
+                    let blockEndBase = viewArgs.rightBase;
+                    let blockOffsetStartBase = blockStartBase - (blockStartBase % 3);
+                    let blockOffsetEndBase = blockEndBase - (blockEndBase % 3);
+                    let blockBpLength = blockOffsetEndBase - blockOffsetStartBase;
+                    let blockActualWidthInPx = blockBpLength * blockScaleLevel;
+
+                    // Filter mapping result array for this block
+                    let filteredMSScanMassMappingResultArray = [];
+                    for(let index in mappingResultObjectArray)
+                    {
+                        if(
+                            mappingResultObjectArray.hasOwnProperty(index) &&
+                            typeof mappingResultObjectArray[index] == "object"
+                        )
+                        {
+                            mappingResultObjectArray[index].leftBaseInBp =
+                                proteoformStartPosition + 3 * mappingResultObjectArray[index].position;
+
+                            if(
+                                mappingResultObjectArray[index].leftBaseInBp >= blockOffsetStartBase &&
+                                mappingResultObjectArray[index].leftBaseInBp < blockOffsetEndBase
+                            )
+                            {
+                                // Because of the bIon mark is on the top right corner, add offset by 3bp here
+                                mappingResultObjectArray[index].leftBaseInBp += 3;
+                                filteredMSScanMassMappingResultArray.push(mappingResultObjectArray[index]);
+                            }
+                        }
                     }
 
+
+                    domConstruct.empty(block.domNode);
+                    let c = block.featureCanvas =
+                        domConstruct.create(
+                            'canvas',
+                            {
+                                height: trackTotalHeight,
+                                width: block.domNode.offsetWidth + 1,
+                                style:
+                                    {
+                                        cursor: 'default',
+                                        height: trackTotalHeight + 'px',
+                                        position: 'absolute'
+                                    },
+                                innerHTML: 'HTML5 Canvas Block',
+                                className: 'canvas-track canvas-track-histograms'
+                            },
+                            block.domNode
+                        );
+
+                    this.heightUpdate(trackTotalHeight, viewArgs.blockIndex);
+                    let ctx = c.getContext('2d');
+                    _this._scaleCanvas(c);
+                    ctx.fillStyle = _this.config.histograms.color || '#fd79a8';
+                    ctx.textAlign = "center";
+                    ctx.font = "10px sans-serif";
+                    ctx.lineWidth = 1;
+
+                    // Draw the X-Axis line
+                    ctx.beginPath();
+                    ctx.moveTo(0, trackTotalHeight - bottomLineHeight);
+                    ctx.lineTo(Math.ceil((blockEndBase - blockStartBase + 1)*blockScaleLevel), trackTotalHeight - bottomLineHeight);
+                    ctx.stroke();
+
+                    if(filteredMSScanMassMappingResultArray.length === 0)
+                    {
+                        // Empty Data
+                        return;
+                    }
+
+
+                    let spanAtBlockStartAndEnd = blockActualWidthInPx * 0;
+                    let blockWidthInPxAfterMinusOffsetAtStartAndEnd = blockActualWidthInPx - spanAtBlockStartAndEnd * 2;
+                    let xAxisScale = blockWidthInPxAfterMinusOffsetAtStartAndEnd / blockBpLength;
+
+                    array.forEach(filteredMSScanMassMappingResultArray,function (item, index) {
+                        let barHeight = item.value / maxValue * histogramHeight;
+                        let barWidth = 3;
+                        let keyPosition = (item.leftBaseInBp - blockOffsetStartBase) * xAxisScale;
+                        let barLeft_X = keyPosition + spanAtBlockStartAndEnd;
+                        let barLeft_Y = trackTotalHeight - barHeight - bottomLineHeight;
+                        // Draw histogram
+                        ctx.save();
+                        ctx.shadowOffsetX = 2;
+                        ctx.shadowOffsetY = 0;
+                        ctx.shadowBlur = 2;
+                        ctx.shadowColor = "#999";
+                        ctx.fillRect(
+                            barLeft_X,
+                            barLeft_Y,
+                            barWidth,
+                            barHeight
+                        );
+                        ctx.restore();
+
+                        if(item.label !== undefined && item.label != null)
+                        {
+                            // Draw arrow above the histogram column
+                            _this._drawArrow(
+                                ctx,
+                                barLeft_X + 1,
+                                barLeft_Y - 70,
+                                barLeft_X + 1,
+                                barLeft_Y - 5
+                            );
+                            // Draw label above the arrow
+                            ctx.fillText(item.label,barLeft_X + 1, barLeft_Y - 75);
+
+                            ctx.save();
+                            ctx.fillStyle = '#2d3436';
+                            ctx.font = "9px sans-serif";
+                            // Draw value above the label
+                            ctx.fillText((Math.round(item.value * 100) / 100).toString(),
+                                barLeft_X + 1, barLeft_Y - 85);
+                            if(viewArgs.showMzValue)
+                            {
+                                // Draw key under the X-axis
+                                ctx.fillStyle = '#7f8c8d';
+                                ctx.fillText((Math.round(item.key * 100) / 100).toString(),
+                                    barLeft_X + 1, trackTotalHeight);
+                            }
+                            ctx.restore();
+                        }
+                    });
+
+                    this._makeHistogramYScale(trackTotalHeight, histogramHeight, maxValue, bottomLineHeight);
                 },
 
                 _drawHistograms: function (viewArgs, histData) {
@@ -199,7 +345,7 @@ define([
                             // Draw value above the label
                             ctx.fillText((Math.round(item.value * 100) / 100).toString(),
                                 barLeft_X + 1, barLeft_Y - 85);
-                            if(true)
+                            if(viewArgs.showMzValue)
                             {
                                 // Draw key under the X-axis
                                 ctx.fillStyle = '#7f8c8d';

@@ -1009,6 +1009,8 @@ define(
                             if(detailArrayOfProteoformInThisBlock[index].bIonFlag !== undefined)
                             {
                                 aminoAcidSpan.className += ' Snow_aminoAcid_mark_right_top';
+                                aminoAcidSpan.className += ' Snow_aminoAcid_bIon_' +
+                                    detailArrayOfProteoformInThisBlock[index].bIonFlag;
 
                                 let bIonLabelNode = domConstruct.create('span',
                                     {
