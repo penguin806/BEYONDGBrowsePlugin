@@ -457,10 +457,11 @@ define(
                             // Currently visible block
                             let blockStartBase = snowSequenceTrackBlocks[blockIndex].startBase;
                             let blockEndBase = snowSequenceTrackBlocks[blockIndex].endBase;
-                            let blockOffsetStartBase = blockStartBase - (blockStartBase % 3);
-                            let blockOffsetEndBase = blockEndBase - (blockEndBase % 3);
-                            let blockBpLength = blockOffsetEndBase - blockOffsetStartBase;
-                            let aminoAcidCharactersPerBlock = (blockOffsetEndBase - blockOffsetStartBase) / lengthPerAminoAcidCharacter;
+                            let blockStartBaseWithOffset = blockStartBase - (blockStartBase % 3);
+                            let blockEndBaseWithOffset = blockEndBase - (blockEndBase % 3);
+                            let blockLeftOffsetValue = blockStartBaseWithOffset - blockStartBase;
+                            let blockActualBpLength = blockEndBase - blockStartBase;
+                            let aminoAcidCharactersPerBlock = (blockEndBaseWithOffset - blockStartBaseWithOffset) / lengthPerAminoAcidCharacter;
                             let detailArrayOfProteoformInThisBlock = [];
 
                             for(let index in detailArrayOfProteoformSequence)
@@ -468,8 +469,8 @@ define(
                                 if(
                                     detailArrayOfProteoformSequence.hasOwnProperty(index) &&
                                     typeof detailArrayOfProteoformSequence[index] == "object" &&
-                                    detailArrayOfProteoformSequence[index].leftPosition >= blockOffsetStartBase &&
-                                    detailArrayOfProteoformSequence[index].leftPosition < blockOffsetEndBase
+                                    detailArrayOfProteoformSequence[index].leftPosition >= blockStartBaseWithOffset &&
+                                    detailArrayOfProteoformSequence[index].leftPosition < blockEndBaseWithOffset
                                 )
                                 {
                                     detailArrayOfProteoformInThisBlock.push(detailArrayOfProteoformSequence[index]);
@@ -531,7 +532,7 @@ define(
                             // Start rendering proteoform sequence
                             let newProteoformSequenceDiv = _this._renderProteoformSequence(
                                 detailArrayOfProteoformInThisBlock, proteoformStartPosition, proteoformEndPosition,
-                                0, blockOffsetStartBase, blockOffsetEndBase, blockBpLength,
+                                blockLeftOffsetValue, blockStartBaseWithOffset, blockEndBaseWithOffset, blockActualBpLength,
                                 snowSequenceTrackBlocks[blockIndex].scale
                             );
                             domClass.add( newProteoformSequenceDiv, "snow_proteoform_frame");
@@ -948,7 +949,7 @@ define(
                     let proteoformArrayLength = detailArrayOfProteoformInThisBlock.length;
                     let charSize = this.getCharacterMeasurements("aminoAcid");
                     let bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
-                    let charWidth = 100 / (proteoformArrayLength / 3);
+                    let charWidth = 100 / (blockLength / 3);
 
                     let container = domConstruct.create(
                         'div',
@@ -958,7 +959,7 @@ define(
                     );
 
                     let tableWidthPercent = (charWidth * detailArrayOfProteoformInThisBlock.length);
-                    tableWidthPercent = tableWidthPercent <= 100 ? tableWidthPercent : 100;
+                    // tableWidthPercent = tableWidthPercent <= 100 ? tableWidthPercent : 100;
                     let table  = domConstruct.create('table',
                         {
                             className: 'Snow_translatedSequence offset' + offset + (bigTiles ? ' big' : ''),
