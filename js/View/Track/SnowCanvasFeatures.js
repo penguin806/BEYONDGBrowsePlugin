@@ -58,7 +58,8 @@ define(
                     let oldConfig = this.inherited(arguments);
                     let newConfig = dojoLang.mixin(
                         oldConfig,{
-                            showMzValue: false
+                            showMzValue: false,
+                            alignByIonPosition: true
                         });
 
                     return newConfig;
@@ -118,6 +119,15 @@ define(
                             checked: !!_this.config.showMzValue,
                             onClick: function(event){
                                 _this.config.showMzValue = this.checked;
+                                _this.changed();
+                            }
+                        },
+                        {
+                            label: 'Align by bIon Position',
+                            type: 'dijit/CheckedMenuItem',
+                            checked: !!_this.config.alignByIonPosition,
+                            onClick: function(event){
+                                _this.config.alignByIonPosition = this.checked;
                                 _this.changed();
                             }
                         }
@@ -775,7 +785,7 @@ define(
                                 // 12. Draw protein mass spectrum histogram within current block region
                                 //     X-Axis: m/z
                                 //     Y-Axis: intensity
-                                let isAlignByIonPosition = true;
+                                let isAlignByIonPosition = _this.config.alignByIonPosition === true;
                                 if(isAlignByIonPosition)
                                 {
                                     renderArgs.mappingResultObjectArray = mappingResultObjectArray;
