@@ -130,13 +130,15 @@ define([
                                 mappingResultObjectArray[index].leftBaseInBp < blockOffsetEndBase
                             )
                             {
+                                let resultObjectInThisBlock = mappingResultObjectArray[index];
                                 // Because of the bIon mark is on the top right corner, add offset by 3bp here
-                                mappingResultObjectArray[index].leftBaseInBp += 3;
-                                filteredMSScanMassMappingResultArray.push(mappingResultObjectArray[index]);
+                                resultObjectInThisBlock.leftBaseInBp += 3;
+                                // Minus block left offset
+                                resultObjectInThisBlock.leftBaseInBp -= (blockStartBase - blockOffsetStartBase);
+                                filteredMSScanMassMappingResultArray.push(resultObjectInThisBlock);
                             }
                         }
                     }
-
 
                     domConstruct.empty(block.domNode);
                     let c = block.featureCanvas =
