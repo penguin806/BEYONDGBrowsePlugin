@@ -1,6 +1,8 @@
 define([
         'dojo/_base/declare',
         'dojo/request',
+        'dojo/query',
+        'dojo/dom-construct',
         'dijit/form/Button',
         'dijit/MenuItem',
         'JBrowse/Plugin',
@@ -10,6 +12,8 @@ define([
     function(
         declare,
         dojoRequest,
+        dojoQuery,
+        domConstruct,
         dijitButton,
         dijitMenuItem,
         JBrowsePlugin,
@@ -64,6 +68,23 @@ define([
 
                 _subscribeShowMassSpectraTrackEvent: function() {
                     let _this = this;
+
+                    // Destroy the exist proteoform sequence when track hiding
+                    _this.browser.subscribe(
+                        '/jbrowse/v1/c/tracks/hide',
+                        function (trackToHideArray) {
+                            trackToHideArray.forEach(
+                                function (trackToHide) {
+                                    if(trackToHide.BEYONDGBrowseMassTrack === true)
+                                    {
+                                        dojoQuery(
+                                            '.snow_proteoform_frame.msScanMassTrackId_' + trackToHide.msScanMassTrackId
+                                        ).forEach(domConstruct.destroy);
+                                    }
+                                }
+                            );
+                        }
+                    );
 
                     function deleteAllMassSpectraTrack() {
                         let trackConfigsByName = _this.browser.trackConfigsByName;

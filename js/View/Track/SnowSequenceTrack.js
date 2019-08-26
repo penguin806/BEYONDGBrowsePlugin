@@ -129,7 +129,7 @@ define(
                         'BEYONDGBrowse/addSingleProteoformScan',
                         function(
                             proteoformSequence, proteoformStartPosition, proteoformEndPosition,
-                            isReverseStrand, scanId, mSScanMassMappingResultArray
+                            isReverseStrand, scanId, mSScanMassMappingResultArray, msScanMassTrackId
                         ){
                             console.info('Event: BEYONDGBrowse/addSingleProteoformScan', arguments);
                             _this.proteoformToDrawScanIdArray[scanId] = {
@@ -138,7 +138,8 @@ define(
                                 proteoformEndPosition: proteoformEndPosition,
                                 isReverseStrand: isReverseStrand,
                                 scanId: scanId,
-                                mSScanMassMappingResultArray: mSScanMassMappingResultArray
+                                mSScanMassMappingResultArray: mSScanMassMappingResultArray,
+                                msScanMassTrackId: msScanMassTrackId
                             };
 
                             drawProteoform();
@@ -149,6 +150,28 @@ define(
                         '/jbrowse/v1/n/tracks/navigate',
                         function () {
                             _this.proteoformToDrawScanIdArray = [];
+                        }
+                    );
+
+                    // Remove from _this.proteoformToDrawScanIdArray
+                    _this.browser.subscribe(
+                        '/jbrowse/v1/c/tracks/hide',
+                        function (trackToHideArray) {
+                            trackToHideArray.forEach(
+                                function (trackToHide) {
+                                    if(trackToHide.BEYONDGBrowseMassTrack === true)
+                                    {
+                                        _this.proteoformToDrawScanIdArray.forEach(
+                                            function (item, index) {
+                                                if(trackToHide.msScanMassTrackId === item.msScanMassTrackId)
+                                                {
+                                                    delete _this.proteoformToDrawScanIdArray[index];
+                                                }
+                                            }
+                                        );
+                                    }
+                                }
+                            );
                         }
                     );
 
@@ -174,7 +197,7 @@ define(
                                     proteoformObject.proteoformSequence, proteoformObject.proteoformStartPosition,
                                     proteoformObject.proteoformEndPosition, proteoformObject.isReverseStrand,
                                     proteoformObject.scanId, proteoformObject.mSScanMassMappingResultArray,
-                                    _this
+                                    proteoformObject.msScanMassTrackId, _this
                                 );
                             }
                         }
@@ -372,7 +395,7 @@ define(
 
                 _drawProteoformSequenceEventCallback: function(
                     proteoformSequence, proteoformStartPosition, proteoformEndPosition,
-                    isReverseStrand, scanId, mSScanMassMappingResultArray, _this
+                    isReverseStrand, scanId, mSScanMassMappingResultArray, msScanMassTrackId, _this
                 ){
                     // 2019-08-16: New implementation:
                     // if(_this.proteoformScanIdArray.hasOwnProperty(scanId) && _this.proteoformScanIdArray[scanId] === true)
@@ -537,6 +560,7 @@ define(
                             );
                             domClass.add( newProteoformSequenceDiv, "snow_proteoform_frame");
                             domClass.add( newProteoformSequenceDiv, "scan_" + scanId);
+                            domClass.add( newProteoformSequenceDiv, "msScanMassTrackId_" + msScanMassTrackId);
                             snowSequenceTrackBlocks[blockIndex].domNode.appendChild(newProteoformSequenceDiv);
 
                             let totalHeight = 0;

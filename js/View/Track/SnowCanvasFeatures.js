@@ -499,12 +499,12 @@ define(
 
                 _publishDrawProteoformSequenceEvent: function(
                     proteoformSequence, proteoformStartPosition, proteoformEndPosition,
-                    isReverseStrand, scanId, mSScanMassMappingResultArray
+                    isReverseStrand, scanId, mSScanMassMappingResultArray, msScanMassTrackId
                 )
                 {
                     dojoTopic.publish('BEYONDGBrowse/addSingleProteoformScan',
                         proteoformSequence, proteoformStartPosition, proteoformEndPosition,
-                        isReverseStrand, scanId, mSScanMassMappingResultArray
+                        isReverseStrand, scanId, mSScanMassMappingResultArray, msScanMassTrackId
                     );
                 },
 
@@ -777,7 +777,8 @@ define(
                                     thisProteoformEndPosition,
                                     isThisProteoformReverse,
                                     thisProteoformScanId,
-                                    mappingResultObjectArray
+                                    mappingResultObjectArray,
+                                    msScanMassTrackId + 1
                                 );
 
                                 console.info('filteredMSScanMassMappingResultArray:', filteredMSScanMassMappingResultArray);
