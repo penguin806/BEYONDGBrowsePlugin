@@ -1320,6 +1320,9 @@ define(
                                     position: position,
                                     annotationObjectArray: annotationObjectArray,
                                     browser: this.browser,
+                                    style: {
+                                        width: '360px'
+                                    },
                                     setCallback: function () {
                                         // Make sure the annotation is successfully inserted
                                         dojoRequest(

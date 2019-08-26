@@ -95,7 +95,10 @@ define(
                             id: 'annotation_content_string',
                             value: this.annotationExistAtThisPosition ? _this.annotationObjectArray[0].contents : '',
                             placeHolder: '',
-                            style: 'width: 100%; height: 100px;'
+                            style: {
+                                width: '100%',
+                                height: '100px'
+                            }
                         }
                     );
 
@@ -111,29 +114,24 @@ define(
                 },
 
                 insertSpecificAnnotation: function() {
-                    let annotationTime = this.annotationTimeInput.get('value');
-                    let annotationContent = this.annotationContentInput.get('value');
+                    let _this = this;
+                    let annotationTime = _this.annotationTimeInput.get('value');
+                    let annotationContent = _this.annotationContentInput.get('value');
                     let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
                         + ':12080/';
                     let URIParam = 'annotation/insert/' + this.refName + '/' + this.position + '/';
-                    if(this.annotationExistAtThisPosition)
+                    let currentDateTimeInMysqlFormat = _this._getCurrentTimeInMysqlFormat();
+                    if(
+                        this.annotationExistAtThisPosition
+                        && typeof _this.annotationObjectArray[0] === "object"
+                        && annotationContent === _this.annotationObjectArray[0].contents
+                    )
                     {
-                        URIParam += annotationTime + '/' + annotationContent
+                        // Content not changed
+                        URIParam += annotationTime + '/' + annotationContent;
                     }
                     else
                     {
-                        let currentDateObject = new Date();
-                        let fullYear = currentDateObject.getFullYear();
-                        let month = currentDateObject.getMonth();
-                        let day = currentDateObject.getDate();
-                        let hour = currentDateObject.getHours();
-                        let minute = currentDateObject.getMinutes();
-                        let second = currentDateObject.getSeconds();
-
-                        let currentDateTimeInMysqlFormat =
-                            fullYear + '-' + month + '-' + day + ' '
-                            + hour + ':' + minute + ':' + second;
-
                         URIParam += currentDateTimeInMysqlFormat + '/' + annotationContent;
                     }
 
@@ -159,6 +157,21 @@ define(
                         dojoLang.hitch( this, 'destroyRecursive' ),
                         500
                     );
+                },
+
+                _getCurrentTimeInMysqlFormat: function () {
+                    let currentDateObject = new Date();
+                    let fullYear = currentDateObject.getFullYear();
+                    let month = currentDateObject.getMonth() + 1;
+                    let day = currentDateObject.getDate();
+                    let hour = currentDateObject.getHours();
+                    let minute = currentDateObject.getMinutes();
+                    let second = currentDateObject.getSeconds();
+
+                    let currentDateTimeInMysqlFormat =
+                        fullYear + '-' + month + '-' + day + ' '
+                        + hour + ':' + minute + ':' + second;
+                    return currentDateTimeInMysqlFormat;
                 }
             }
         );
