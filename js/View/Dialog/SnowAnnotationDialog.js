@@ -35,7 +35,7 @@ define(
                     this.refName = args.refName;
                     this.position = args.position;
                     this.annotationObjectArray = args.annotationObjectArray;
-                    this.title = 'Annotation at [' + args.refName + ':' + args.position + ']';
+                    this.title = 'Annotation at [' + args.refName + ': ' + args.position + ']';
                     this.browser = args.browser;
                     this.annotationExistAtThisPosition =
                         ! (typeof args.annotationObjectArray != "object"

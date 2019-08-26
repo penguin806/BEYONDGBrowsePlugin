@@ -562,6 +562,13 @@ define(
                             domClass.add( newProteoformSequenceDiv, "scan_" + scanId);
                             domClass.add( newProteoformSequenceDiv, "msScanMassTrackId_" + msScanMassTrackId);
                             snowSequenceTrackBlocks[blockIndex].domNode.appendChild(newProteoformSequenceDiv);
+                            _this._renderAnnotationMark(
+                                'Scan' + scanId,
+                                newProteoformSequenceDiv,
+                                blockStartBaseWithOffset,
+                                blockEndBaseWithOffset,
+                                true
+                            );
 
                             let totalHeight = 0;
                             dojoArray.forEach(
@@ -654,7 +661,8 @@ define(
                                 _this.refSeq.name,
                                 blockObject,
                                 leftBase,
-                                rightBase
+                                rightBase,
+                                false
                             );
                         }
                     );
@@ -685,7 +693,7 @@ define(
                                 else {
                                     domConstruct.empty( blockObject.domNode );
                                     _this._fillSequenceBlock( blockObject, blockIndex, scale, seq );
-                                    renderAnnotationMarkDeferred.resolve(true);
+                                    renderAnnotationMarkDeferred.resolve();
                                 }
                                 args.finishCallback();
                             },
@@ -1008,7 +1016,15 @@ define(
                         table.className += ' big';
 
                     for( let index = 0; index < detailArrayOfProteoformInThisBlock.length; index++ ) {
-                        let aminoAcidSpan = document.createElement('td');
+                        let aminoAcidSpan = domConstruct.create(
+                            'td',
+                            {
+                                proteoformPosition: (
+                                    typeof detailArrayOfProteoformInThisBlock[index] === "object"
+                                ) ? detailArrayOfProteoformInThisBlock[index].id + 1 : undefined
+                            },
+                            tr
+                        );
                         aminoAcidSpan.style.width = charWidth;
                         aminoAcidSpan.style.height = aminoAcidTableCellActualWidth + 'px';
 
@@ -1214,21 +1230,47 @@ define(
                     return container;
                 },
 
-                _renderAnnotationMark: function (refName, blockObject, blockStart, blockEnd) {
+                _renderAnnotationMark: function (refName, blockObject, blockStart, blockEnd, isProteoformSequence) {
                     console.debug('_renderAnnotationMark', refName, blockObject, blockStart, blockEnd);
 
                     let _this = this;
                     let renderAnnotationDeferred = new dojoDeferred();
-                    let blockDomNode = blockObject.domNode;
-                    let frameDomNode = blockDomNode.firstChild;
+                    let blockDomNode;
+                    let frameDomNode;
+                    if(isProteoformSequence === true)
+                    {
+                        frameDomNode = blockObject;
+                    }
+                    else
+                    {
+                        blockDomNode = blockObject.domNode;
+                        frameDomNode = blockDomNode.firstChild;
+                    }
                     let allAminoAcidCell = dojoQuery(".Snow_aminoAcid", frameDomNode);
+                    let proteoformPositionArray = [];
+                    allAminoAcidCell.forEach(
+                        function (item) {
+                            proteoformPositionArray.push(
+                                domAttr.get(item, 'proteoformPosition')
+                            );
+                        }
+                    );
                     // Add dblclick event handler on all AmioAcid table cell
                     allAminoAcidCell.on('dblclick', function (event) {
                             console.debug('dblclick on .Snow_aminoAcid:', arguments);
                             let finishCallback = function () {
                                 domClass.add(event.target, 'Snow_annotation_mark');
                             };
-                            let thisAminoAcidCellPosition = domAttr.get(event.target, 'snowseqposition');
+                            let thisAminoAcidCellPosition;
+                            if(isProteoformSequence === true)
+                            {
+                                // the proteoform position is its property <id>
+                                thisAminoAcidCellPosition = domAttr.get(event.target, 'proteoformPosition');
+                            }
+                            else
+                            {
+                                thisAminoAcidCellPosition = domAttr.get(event.target, 'snowseqposition');
+                            }
 
                             // dojoLang.hitch(
                             //     _this,
@@ -1247,10 +1289,31 @@ define(
                     );
 
                     let blockRegion = blockEnd - blockStart;
-                    let blockStartExtended = blockStart + blockRegion * frameDomNode.snowSequenceOffset * 0.01;
-                    let blockEndExtended = blockStart + allAminoAcidCell.length * 3;
+                    let blockStartExtended = undefined;
+                    let blockEndExtended = undefined;
+
+                    if(isProteoformSequence === true)
+                    {
+                        // Offset is included in the start and end
+                        blockStartExtended = blockStart;
+                        blockEndExtended = blockEnd;
+                    }
+                    else
+                    {
+                        blockStartExtended = blockStart + blockRegion * frameDomNode.snowSequenceOffset * 0.01;
+                        blockEndExtended = blockStart + allAminoAcidCell.length * 3;
+                    }
+
                     let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
-                        + ':12080' + '/annotation/query/' + refName + '/' + blockStartExtended + '..' + blockEndExtended;
+                        + ':12080' + '/annotation/query/' + refName + '/'
+                        + (
+                            isProteoformSequence === true ?
+                                Math.min.apply(null, proteoformPositionArray) : blockStartExtended
+                        )
+                        + '..' + (
+                            isProteoformSequence === true ?
+                                Math.max.apply(null, proteoformPositionArray) : blockEndExtended
+                        );
 
                     dojoRequest(
                         requestUrl,
@@ -1275,7 +1338,10 @@ define(
                         function (annotationObjectArray) {
                             for(let i=0; i<allAminoAcidCell.length; i++)
                             {
-                                let thisCellPosition = domAttr.get(allAminoAcidCell[i], 'snowseqposition');
+                                let thisCellPosition = domAttr.get(
+                                    allAminoAcidCell[i],
+                                    isProteoformSequence === true ? 'proteoformPosition' : 'snowseqposition'
+                                );
                                 for(let j=0; j<annotationObjectArray.length; j++)
                                 {
                                     if(typeof annotationObjectArray[j] != "object")
@@ -1284,7 +1350,15 @@ define(
                                         break;
                                     }
                                     let thisAnnotationPosition = annotationObjectArray[j].position;
-                                    if(Math.abs(thisCellPosition - thisAnnotationPosition) <= 2)
+                                    if(
+                                        (
+                                            (isProteoformSequence === true) &&
+                                            (thisCellPosition === thisAnnotationPosition)
+                                        ) || (
+                                            (isProteoformSequence !== true) &&
+                                            (Math.abs(thisCellPosition - thisAnnotationPosition) <= 2)
+                                        )
+                                    )
                                     {
                                         // Match! Add style
                                         domClass.add(allAminoAcidCell[i], 'Snow_annotation_mark');
