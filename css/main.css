@@ -80,7 +80,7 @@
     height: 98%;
 }
 
-.Snow_translatedSequence td.Snow_annotation_mark::after {
+.Snow_translatedSequence td.Snow_annotation_mark::before {
     content: "";
     position: absolute;
     left: 47%;
