@@ -97,7 +97,7 @@
     border-radius: 6px;
     padding: 8px 4px;
     position: absolute;
-    width: 120%;
+    width: 80px;
     top: 50%;
     right: 110%;
     transform: translateY(-50%);
@@ -124,7 +124,7 @@
     border-radius: 6px;
     padding: 8px 4px;
     position: absolute;
-    width: 120%;
+    width: 70px;
     top: 50%;
     left: 110%;
     transform: translateY(-50%);
