@@ -753,12 +753,24 @@ define(
                                 }
 
                                 // 9. Calculating MsScanMass and mapping with proteoform ions
-                                let mappingResultObjectArray = _this._calcMSScanMass(
-                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].sequence,
-                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].arrMSScanMassArray,
-                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].arrMSScanPeakAundance
-                                );
-                                console.info('mappingResultObjectArray:', mappingResultObjectArray);
+                                let mappingResultObjectArray = undefined;
+                                if(
+                                    window.BEYONDGBrowse.mSScanMassResultArray.hasOwnProperty(thisProteoformObject.scanId)
+                                    && typeof window.BEYONDGBrowse.mSScanMassResultArray[thisProteoformObject.scanId] == "object"
+                                )
+                                {
+                                    mappingResultObjectArray = window.BEYONDGBrowse.mSScanMassResultArray[thisProteoformObject.scanId];
+                                }
+                                else
+                                {
+                                    window.BEYONDGBrowse.mSScanMassResultArray[thisProteoformObject.scanId] =
+                                        mappingResultObjectArray = _this._calcMSScanMass(
+                                        thisProteoformObject.sequence,
+                                        thisProteoformObject.arrMSScanMassArray,
+                                        thisProteoformObject.arrMSScanPeakAundance
+                                    );
+                                    console.info('mappingResultObjectArray:', mappingResultObjectArray);
+                                }
 
                                 // 10. Take out the parts that needed for current view block
                                 let filteredMSScanMassMappingResultArray = _this._filterMSScanMassMappingResultForCurrentBlock(

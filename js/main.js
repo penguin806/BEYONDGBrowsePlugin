@@ -150,6 +150,9 @@ define([
                     let _this = this;
                     let browserTrackConfig = _this.browser.config.tracks;
                     window.BEYONDGBrowseProteinTrack = _this.BEYONDGBrowseProteinTrack = undefined;
+                    window.BEYONDGBrowse = {
+                        mSScanMassResultArray: []
+                    };
 
                     for(let index in browserTrackConfig)
                     {

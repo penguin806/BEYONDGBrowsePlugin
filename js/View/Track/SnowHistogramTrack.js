@@ -5,7 +5,9 @@ define([
         'dojo/_base/declare',
         'dojo/_base/array',
         'dojo/_base/lang',
+        'dojo/on',
         'dojo/dom-construct',
+        'dojo/dom-geometry',
         // 'JBrowse/View/Track/BlockBased',
         'JBrowse/View/Track/CanvasFeatures',
         'JBrowse/View/Track/_YScaleMixin'
@@ -14,7 +16,9 @@ define([
         declare,
         array,
         lang,
+        dojoOn,
         domConstruct,
+        domGeom,
         // BlockBasedTrack
         CanvasFeatures,
         _YScaleMixin
@@ -47,11 +51,12 @@ define([
                     return newConfig;
                 },
 
-                fillBlock: function ( renderArgs ) {
-                    this.fillHistograms( renderArgs );
+                fillBlock: function (renderArgs) {
+                    let _this = this;
+                    _this.fillHistograms( renderArgs );
                 },
 
-                fillHistograms: function ( renderArgs, isAlignByIonPosition ) {
+                fillHistograms: function (renderArgs, isAlignByIonPosition) {
                     let _this = this;
                     let histData = [
                         // Example:
@@ -70,6 +75,9 @@ define([
                         //     "position": 92
                         // }
                     ];
+
+                    _this.mappingResultObjectArray = renderArgs.mappingResultObjectArray;
+                    _this._attachMouseOverEvents();
 
                     if(
                         isAlignByIonPosition === true &&
@@ -99,22 +107,23 @@ define([
                     viewArgs, mappingResultObjectArray, proteoformStartPosition, scanId
                 ) {
                     let _this = this;
-                    let maxValue = this.config.histograms.maxValue || 100000.0;
+                    let maxValue = _this.config.histograms.maxValue =
+                        _this.config.histograms.maxValue || 100000.0;
 
                     let block = viewArgs.block;
-                    let histogramHeight = this.config.histograms.height || 100;
-                    let trackTotalHeight = histogramHeight + 100;
-                    let bottomLineHeight = 10;
+                    let histogramHeight = _this.config.histograms.height =
+                        _this.config.histograms.height || 100;
+                    let trackTotalHeight = _this.trackTotalHeight = histogramHeight + 100;
+                    let bottomLineHeight = _this.bottomLineHeight = 10;
                     let blockScaleLevel = viewArgs.scale;
                     let blockStartBase = viewArgs.leftBase;
                     let blockEndBase = viewArgs.rightBase;
                     let blockOffsetStartBase = blockStartBase - (blockStartBase % 3);
                     let blockOffsetEndBase = blockEndBase - (blockEndBase % 3);
-                    let blockBpLength = blockOffsetEndBase - blockOffsetStartBase;
-                    let blockActualWidthInPx = blockBpLength * blockScaleLevel;
+                    // let blockBpLength = blockOffsetEndBase - blockOffsetStartBase;
+                    // let blockActualWidthInPx = blockBpLength * blockScaleLevel;
 
-                    // Filter mapping result array for this block
-                    let filteredMSScanMassMappingResultArray = [];
+                    // Calculate the leftBaseInBp
                     for(let index in mappingResultObjectArray)
                     {
                         if(
@@ -122,20 +131,10 @@ define([
                             typeof mappingResultObjectArray[index] == "object"
                         )
                         {
-                            mappingResultObjectArray[index].leftBaseInBp =
-                                proteoformStartPosition + 3 * mappingResultObjectArray[index].position;
-
-                            if(
-                                mappingResultObjectArray[index].leftBaseInBp >= blockOffsetStartBase &&
-                                mappingResultObjectArray[index].leftBaseInBp < blockOffsetEndBase
-                            )
+                            if(!mappingResultObjectArray[index].hasOwnProperty('leftBaseInBp'))
                             {
-                                let resultObjectInThisBlock = mappingResultObjectArray[index];
-                                // Because of the bIon mark is on the top right corner, add offset by 3bp here
-                                resultObjectInThisBlock.leftBaseInBp += 3;
-                                // Minus block left offset
-                                resultObjectInThisBlock.leftBaseInBp -= (blockStartBase - blockOffsetStartBase);
-                                filteredMSScanMassMappingResultArray.push(resultObjectInThisBlock);
+                                mappingResultObjectArray[index].leftBaseInBp =
+                                    proteoformStartPosition + 3 * mappingResultObjectArray[index].position;
                             }
                         }
                     }
@@ -160,18 +159,46 @@ define([
                         );
 
                     this.heightUpdate(trackTotalHeight, viewArgs.blockIndex);
-                    let ctx = c.getContext('2d');
+                    let context = c.getContext('2d');
                     _this._scaleCanvas(c);
-                    ctx.fillStyle = _this.config.histograms.color || '#fd79a8';
-                    ctx.textAlign = "center";
-                    ctx.font = "10px sans-serif";
-                    ctx.lineWidth = 1;
+                    context.fillStyle = _this.config.histograms.color || '#fd79a8';
+                    context.textAlign = "center";
+                    context.font = "10px sans-serif";
+                    context.lineWidth = 1;
 
                     // Draw the X-Axis line
-                    ctx.beginPath();
-                    ctx.moveTo(0, trackTotalHeight - bottomLineHeight);
-                    ctx.lineTo(Math.ceil((blockEndBase - blockStartBase + 1)*blockScaleLevel), trackTotalHeight - bottomLineHeight);
-                    ctx.stroke();
+                    context.beginPath();
+                    context.moveTo(0, trackTotalHeight - bottomLineHeight);
+                    context.lineTo(Math.ceil((blockEndBase - blockStartBase + 1)*blockScaleLevel), trackTotalHeight - bottomLineHeight);
+                    context.stroke();
+
+                    // Filter mapping result array for this block
+                    let filteredMSScanMassMappingResultArray = [];
+                    for(let index in mappingResultObjectArray)
+                    {
+                        if(
+                            mappingResultObjectArray.hasOwnProperty(index) &&
+                            typeof mappingResultObjectArray[index] == "object"
+                        )
+                        {
+                            if(
+                                mappingResultObjectArray[index].leftBaseInBp >= blockOffsetStartBase &&
+                                mappingResultObjectArray[index].leftBaseInBp < blockOffsetEndBase
+                            )
+                            {
+                                let resultObjectInThisBlock = mappingResultObjectArray[index];
+                                // Because the bIon mark is on the top right corner, add offset by 3bp here
+                                resultObjectInThisBlock.leftBaseInBpWithOffset =
+                                    resultObjectInThisBlock.leftBaseInBp + 3;
+                                // Minus block left offset
+                                resultObjectInThisBlock.leftBaseInBpWithOffset -= (blockStartBase - blockOffsetStartBase);
+                                resultObjectInThisBlock.context = context;
+                                resultObjectInThisBlock.viewArgs = viewArgs;
+
+                                filteredMSScanMassMappingResultArray.push(resultObjectInThisBlock);
+                            }
+                        }
+                    }
 
                     if(filteredMSScanMassMappingResultArray.length === 0)
                     {
@@ -179,62 +206,149 @@ define([
                         return;
                     }
 
+                    array.forEach(
+                        filteredMSScanMassMappingResultArray,
+                        function (item, index) {
+                            _this._drawGraph(
+                                item, context, viewArgs
+                            );
+                        }
+                    );
 
-                    let spanAtBlockStartAndEnd = blockActualWidthInPx * 0;
+                    this._makeHistogramYScale(trackTotalHeight, histogramHeight, maxValue, bottomLineHeight);
+                },
+
+                _attachMouseOverEvents: function( ) {
+                    let _this = this;
+                    let genomeView = _this.browser.view;
+
+                    if( !_this._mouseoverEvent ) {
+                        _this._mouseoverEvent = _this.own(
+                            dojoOn(
+                                _this.staticCanvas, 'mousemove', function( evt ) {
+                                    domGeom.normalizeEvent(evt);
+                                    let bpX = genomeView.absXtoBp( evt.clientX ) + 1;
+                                    if(isNaN(bpX))
+                                    {
+                                        return;
+                                    }
+                                    if(_this.lastMouseOverPositionXInBp)
+                                    {
+                                        if(
+                                            Math.abs(Math.floor(bpX)-Math.floor(_this.lastMouseOverPositionXInBp)) < 1
+                                        )
+                                        {
+                                            _this.lastMouseOverPositionXInBp = bpX;
+                                            return;
+                                        }
+                                    }
+                                    _this.lastMouseOverPositionXInBp = Math.floor(bpX);
+                                    console.info('mousemove', bpX);
+                                    let mappingResultObjectArray = _this.mappingResultObjectArray;
+                                    for(let index in mappingResultObjectArray)
+                                    {
+                                        if(
+                                            mappingResultObjectArray.hasOwnProperty(index) &&
+                                            typeof mappingResultObjectArray[index] == "object" &&
+                                            mappingResultObjectArray[index].hasOwnProperty('leftBaseInBpWithOffset')
+                                        )
+                                        {
+                                            let leftBaseInBpWithOffset = mappingResultObjectArray[index].leftBaseInBpWithOffset;
+                                            if(Math.abs(leftBaseInBpWithOffset + 2.5 - bpX) <= 0.5)
+                                            {
+                                                let item = mappingResultObjectArray[index];
+                                                console.info(item,
+                                                    item.context,
+                                                    item.viewArgs);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                        )[0];
+                    }
+
+                    if( !this._mouseoutEvent ) {
+                        this._mouseoutEvent = this.own(
+                            dojoOn(
+                                this.staticCanvas, 'mouseout', function(evt) {
+                                    console.info('mouseout', evt);
+                                    // _this.mouseoverFeature(undefined);
+                                }
+                            )
+                        )[0];
+                    }
+                },
+
+                _drawGraph: function(
+                    item, context, viewArgs
+                ) {
+                    let _this = this;
+
+                    let blockScaleLevel = viewArgs.scale;
+                    let blockStartBase = viewArgs.leftBase;
+                    let blockEndBase = viewArgs.rightBase;
+                    let blockOffsetStartBase = blockStartBase - (blockStartBase % 3);
+                    let blockOffsetEndBase = blockEndBase - (blockEndBase % 3);
+                    let blockBpLength = blockOffsetEndBase - blockOffsetStartBase;
+                    let blockActualWidthInPx = blockBpLength * blockScaleLevel;
+                    // let spanAtBlockStartAndEnd = blockActualWidthInPx * 0;
+                    let spanAtBlockStartAndEnd = 0;
                     let blockWidthInPxAfterMinusOffsetAtStartAndEnd = blockActualWidthInPx - spanAtBlockStartAndEnd * 2;
                     let xAxisScale = blockWidthInPxAfterMinusOffsetAtStartAndEnd / blockBpLength;
 
-                    array.forEach(filteredMSScanMassMappingResultArray,function (item, index) {
-                        let barHeight = item.value / maxValue * histogramHeight;
-                        let barWidth = 3;
-                        let keyPosition = (item.leftBaseInBp - blockOffsetStartBase) * xAxisScale;
-                        let barLeft_X = keyPosition + spanAtBlockStartAndEnd;
-                        let barLeft_Y = trackTotalHeight - barHeight - bottomLineHeight;
-                        // Draw histogram
-                        ctx.save();
-                        ctx.shadowOffsetX = 2;
-                        ctx.shadowOffsetY = 0;
-                        ctx.shadowBlur = 2;
-                        ctx.shadowColor = "#999";
-                        ctx.fillRect(
-                            barLeft_X,
-                            barLeft_Y,
-                            barWidth,
-                            barHeight
+                    let maxValue = _this.config.histograms.maxValue;
+                    let histogramHeight = _this.config.histograms.height;
+                    let trackTotalHeight = _this.trackTotalHeight;
+                    let bottomLineHeight = _this.bottomLineHeight;
+                    let barHeight = item.value / maxValue * histogramHeight;
+                    let barWidth = 3;
+                    let keyPosition = (item.leftBaseInBpWithOffset - blockOffsetStartBase) * xAxisScale;
+                    let barLeft_X = keyPosition + spanAtBlockStartAndEnd;
+                    let barLeft_Y = trackTotalHeight - barHeight - bottomLineHeight;
+                    // Draw histogram
+                    context.save();
+                    context.shadowOffsetX = 2;
+                    context.shadowOffsetY = 0;
+                    context.shadowBlur = 2;
+                    context.shadowColor = "#999";
+                    context.fillRect(
+                        barLeft_X,
+                        barLeft_Y,
+                        barWidth,
+                        barHeight
+                    );
+                    context.restore();
+
+                    if(item.label !== undefined && item.label != null)
+                    {
+                        // Draw arrow above the histogram column
+                        _this._drawArrow(
+                            context,
+                            barLeft_X + 1,
+                            barLeft_Y - 70,
+                            barLeft_X + 1,
+                            barLeft_Y - 5
                         );
-                        ctx.restore();
+                        // Draw label above the arrow
+                        context.fillText(item.label,barLeft_X + 1, barLeft_Y - 75);
 
-                        if(item.label !== undefined && item.label != null)
+                        context.save();
+                        context.fillStyle = '#2d3436';
+                        context.font = "9px sans-serif";
+                        // Draw value above the label
+                        context.fillText((Math.round(item.value * 100) / 100).toString(),
+                            barLeft_X + 1, barLeft_Y - 85);
+                        if(viewArgs.showMzValue)
                         {
-                            // Draw arrow above the histogram column
-                            _this._drawArrow(
-                                ctx,
-                                barLeft_X + 1,
-                                barLeft_Y - 70,
-                                barLeft_X + 1,
-                                barLeft_Y - 5
-                            );
-                            // Draw label above the arrow
-                            ctx.fillText(item.label,barLeft_X + 1, barLeft_Y - 75);
-
-                            ctx.save();
-                            ctx.fillStyle = '#2d3436';
-                            ctx.font = "9px sans-serif";
-                            // Draw value above the label
-                            ctx.fillText((Math.round(item.value * 100) / 100).toString(),
-                                barLeft_X + 1, barLeft_Y - 85);
-                            if(viewArgs.showMzValue)
-                            {
-                                // Draw key under the X-axis
-                                ctx.fillStyle = '#7f8c8d';
-                                ctx.fillText((Math.round(item.key * 100) / 100).toString(),
-                                    barLeft_X + 1, trackTotalHeight);
-                            }
-                            ctx.restore();
+                            // Draw key under the X-axis
+                            context.fillStyle = '#7f8c8d';
+                            context.fillText((Math.round(item.key * 100) / 100).toString(),
+                                barLeft_X + 1, trackTotalHeight);
                         }
-                    });
-
-                    this._makeHistogramYScale(trackTotalHeight, histogramHeight, maxValue, bottomLineHeight);
+                        context.restore();
+                    }
                 },
 
                 _drawHistograms: function (viewArgs, histData) {
