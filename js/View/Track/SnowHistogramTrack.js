@@ -8,6 +8,7 @@ define([
         'dojo/on',
         'dojo/dom-construct',
         'dojo/dom-geometry',
+        'dojo/query',
         // 'JBrowse/View/Track/BlockBased',
         'JBrowse/View/Track/CanvasFeatures',
         'JBrowse/View/Track/_YScaleMixin'
@@ -19,6 +20,7 @@ define([
         dojoOn,
         domConstruct,
         domGeom,
+        dojoQuery,
         // BlockBasedTrack
         CanvasFeatures,
         _YScaleMixin
@@ -235,15 +237,14 @@ define([
                                     if(_this.lastMouseOverPositionXInBp)
                                     {
                                         if(
-                                            Math.abs(Math.floor(bpX)-Math.floor(_this.lastMouseOverPositionXInBp)) < 1
+                                            Math.abs(bpX - _this.lastMouseOverPositionXInBp) < 0.1
                                         )
                                         {
-                                            _this.lastMouseOverPositionXInBp = bpX;
                                             return;
                                         }
                                     }
                                     _this.lastMouseOverPositionXInBp = Math.floor(bpX);
-                                    console.info('mousemove', bpX);
+                                    // console.info('mousemove', bpX);
                                     let mappingResultObjectArray = _this.mappingResultObjectArray;
                                     for(let index in mappingResultObjectArray)
                                     {
@@ -253,15 +254,29 @@ define([
                                             mappingResultObjectArray[index].hasOwnProperty('leftBaseInBpWithOffset')
                                         )
                                         {
-                                            let leftBaseInBpWithOffset = mappingResultObjectArray[index].leftBaseInBpWithOffset;
-                                            if(Math.abs(leftBaseInBpWithOffset + 2.5 - bpX) <= 0.5)
+                                            let barPositionInBp = mappingResultObjectArray[index].leftBaseInBpWithOffset + 2.1;
+                                            if(Math.abs(bpX - barPositionInBp) < 1)
                                             {
-                                                let item = mappingResultObjectArray[index];
-                                                console.info(item,
-                                                    item.context,
-                                                    item.viewArgs);
+                                                let item = _this.lastHighlistItem = mappingResultObjectArray[index];
+                                                console.info('bpX', bpX, 'barPositionInBp', barPositionInBp, item, item.context, item.viewArgs);
+                                                _this._drawGraph(item, item.context, item.viewArgs, true);
+                                                dojoQuery(
+                                                    '.snow_proteoform_frame.scan_' + _this.scanId
+                                                    + ' .Snow_aminoAcid_bIon_' + item.label
+                                                ).addClass('hoverState');
+
                                                 break;
                                             }
+                                        }
+                                        if(_this.lastHighlistItem)
+                                        {
+                                            let item = _this.lastHighlistItem;
+                                            _this.lastHighlistItem = undefined;
+                                            _this._drawGraph(item, item.context, item.viewArgs, false);
+                                            dojoQuery(
+                                                '.snow_proteoform_frame.scan_' + _this.scanId
+                                                + ' .Snow_aminoAcid_bIon_' + item.label
+                                            ).removeClass('hoverState');
                                         }
                                     }
                                 }
@@ -274,7 +289,16 @@ define([
                             dojoOn(
                                 this.staticCanvas, 'mouseout', function(evt) {
                                     console.info('mouseout', evt);
-                                    // _this.mouseoverFeature(undefined);
+                                    if(_this.lastHighlistItem)
+                                    {
+                                        let item = _this.lastHighlistItem;
+                                        _this.lastHighlistItem = undefined;
+                                        _this._drawGraph(item, item.context, item.viewArgs, false);
+                                        dojoQuery(
+                                            '.snow_proteoform_frame.scan_' + _this.scanId
+                                            + ' .Snow_aminoAcid_bIon_' + item.label
+                                        ).removeClass('hoverState');
+                                    }
                                 }
                             )
                         )[0];
@@ -282,7 +306,7 @@ define([
                 },
 
                 _drawGraph: function(
-                    item, context, viewArgs
+                    item, context, viewArgs, isHighLightState
                 ) {
                     let _this = this;
 
@@ -313,6 +337,14 @@ define([
                     context.shadowOffsetY = 0;
                     context.shadowBlur = 2;
                     context.shadowColor = "#999";
+                    if(isHighLightState === true)
+                    {
+                        context.fillStyle = 'blue';
+                    }
+                    else
+                    {
+                        context.fillStyle = _this.config.histograms.color || '#fd79a8';
+                    }
                     context.fillRect(
                         barLeft_X,
                         barLeft_Y,

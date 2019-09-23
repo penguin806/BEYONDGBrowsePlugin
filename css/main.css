@@ -45,7 +45,7 @@
     /*box-shadow: #2d3436 2px 3px 8px;*/
 /*}*/
 
-.Snow_translatedSequence td.Snow_aminoAcid_animation:hover {
+.Snow_translatedSequence td.Snow_aminoAcid_animation:hover,td.Snow_aminoAcid_animation.hoverState {
     box-shadow: #2d3436 2px 3px 8px;
     transform: rotate(360deg);
 }
