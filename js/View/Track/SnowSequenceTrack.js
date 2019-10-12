@@ -421,6 +421,7 @@ define(
                             leftPosition: undefined,
                             aminoAcidCharacter: undefined,
                             bIonFlag: undefined,
+                            bIonFlagTag: undefined,
                             yIonFlag: undefined,
                             modification: undefined,
                         };
@@ -437,6 +438,7 @@ define(
                                 if(mSScanMassMappingResultArray[i].position === aminoAcidCharacterCount)
                                 {
                                     currentAminoAcidDetail.bIonFlag = mSScanMassMappingResultArray[i].label;
+                                    currentAminoAcidDetail.bIonFlagTag = true;
                                     break;
                                 }
                             }
@@ -469,6 +471,21 @@ define(
 
                     }
 
+                    for(let index in detailArrayOfProteoformSequence)
+                    {
+                        if(detailArrayOfProteoformSequence.hasOwnProperty(index))
+                        {
+                            for(let j = index; j < detailArrayOfProteoformSequence.length; j++)
+                            {
+                                if(detailArrayOfProteoformSequence[j].bIonFlag !== undefined)
+                                {
+                                    detailArrayOfProteoformSequence[index].bIonFlag =
+                                        detailArrayOfProteoformSequence[j].bIonFlag;
+                                    break;
+                                }
+                            }
+                        }
+                    }
 
                     let firstAttachedBlockIndex = _this.firstAttached;
                     let lastAttachedBlockIndex = _this.lastAttached;
@@ -513,6 +530,7 @@ define(
                                     leftPosition: undefined,
                                     aminoAcidCharacter: undefined,
                                     bIonFlag: undefined,
+                                    bIonFlagTag: undefined,
                                     yIonFlag: undefined,
                                     modification: undefined
                                 };
@@ -1049,18 +1067,21 @@ define(
                             }
                             if(detailArrayOfProteoformInThisBlock[index].bIonFlag !== undefined)
                             {
-                                aminoAcidSpan.className += ' Snow_aminoAcid_mark_right_top';
                                 aminoAcidSpan.className += ' Snow_aminoAcid_bIon_' +
                                     detailArrayOfProteoformInThisBlock[index].bIonFlag;
+                                if(detailArrayOfProteoformInThisBlock[index].bIonFlagTag !== undefined)
+                                {
+                                    aminoAcidSpan.className += ' Snow_aminoAcid_mark_right_top';
 
-                                let bIonLabelNode = domConstruct.create('span',
-                                    {
-                                        className: 'Snow_aminoAcid_head_strand_bIon_label',
-                                        style: {},
-                                        innerHTML: detailArrayOfProteoformInThisBlock[index].bIonFlag
-                                    }
-                                );
-                                aminoAcidSpan.appendChild(bIonLabelNode);
+                                    let bIonLabelNode = domConstruct.create('span',
+                                        {
+                                            className: 'Snow_aminoAcid_head_strand_bIon_label',
+                                            style: {},
+                                            innerHTML: detailArrayOfProteoformInThisBlock[index].bIonFlag
+                                        }
+                                    );
+                                    aminoAcidSpan.appendChild(bIonLabelNode);
+                                }
                             }
                             if(detailArrayOfProteoformInThisBlock[index].modification !== undefined)
                             {
