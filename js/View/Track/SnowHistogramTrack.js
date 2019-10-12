@@ -339,12 +339,19 @@ define([
                     context.shadowColor = "#999";
                     if(isHighLightState === true)
                     {
-                        context.fillStyle = 'blue';
+                        context.fillStyle = 'rgba(253, 121, 168, 0.3)';
                     }
                     else
                     {
-                        context.fillStyle = _this.config.histograms.color || '#fd79a8';
+                        // context.fillStyle = _this.config.histograms.color || '#fd79a8';
+                        context.fillStyle = _this.config.histograms.color || 'rgba(253, 121, 168, 1)';
                     }
+                    context.clearRect(
+                        barLeft_X,
+                        barLeft_Y,
+                        barWidth,
+                        barHeight
+                    );
                     context.fillRect(
                         barLeft_X,
                         barLeft_Y,
@@ -429,7 +436,7 @@ define([
                     this.heightUpdate(trackTotalHeight, viewArgs.blockIndex);
                     let ctx = c.getContext('2d');
                     _this._scaleCanvas(c);
-                    ctx.fillStyle = _this.config.histograms.color || '#fd79a8';
+                    ctx.fillStyle = _this.config.histograms.color || 'rgba(253, 121, 168, 1)';
                     ctx.textAlign = "center";
                     ctx.font = "10px sans-serif";
                     ctx.lineWidth = 1;
