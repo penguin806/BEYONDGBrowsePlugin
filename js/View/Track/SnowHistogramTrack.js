@@ -154,6 +154,8 @@ define([
                             {
                                 mappingResultObjectArray[index].leftBaseInBp =
                                     proteoformStartPosition + 3 * mappingResultObjectArray[index].position;
+                                // Add offset
+                                mappingResultObjectArray[index].leftBaseInBp += 2;
                             }
                         }
                     }
