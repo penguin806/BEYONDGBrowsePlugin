@@ -81,6 +81,21 @@ define([
                     _this.mappingResultObjectArray = renderArgs.mappingResultObjectArray;
                     _this._attachMouseOverEvents();
 
+                    function findMaxIntensity(mappingResultObjectArray) {
+                        let maxInstensity = 0;
+                        for(let index in mappingResultObjectArray)
+                        {
+                            if(mappingResultObjectArray.hasOwnProperty(index))
+                            {
+                                if(mappingResultObjectArray[index].value > maxInstensity)
+                                {
+                                    maxInstensity = mappingResultObjectArray[index].value;
+                                }
+                            }
+                        }
+                        return maxInstensity === 0 ? 100000.0 : maxInstensity;
+                    }
+
                     if(
                         isAlignByIonPosition === true &&
                         renderArgs.hasOwnProperty('mappingResultObjectArray') &&
@@ -88,6 +103,7 @@ define([
                         renderArgs.hasOwnProperty('scanId')
                     )
                     {
+                        _this.config.histograms.maxValue = findMaxIntensity(renderArgs.mappingResultObjectArray);
                         _this._drawHistograms_v2(
                             renderArgs, renderArgs.mappingResultObjectArray,
                             renderArgs.proteoformStartPosition, renderArgs.scanId
@@ -95,6 +111,7 @@ define([
                     }
                     else if(renderArgs.hasOwnProperty('dataToDraw'))
                     {
+                        // Deprecated
                         _this._drawHistograms(renderArgs, renderArgs.dataToDraw);
                     }
                     else if (renderArgs.debug === true) {
@@ -366,19 +383,24 @@ define([
                         _this._drawArrow(
                             context,
                             barLeft_X + 1,
-                            barLeft_Y - 70,
+                            // barLeft_Y - 70,
+                            trackTotalHeight - 30 - histogramHeight - bottomLineHeight,
                             barLeft_X + 1,
                             barLeft_Y - 5
                         );
                         // Draw label above the arrow
-                        context.fillText(item.label,barLeft_X + 1, barLeft_Y - 75);
+                        // context.fillText(item.label,barLeft_X + 1, barLeft_Y - 75);
+                        context.fillText(item.label,barLeft_X + 1, trackTotalHeight - 35 - histogramHeight - bottomLineHeight);
+
 
                         context.save();
                         context.fillStyle = '#2d3436';
                         context.font = "9px sans-serif";
                         // Draw value above the label
+                        // context.fillText((Math.round(item.value * 100) / 100).toString(),
+                        //     barLeft_X + 1, barLeft_Y - 85);
                         context.fillText((Math.round(item.value * 100) / 100).toString(),
-                            barLeft_X + 1, barLeft_Y - 85);
+                            barLeft_X + 1, trackTotalHeight - 45 - histogramHeight - bottomLineHeight);
                         if(viewArgs.showMzValue)
                         {
                             // Draw key under the X-axis
@@ -390,6 +412,7 @@ define([
                     }
                 },
 
+                // Deprecated
                 _drawHistograms: function (viewArgs, histData) {
                     let _this = this;
                     // First we're going to find the max value (Deprecated: use fixed value instead)

@@ -59,7 +59,7 @@ define(
                     let oldConfig = this.inherited(arguments);
                     let newConfig = dojoLang.mixin(
                         oldConfig,{
-                            showMzValue: false,
+                            showMzValue: true,
                             alignByIonPosition: true
                         });
 
