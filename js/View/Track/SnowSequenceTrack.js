@@ -432,8 +432,6 @@ define(
                             currentAminoAcidDetail.headOrTailFlag = index === 0 ? 'HEAD' : '';
                             currentAminoAcidDetail.headOrTailFlag += index === proteoformSequence.length - 1 ? 'TAIL' : '';
                             currentAminoAcidDetail.leftPosition = proteoformStartPosition + lengthPerAminoAcidCharacter * aminoAcidCharacterCount;
-                            // Add offset
-                            currentAminoAcidDetail.leftPosition += 2;
                             currentAminoAcidDetail.aminoAcidCharacter = proteoformSequence.charAt(index);
                             for(let i = 0; i < mSScanMassMappingResultArray.length; i++)
                             {
@@ -508,15 +506,11 @@ define(
 
                             for(let index in detailArrayOfProteoformSequence)
                             {
-                                // Add offset
-                                let leftPositionWithOffset =
-                                    detailArrayOfProteoformSequence[index].leftPosition +
-                                    detailArrayOfProteoformSequence[index].leftPosition % 3;
                                 if(
                                     detailArrayOfProteoformSequence.hasOwnProperty(index) &&
                                     typeof detailArrayOfProteoformSequence[index] == "object" &&
-                                    leftPositionWithOffset >= blockStartBaseWithOffset &&
-                                    leftPositionWithOffset < blockEndBaseWithOffset
+                                    detailArrayOfProteoformSequence[index].leftPosition >= blockStartBaseWithOffset &&
+                                    detailArrayOfProteoformSequence[index].leftPosition < blockEndBaseWithOffset
                                 )
                                 {
                                     detailArrayOfProteoformInThisBlock.push(detailArrayOfProteoformSequence[index]);
