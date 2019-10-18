@@ -443,7 +443,8 @@ define(
                             let newObject = {};
                             newObject.key = arrMSScanMass[ arrBIonNUM[i] ];
                             newObject.value = arrMSScanPeakAundance[ arrBIonNUM[i] ];
-                            newObject.label = 'A' + i;
+                            newObject.index = i;
+                            newObject.label = 'B' + i;
                             newObject.amino_acid = strSenquence.charAt( arrBIonPosition[i] );
                             newObject.position = arrBIonPosition[i];
                             if(newObject.key !== undefined)
@@ -769,6 +770,15 @@ define(
                                         thisProteoformObject.arrMSScanMassArray,
                                         thisProteoformObject.arrMSScanPeakAundance
                                     );
+                                    // Eg: mappingResultObjectArray[0]
+                                    // {
+                                    //     amino_acid: "F"
+                                    //     key: 3555.93025
+                                    //     label: "A0"
+                                    //     position: 31
+                                    //     value: 4461.31
+                                    // }
+
                                     console.info('mappingResultObjectArray:', mappingResultObjectArray);
                                 }
 

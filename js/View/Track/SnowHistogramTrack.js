@@ -356,6 +356,39 @@ define([
                     context.shadowColor = "#999";
                     if(isHighLightState === true)
                     {
+                        // Left diff
+                        if(_this.mappingResultObjectArray.hasOwnProperty(item.index - 1))
+                        {
+                            let leftDiffValue =
+                                Math.round(
+                                    (
+                                        item.key -
+                                        this.mappingResultObjectArray[item.index - 1].key
+                                    ) * 100
+                                ) / 100;
+                            context.fillText(
+                                leftDiffValue.toString(),
+                                barLeft_X - 20,
+                                trackTotalHeight - 40 - bottomLineHeight
+                            );
+                        }
+                        // Right diff
+                        if(_this.mappingResultObjectArray.hasOwnProperty(item.index + 1))
+                        {
+                            let RightDiffValue =
+                                Math.round(
+                                    (
+                                        this.mappingResultObjectArray[item.index + 1].key -
+                                        item.key
+                                    ) * 100
+                                ) / 100;
+                            context.fillText(
+                                RightDiffValue.toString(),
+                                barLeft_X + 20,
+                                trackTotalHeight - 40 - bottomLineHeight
+                            );
+                        }
+
                         context.fillStyle = 'rgba(253, 121, 168, 0.3)';
                     }
                     else
