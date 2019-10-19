@@ -354,48 +354,75 @@ define([
                     context.shadowOffsetY = 0;
                     context.shadowBlur = 2;
                     context.shadowColor = "#999";
-                    if(isHighLightState === true)
+
+                    function drawLeftAndRightDiff(isHighLightState)
                     {
+                        context.save();
+                        context.shadowColor = 'rgba(0, 0, 0, 0)';
+                        context.shadowBlur = 0;
+                        context.shadowOffsetX = 0;
+                        context.shadowOffsetY = 0;
+                        context.font = "7px sans-serif";
+                        if(isHighLightState === true)
+                        {
+                            context.fillStyle = 'rgba(0, 0, 0, 1)';
+                        }
+                        else
+                        {
+                            context.fillStyle = 'rgba(255,255,255,1)';
+                        }
+
                         // Left diff
                         if(_this.mappingResultObjectArray.hasOwnProperty(item.index - 1))
                         {
+                            context.textAlign = "right";
                             let leftDiffValue =
                                 Math.round(
                                     (
                                         item.key -
-                                        this.mappingResultObjectArray[item.index - 1].key
+                                        _this.mappingResultObjectArray[item.index - 1].key
                                     ) * 100
                                 ) / 100;
                             context.fillText(
                                 leftDiffValue.toString(),
-                                barLeft_X - 20,
+                                barLeft_X - 3,
                                 trackTotalHeight - 40 - bottomLineHeight
                             );
                         }
                         // Right diff
                         if(_this.mappingResultObjectArray.hasOwnProperty(item.index + 1))
                         {
+                            context.textAlign = "left";
                             let RightDiffValue =
                                 Math.round(
                                     (
-                                        this.mappingResultObjectArray[item.index + 1].key -
+                                        _this.mappingResultObjectArray[item.index + 1].key -
                                         item.key
                                     ) * 100
                                 ) / 100;
                             context.fillText(
                                 RightDiffValue.toString(),
-                                barLeft_X + 20,
+                                barLeft_X + 3,
                                 trackTotalHeight - 40 - bottomLineHeight
                             );
                         }
 
+                        context.restore();
+                    }
+
+                    if(isHighLightState === true)
+                    {
+                        drawLeftAndRightDiff(true);
                         context.fillStyle = 'rgba(253, 121, 168, 0.3)';
                     }
                     else
                     {
+                        drawLeftAndRightDiff(false);
                         // context.fillStyle = _this.config.histograms.color || '#fd79a8';
                         context.fillStyle = _this.config.histograms.color || 'rgba(253, 121, 168, 1)';
                     }
+
+                    // Clear and draw histogram
                     context.clearRect(
                         barLeft_X,
                         barLeft_Y,
@@ -424,7 +451,6 @@ define([
                         // Draw label above the arrow
                         // context.fillText(item.label,barLeft_X + 1, barLeft_Y - 75);
                         context.fillText(item.label,barLeft_X + 1, trackTotalHeight - 35 - histogramHeight - bottomLineHeight);
-
 
                         context.save();
                         context.fillStyle = '#2d3436';
