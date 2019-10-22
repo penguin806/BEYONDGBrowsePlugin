@@ -635,7 +635,8 @@ define(
                         bIonsResultItem.value = bIonsResultItem.intensityValue - dBIons * bIonsResultItem.ionsNum;
                         bIonsResultItem.index = i;
                         bIonsResultItem.type = 'B';
-                        bIonsResultItem.label = 'B' + i + '(+' + bIonsResultItem.ionsNum + ')';
+                        // bIonsResultItem.label = 'B' + i + '(+' + bIonsResultItem.ionsNum + ')';
+                        bIonsResultItem.label = 'B' + i;
                         bIonsResultItem.amino_acid = strSenquence.charAt( arrBIonPosition[i] );
                         bIonsResultItem.position = arrBIonPosition[i];
                         if(bIonsResultItem.key !== undefined)
@@ -659,8 +660,8 @@ define(
                         yIonsResultItem.key = yIonsResultItem.massValue;
                         yIonsResultItem.value = yIonsResultItem.intensityValue - dBIons * yIonsResultItem.ionsNum;
                         yIonsResultItem.index = i;
-                        yIonsResultItem.type = 'B';
-                        yIonsResultItem.label = 'B' + i + '(+' + yIonsResultItem.ionsNum + ')';
+                        yIonsResultItem.type = 'Y';
+                        yIonsResultItem.label = 'Y' + i;
                         yIonsResultItem.amino_acid = strSenquence.charAt( arrYIonPosition[i] );
                         yIonsResultItem.position = arrYIonPosition[i];
                         if(yIonsResultItem.key !== undefined)
@@ -1147,11 +1148,8 @@ define(
                                 let thisProteoformEndPosition = thisProteoformObject.end;
                                 let isThisProteoformReverse = thisProteoformObject.strand === '-' ? true : false;
                                 console.info('msScanMassTrackId:', msScanMassTrackId);
-                                console.info('longestCommonSeqLength:', thisProteoformObject.lcsLength);
-                                console.info('scanId:', thisProteoformObject.scanId);
-                                console.info('sequence:', thisProteoformObject.sequence);
-                                console.info('arrMSScanMassArray:', thisProteoformObject.arrMSScanMassArray);
-                                console.info('arrMSScanPeakAundance:', thisProteoformObject.arrMSScanPeakAundance);
+                                console.info('thisProteoformObject:', thisProteoformObject);
+
                                 // Update track label
                                 let labelTextToAppend = ' (Scan: ' + thisProteoformObject.scanId + ')';
                                 if(_this.originalLabelText + labelTextToAppend !== _this.labelHTML)

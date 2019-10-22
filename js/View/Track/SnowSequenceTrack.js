@@ -423,6 +423,7 @@ define(
                             bIonFlag: undefined,
                             bIonFlagTag: undefined,
                             yIonFlag: undefined,
+                            yIonFlagTag: undefined,
                             modification: undefined,
                         };
 
@@ -437,8 +438,16 @@ define(
                             {
                                 if(mSScanMassMappingResultArray[i].position === aminoAcidCharacterCount)
                                 {
-                                    currentAminoAcidDetail.bIonFlag = mSScanMassMappingResultArray[i].label;
-                                    currentAminoAcidDetail.bIonFlagTag = true;
+                                    if(mSScanMassMappingResultArray[i].type === 'B')
+                                    {
+                                        currentAminoAcidDetail.bIonFlag = mSScanMassMappingResultArray[i].label;
+                                        currentAminoAcidDetail.bIonFlagTag = true;
+                                    }
+                                    else if (mSScanMassMappingResultArray[i].type === 'Y')
+                                    {
+                                        currentAminoAcidDetail.yIonFlag = mSScanMassMappingResultArray[i].label;
+                                        currentAminoAcidDetail.yIonFlagTag = true;
+                                    }
                                     break;
                                 }
                             }
@@ -532,6 +541,7 @@ define(
                                     bIonFlag: undefined,
                                     bIonFlagTag: undefined,
                                     yIonFlag: undefined,
+                                    yIonFlagTag: undefined,
                                     modification: undefined
                                 };
                                 if(detailArrayOfProteoformInThisBlock.length > 0)
@@ -1083,10 +1093,30 @@ define(
                                     aminoAcidSpan.appendChild(bIonLabelNode);
                                 }
                             }
+
+                            if(detailArrayOfProteoformInThisBlock[index].yIonFlag !== undefined)
+                            {
+                                aminoAcidSpan.className += ' Snow_aminoAcid_yIon_' +
+                                    detailArrayOfProteoformInThisBlock[index].yIonFlag;
+                                if(detailArrayOfProteoformInThisBlock[index].yIonFlagTag !== undefined)
+                                {
+                                    aminoAcidSpan.className += ' Snow_aminoAcid_mark_left_bottom';
+
+                                    let yIonLabelNode = domConstruct.create('span',
+                                        {
+                                            className: 'Snow_aminoAcid_head_strand_bIon_label',
+                                            style: {},
+                                            innerHTML: detailArrayOfProteoformInThisBlock[index].yIonFlag
+                                        }
+                                    );
+                                    aminoAcidSpan.appendChild(yIonLabelNode);
+                                }
+                            }
+
                             if(detailArrayOfProteoformInThisBlock[index].modification !== undefined)
                             {
                                 let modificationText = detailArrayOfProteoformInThisBlock[index].modification;
-                                modificationText = modificationText.replace(';', ';<br>')
+                                modificationText = modificationText.replace(';', ';<br>');
                                 let modificationDivWidth = aminoAcidTableCellActualWidth / 2;
                                 let modificationDivHeight = aminoAcidTableCellActualWidth / 2;
                                 let modificationDivNode = domConstruct.create('div',

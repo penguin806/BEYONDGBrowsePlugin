@@ -450,7 +450,12 @@ define([
                         );
                         // Draw label above the arrow
                         // context.fillText(item.label,barLeft_X + 1, barLeft_Y - 75);
-                        context.fillText(item.label,barLeft_X + 1, trackTotalHeight - 35 - histogramHeight - bottomLineHeight);
+
+                        context.fillText(
+                            item.label + '(+' + item.ionsNum + ')',
+                            barLeft_X + 1,
+                            trackTotalHeight - 35 - histogramHeight - bottomLineHeight
+                        );
 
                         context.save();
                         context.fillStyle = '#2d3436';
