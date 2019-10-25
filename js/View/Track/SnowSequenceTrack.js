@@ -1104,7 +1104,7 @@ define(
 
                                     let yIonLabelNode = domConstruct.create('span',
                                         {
-                                            className: 'Snow_aminoAcid_head_strand_bIon_label',
+                                            className: 'Snow_aminoAcid_head_strand_yIon_label',
                                             style: {},
                                             innerHTML: detailArrayOfProteoformInThisBlock[index].yIonFlag
                                         }

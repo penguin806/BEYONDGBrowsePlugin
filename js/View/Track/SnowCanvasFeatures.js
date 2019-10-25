@@ -277,72 +277,6 @@ define(
 
                 },
 
-                _sortArrMSScanMassAndArrMSScanPeakAundanceAndIonsNum: function(arrMSScanMass, arrMSScanPeakAundance, arrIonsNum)
-                {
-                    let list = [];
-                    for (let i = 0; i < arrMSScanMass.length; i++)
-                    {
-                        list.push(
-                            {
-                                OriginalIndex: i,
-                                MSScanMz: arrMSScanMass[i],
-                                MSScanMass: arrMSScanMass[i] * arrIonsNum[i],
-                                MSScanPeakAundance: arrMSScanPeakAundance[i],
-                                IonsNum: arrIonsNum[i]
-                            }
-                        );
-                    }
-
-                    list.sort(
-                        function(a, b) {
-                            if(a.MSScanMz < b.MSScanMz)
-                            {
-                                return -1;
-                            }
-                            else if(a.MSScanMz === b.MSScanMz)
-                            {
-                                return 0;
-                            }
-                            else
-                            {
-                                return 1;
-                            }
-                        }
-                    );
-
-                    list.forEach(
-                        function (item, index) {
-                            item.IndexAfterSortByMz = index;
-                        }
-                    );
-
-
-                    list.sort(
-                        function(a, b) {
-                            if(a.MSScanMass < b.MSScanMass)
-                            {
-                                return -1;
-                            }
-                            else if(a.MSScanMass === b.MSScanMass)
-                            {
-                                return 0;
-                            }
-                            else
-                            {
-                                return 1;
-                            }
-                        }
-                    );
-
-                    list.forEach(
-                        function (item, index) {
-                            item.IndexAfterSortByMass = index;
-                        }
-                    );
-
-                    return list;
-                },
-
                 _calcMSScanMass_v2: function(strSenquence, arrMSScanMass, arrMSScanPeakAundance, arrIonsNum)
                 {
                     // one protein match many proteoform
@@ -357,11 +291,90 @@ define(
                     // ACIDS MASS AND COMMON PTM MASS, THE mapACIDMass can be extended by adding other PTM
 
                     let _this = this;
-                    let msSpectraInfoObjectArray = _this._sortArrMSScanMassAndArrMSScanPeakAundanceAndIonsNum(
+                    var dBIons = 1.0078;
+                    var dyIons = 19.0184;
+
+                    function wrapMsScanData(arrMSScanMass, arrMSScanPeakAundance, arrIonsNum){
+                        let list = [];
+                        for (let i = 0; i < arrMSScanMass.length; i++)
+                        {
+                            list.push(
+                                {
+                                    OriginalIndex: i,
+                                    MSScanMz: arrMSScanMass[i],
+                                    MSScanMass: arrMSScanMass[i] * arrIonsNum[i],
+                                    MSScanPeakAundance: arrMSScanPeakAundance[i],
+                                    IonsNum: arrIonsNum[i]
+                                }
+                            );
+                        }
+
+                        // Sort by M/Z
+                        list.sort(
+                            function(a, b) {
+                                if(a.MSScanMz < b.MSScanMz)
+                                {
+                                    return -1;
+                                }
+                                else if(a.MSScanMz === b.MSScanMz)
+                                {
+                                    return 0;
+                                }
+                                else
+                                {
+                                    return 1;
+                                }
+                            }
+                        );
+
+                        for(let index in list)
+                        {
+                            list[index].IndexAfterSortByMz = index;
+                        }
+
+                        return list;
+                    }
+
+                    function processMsSpectraArrayForBIons(list) {
+                        let newList = dojoLang.clone(list);
+
+                        for(let index in newList)
+                        {
+                            newList[index].MSScanMass -= dBIons * newList[index].ionsNum;
+                        }
+
+                        newList.sort(
+                            function(a, b) {
+                                if(a.MSScanMass < b.MSScanMass)
+                                {
+                                    return -1;
+                                }
+                                else if(a.MSScanMass === b.MSScanMass)
+                                {
+                                    return 0;
+                                }
+                                else
+                                {
+                                    return 1;
+                                }
+                            }
+                        );
+
+                        for(let index in newList)
+                        {
+                            newList[index].IndexAfterSortByMassForBIons = index;
+                        }
+
+                        return newList;
+                    }
+
+                    let msSpectraInfoObjectArray = wrapMsScanData(
                         arrMSScanMass,
                         arrMSScanPeakAundance,
                         arrIonsNum
                     );
+
+                    let msSpectraInfoObjectArray_bIons = processMsSpectraArrayForBIons(msSpectraInfoObjectArray);
 
                     let mapACIDMass=new Map([
                         ["G",57.0215],
@@ -401,9 +414,6 @@ define(
                     let arrBIonNUM = [];//B 离子的质谱position
                     let arrYIonPosition = [];//Y 离子的序列position
                     let arrYIonNUM = [];//Y 离子的质谱position
-
-                    var dBIons = 1.0078;
-                    var dyIons = 19.0184;
 
 
 

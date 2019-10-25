@@ -132,7 +132,7 @@ define([
                     let block = viewArgs.block;
                     let histogramHeight = _this.config.histograms.height =
                         _this.config.histograms.height || 100;
-                    let trackTotalHeight = _this.trackTotalHeight = histogramHeight + 100;
+                    let trackTotalHeight = _this.trackTotalHeight = histogramHeight * 2;
                     let bottomLineHeight = _this.bottomLineHeight = 10;
                     let blockScaleLevel = viewArgs.scale;
                     let blockStartBase = viewArgs.leftBase;
@@ -684,12 +684,12 @@ define([
                     this.yscaleParams = {
                         height: trackTotalHeight - bottomLineHeight,
                         min: 0,
-                        max: maxValue
+                        max: maxValue / 0.45
                     };
                     this.height = trackTotalHeight - bottomLineHeight;
 
                     this.makeYScale(this.yscaleParams);
-                },
+                }
 
             }
         );

@@ -176,6 +176,18 @@
     line-height: normal;
 }
 
+.Snow_translatedSequence td span.Snow_aminoAcid_head_strand_yIon_label {
+    color: #d63031;
+    text-align: center;
+    position: absolute;
+    top: 0;
+    left: 2%;
+    font-family: monospace;
+    font-weight: normal;
+    font-size: x-small;
+    line-height: normal;
+}
+
 span.locate-button {
     line-height: 18px;
 }
