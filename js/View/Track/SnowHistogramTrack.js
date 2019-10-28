@@ -272,15 +272,30 @@ define([
                                         )
                                         {
                                             let barPositionInBp = mappingResultObjectArray[index].leftBaseInBpWithOffset + 2.1;
+                                            if(mappingResultObjectArray[index].type === 'Y')
+                                            {
+                                                barPositionInBp -= 3;
+                                            }
                                             if(Math.abs(bpX - barPositionInBp) < 1)
                                             {
                                                 let item = _this.lastHighlistItem = mappingResultObjectArray[index];
                                                 console.info('bpX', bpX, 'barPositionInBp', barPositionInBp, item, item.context, item.viewArgs);
                                                 _this._drawGraph(item, item.context, item.viewArgs, true);
-                                                dojoQuery(
-                                                    '.snow_proteoform_frame.scan_' + _this.scanId
-                                                    + ' .Snow_aminoAcid_bIon_' + item.label
-                                                ).addClass('hoverState');
+
+                                                if(item.type === 'B')
+                                                {
+                                                    dojoQuery(
+                                                        '.snow_proteoform_frame.scan_' + _this.scanId
+                                                        + ' .Snow_aminoAcid_bIon_' + item.label
+                                                    ).addClass('hoverState');
+                                                }
+                                                else if(item.type === 'Y')
+                                                {
+                                                    dojoQuery(
+                                                        '.snow_proteoform_frame.scan_' + _this.scanId
+                                                        + ' .Snow_aminoAcid_yIon_' + item.label
+                                                    ).addClass('hoverState');
+                                                }
 
                                                 break;
                                             }
@@ -293,6 +308,11 @@ define([
                                             dojoQuery(
                                                 '.snow_proteoform_frame.scan_' + _this.scanId
                                                 + ' .Snow_aminoAcid_bIon_' + item.label
+                                            ).removeClass('hoverState');
+
+                                            dojoQuery(
+                                                '.snow_proteoform_frame.scan_' + _this.scanId
+                                                + ' .Snow_aminoAcid_yIon_' + item.label
                                             ).removeClass('hoverState');
                                         }
                                     }
@@ -346,6 +366,10 @@ define([
                     let barHeight = item.value / maxValue * histogramHeight;
                     let barWidth = 3;
                     let keyPosition = (item.leftBaseInBpWithOffset - blockOffsetStartBase) * xAxisScale;
+                    if(item.type === 'Y')
+                    {
+                        keyPosition -= 3 * xAxisScale;
+                    }
                     let barLeft_X = keyPosition + spanAtBlockStartAndEnd;
                     let barLeft_Y = trackTotalHeight - barHeight - bottomLineHeight;
                     // Draw histogram
@@ -362,7 +386,7 @@ define([
                         context.shadowBlur = 0;
                         context.shadowOffsetX = 0;
                         context.shadowOffsetY = 0;
-                        context.font = "7px sans-serif";
+                        context.font = "8px sans-serif";
                         if(isHighLightState === true)
                         {
                             context.fillStyle = 'rgba(0, 0, 0, 1)';
@@ -383,11 +407,14 @@ define([
                                         _this.mappingResultObjectArray[item.index - 1].key
                                     ) * 100
                                 ) / 100;
-                            context.fillText(
-                                leftDiffValue.toString(),
-                                barLeft_X - 3,
-                                trackTotalHeight - 40 - bottomLineHeight
-                            );
+                            for(let count = 0; count < 3; count++)
+                            {
+                                context.fillText(
+                                    leftDiffValue.toString(),
+                                    barLeft_X - 3,
+                                    trackTotalHeight - 40 - bottomLineHeight
+                                );
+                            }
                         }
                         // Right diff
                         if(_this.mappingResultObjectArray.hasOwnProperty(item.index + 1))
@@ -400,11 +427,14 @@ define([
                                         item.key
                                     ) * 100
                                 ) / 100;
-                            context.fillText(
-                                RightDiffValue.toString(),
-                                barLeft_X + 3,
-                                trackTotalHeight - 40 - bottomLineHeight
-                            );
+                            for(let count = 0; count < 3; count++)
+                            {
+                                context.fillText(
+                                    RightDiffValue.toString(),
+                                    barLeft_X + 6,
+                                    trackTotalHeight - 40 - bottomLineHeight
+                                );
+                            }
                         }
 
                         context.restore();

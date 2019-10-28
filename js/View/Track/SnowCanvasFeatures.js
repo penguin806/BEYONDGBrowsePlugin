@@ -329,18 +329,31 @@ define(
 
                         for(let index in list)
                         {
-                            list[index].IndexAfterSortByMz = index;
+                            if(list.hasOwnProperty(index))
+                            {
+                                list[index].IndexAfterSortByMz = index;
+                            }
                         }
 
                         return list;
                     }
 
-                    function processMsSpectraArrayForBIons(list) {
+                    function processMsSpectraArrayForIons(list, isForBIons) {
                         let newList = dojoLang.clone(list);
 
                         for(let index in newList)
                         {
-                            newList[index].MSScanMass -= dBIons * newList[index].ionsNum;
+                            if(newList.hasOwnProperty(index))
+                            {
+                                if(isForBIons === true)
+                                {
+                                    newList[index].MSScanMass -= dBIons * newList[index].IonsNum;
+                                }
+                                else
+                                {
+                                    newList[index].MSScanMass -= dyIons * newList[index].IonsNum;
+                                }
+                            }
                         }
 
                         newList.sort(
@@ -362,19 +375,28 @@ define(
 
                         for(let index in newList)
                         {
-                            newList[index].IndexAfterSortByMassForBIons = index;
+                            if(newList.hasOwnProperty(index))
+                            {
+                                if(isForBIons === true)
+                                {
+                                    newList[index].IndexAfterSortByMassForBIons = index;
+                                }
+                                else
+                                {
+                                    newList[index].IndexAfterSortByMassForYIons = index;
+                                }
+                            }
                         }
 
                         return newList;
                     }
 
-                    let msSpectraInfoObjectArray = wrapMsScanData(
+                    let msSpectraInfoObjectArraySortByMz = wrapMsScanData(
                         arrMSScanMass,
                         arrMSScanPeakAundance,
                         arrIonsNum
                     );
 
-                    let msSpectraInfoObjectArray_bIons = processMsSpectraArrayForBIons(msSpectraInfoObjectArray);
 
                     let mapACIDMass=new Map([
                         ["G",57.0215],
@@ -426,7 +448,7 @@ define(
 
                     var iCurrrentYIonsMSPosition=0;//y ions mass spectrum position
 
-                    dCurrentMassSUM = dCurrentMassSUM - dBIons;
+                    // dCurrentMassSUM = dCurrentMassSUM - dBIons; // no more need to minus
 
                     var dCurrentYIONSMassSUM=0.0;
                     dCurrentYIONSMassSUM = dCurrentYIONSMassSUM - dyIons;
@@ -435,6 +457,13 @@ define(
                     let strPTM="";
                     let dSpanThreshold=10.0;
 
+
+
+                    let msSpectraInfoObjectArray =
+                        processMsSpectraArrayForIons(
+                            msSpectraInfoObjectArraySortByMz,
+                            true
+                        );
 
                     function RecongnazieTheBIonPosition(iCurrrentBIons,iCurrentSeqPositionWithoutPTM) {
 
@@ -552,7 +581,37 @@ define(
                     console.log(arrBIonNUM);
 
 
+                    let bIonsResultObjectArray = [];
+                    for(let i=0; i < arrBIonPosition.length && i < arrBIonNUM.length; i++)
+                    {
+                        let bIonsResultItem = {};
+                        bIonsResultItem.originalIndex = msSpectraInfoObjectArray[ arrBIonNUM[i] ].OriginalIndex;
+                        bIonsResultItem.indexAfterSortByMz = msSpectraInfoObjectArray[ arrBIonNUM[i] ].IndexAfterSortByMz;
+                        bIonsResultItem.indexAfterSortByMass = msSpectraInfoObjectArray[ arrBIonNUM[i] ].IndexAfterSortByMassForBIons;
+                        bIonsResultItem.mzValue = msSpectraInfoObjectArray[ arrBIonNUM[i] ].MSScanMz;
+                        bIonsResultItem.massValue = msSpectraInfoObjectArray[ arrBIonNUM[i] ].MSScanMass;
+                        bIonsResultItem.intensityValue = msSpectraInfoObjectArray[ arrBIonNUM[i] ].MSScanPeakAundance;
+                        bIonsResultItem.ionsNum = msSpectraInfoObjectArray[ arrBIonNUM[i] ].IonsNum;
 
+                        bIonsResultItem.key = bIonsResultItem.massValue;
+                        bIonsResultItem.value = bIonsResultItem.intensityValue - dBIons * bIonsResultItem.ionsNum;
+                        bIonsResultItem.index = i;
+                        bIonsResultItem.type = 'B';
+                        // bIonsResultItem.label = 'B' + i + '(+' + bIonsResultItem.ionsNum + ')';
+                        bIonsResultItem.label = 'B' + i;
+                        bIonsResultItem.amino_acid = strSenquence.charAt( arrBIonPosition[i] );
+                        bIonsResultItem.position = arrBIonPosition[i];
+                        if(bIonsResultItem.key !== undefined)
+                        {
+                            bIonsResultObjectArray.push(bIonsResultItem);
+                        }
+                    }
+
+                    msSpectraInfoObjectArray =
+                        processMsSpectraArrayForIons(
+                            msSpectraInfoObjectArraySortByMz,
+                            false
+                        );
 
 
                     intCurrentPos = 0;
@@ -629,31 +688,7 @@ define(
                     console.log(arrYIonNUM);
 
 
-                    let bIonsResultObjectArray = [];
-                    for(let i=0; i < arrBIonPosition.length && i < arrBIonNUM.length; i++)
-                    {
-                        let bIonsResultItem = {};
-                        bIonsResultItem.originalIndex = msSpectraInfoObjectArray[ arrBIonNUM[i] ].OriginalIndex;
-                        bIonsResultItem.indexAfterSortByMz = msSpectraInfoObjectArray[ arrBIonNUM[i] ].IndexAfterSortByMz;
-                        bIonsResultItem.indexAfterSortByMass = msSpectraInfoObjectArray[ arrBIonNUM[i] ].IndexAfterSortByMass;
-                        bIonsResultItem.mzValue = msSpectraInfoObjectArray[ arrBIonNUM[i] ].MSScanMz;
-                        bIonsResultItem.massValue = msSpectraInfoObjectArray[ arrBIonNUM[i] ].MSScanMass;
-                        bIonsResultItem.intensityValue = msSpectraInfoObjectArray[ arrBIonNUM[i] ].MSScanPeakAundance;
-                        bIonsResultItem.ionsNum = msSpectraInfoObjectArray[ arrBIonNUM[i] ].IonsNum;
 
-                        bIonsResultItem.key = bIonsResultItem.massValue;
-                        bIonsResultItem.value = bIonsResultItem.intensityValue - dBIons * bIonsResultItem.ionsNum;
-                        bIonsResultItem.index = i;
-                        bIonsResultItem.type = 'B';
-                        // bIonsResultItem.label = 'B' + i + '(+' + bIonsResultItem.ionsNum + ')';
-                        bIonsResultItem.label = 'B' + i;
-                        bIonsResultItem.amino_acid = strSenquence.charAt( arrBIonPosition[i] );
-                        bIonsResultItem.position = arrBIonPosition[i];
-                        if(bIonsResultItem.key !== undefined)
-                        {
-                            bIonsResultObjectArray.push(bIonsResultItem);
-                        }
-                    }
 
                     let yIonsResultObjectArray = [];
                     for(let i=0; i < arrYIonPosition.length && i < arrYIonNUM.length; i++)
@@ -661,7 +696,7 @@ define(
                         let yIonsResultItem = {};
                         yIonsResultItem.originalIndex = msSpectraInfoObjectArray[ arrYIonNUM[i] ].OriginalIndex;
                         yIonsResultItem.indexAfterSortByMz = msSpectraInfoObjectArray[ arrYIonNUM[i] ].IndexAfterSortByMz;
-                        yIonsResultItem.indexAfterSortByMass = msSpectraInfoObjectArray[ arrYIonNUM[i] ].IndexAfterSortByMass;
+                        yIonsResultItem.indexAfterSortByMass = msSpectraInfoObjectArray[ arrYIonNUM[i] ].IndexAfterSortByMassForYIons;
                         yIonsResultItem.mzValue = msSpectraInfoObjectArray[ arrYIonNUM[i] ].MSScanMz;
                         yIonsResultItem.massValue = msSpectraInfoObjectArray[ arrYIonNUM[i] ].MSScanMass;
                         yIonsResultItem.intensityValue = msSpectraInfoObjectArray[ arrYIonNUM[i] ].MSScanPeakAundance;

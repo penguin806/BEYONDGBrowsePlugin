@@ -480,18 +480,50 @@ define(
 
                     }
 
-                    for(let index in detailArrayOfProteoformSequence)
+                    let lastIndexForBIon = 0;
+                    let lastIndexForYIon = detailArrayOfProteoformSequence.length - 1;
+                    for(let index = 0; index < detailArrayOfProteoformSequence.length; index++)
                     {
                         if(detailArrayOfProteoformSequence.hasOwnProperty(index))
                         {
-                            for(let j = index; j < detailArrayOfProteoformSequence.length; j++)
+                            // for(let j = index; j < detailArrayOfProteoformSequence.length; j++)
+                            // {
+                            //     if(detailArrayOfProteoformSequence[j].bIonFlag !== undefined)
+                            //     {
+                            //         detailArrayOfProteoformSequence[index].bIonFlag =
+                            //             detailArrayOfProteoformSequence[j].bIonFlag;
+                            //         break;
+                            //     }
+                            // }
+
+                            if(detailArrayOfProteoformSequence[index].bIonFlag !== undefined)
                             {
-                                if(detailArrayOfProteoformSequence[j].bIonFlag !== undefined)
+                                for(let j = lastIndexForBIon; j < index; j++)
                                 {
-                                    detailArrayOfProteoformSequence[index].bIonFlag =
-                                        detailArrayOfProteoformSequence[j].bIonFlag;
-                                    break;
+                                    detailArrayOfProteoformSequence[j].bIonFlag =
+                                        detailArrayOfProteoformSequence[index].bIonFlag;
                                 }
+                                lastIndexForBIon = index + 1;
+                            }
+
+                            if(
+                                detailArrayOfProteoformSequence[
+                                    detailArrayOfProteoformSequence.length - 1 - index
+                                ].yIonFlag !== undefined
+                            )
+                            {
+                                for(
+                                    let k = lastIndexForYIon;
+                                    k > detailArrayOfProteoformSequence.length - 1 - index;
+                                    k--
+                                )
+                                {
+                                    detailArrayOfProteoformSequence[k].yIonFlag =
+                                        detailArrayOfProteoformSequence[
+                                            detailArrayOfProteoformSequence.length - 1 - index
+                                        ].yIonFlag;
+                                }
+                                lastIndexForYIon = detailArrayOfProteoformSequence.length - 1 - index - 1;
                             }
                         }
                     }
@@ -1075,6 +1107,7 @@ define(
                             {
                                 aminoAcidSpan.className += ' Snow_aminoAcid_animation';
                             }
+
                             if(detailArrayOfProteoformInThisBlock[index].bIonFlag !== undefined)
                             {
                                 aminoAcidSpan.className += ' Snow_aminoAcid_bIon_' +
