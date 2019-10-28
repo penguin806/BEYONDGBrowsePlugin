@@ -244,6 +244,7 @@ define(
                         });
                     newConfig.drawCircle = !!oldConfig.drawCircle || true;
                     newConfig.animationEnabled = !!oldConfig.animationEnabled || true;
+                    newConfig.proteoformExtraOffset = oldConfig.proteoformExtraOffset || 8;
 
                     return newConfig;
                 },
@@ -1038,8 +1039,9 @@ define(
                     offset, blockStart, blockEnd,
                     blockLength, scale
                 ){
+                    let _this = this;
                     let proteoformArrayLength = detailArrayOfProteoformInThisBlock.length;
-                    let charSize = this.getCharacterMeasurements("aminoAcid");
+                    let charSize = _this.getCharacterMeasurements("aminoAcid");
                     let bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
                     let charWidth = 100 / (blockLength / 3);
 
@@ -1064,7 +1066,7 @@ define(
                         container
                     );
                     let tr = domConstruct.create('tr', {}, table );
-                    table.style.left = (charWidth * offset / 3) + "%";
+                    table.style.left = (charWidth * offset / 3) + parseInt(_this.config.proteoformExtraOffset) + "%";
 
                     let blockWidth = blockLength * scale;
                     // let aminoAcidTableCellActualWidth = blockWidth * (tableWidthPercent * 0.01) / (blockLength / 3);
@@ -1099,11 +1101,11 @@ define(
                             if( drawChars ) {
                                 aminoAcidSpan.innerHTML = detailArrayOfProteoformInThisBlock[index].aminoAcidCharacter;
                             }
-                            if(this.config.drawCircle)
+                            if(_this.config.drawCircle)
                             {
                                 aminoAcidSpan.className += ' Snow_aminoAcid_circle';
                             }
-                            if(this.config.animationEnabled)
+                            if(_this.config.animationEnabled)
                             {
                                 aminoAcidSpan.className += ' Snow_aminoAcid_animation';
                             }

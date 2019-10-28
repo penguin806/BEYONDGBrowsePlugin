@@ -407,7 +407,7 @@ define([
                                         _this.mappingResultObjectArray[item.index - 1].key
                                     ) * 100
                                 ) / 100;
-                            for(let count = 0; count < 3; count++)
+                            for(let count = isHighLightState === true ? 4 : 0; count < 5; count++)
                             {
                                 context.fillText(
                                     leftDiffValue.toString(),
@@ -427,7 +427,7 @@ define([
                                         item.key
                                     ) * 100
                                 ) / 100;
-                            for(let count = 0; count < 3; count++)
+                            for(let count = isHighLightState === true ? 4 : 0; count < 5; count++)
                             {
                                 context.fillText(
                                     RightDiffValue.toString(),
