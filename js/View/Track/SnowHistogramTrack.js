@@ -276,6 +276,19 @@ define([
                                             {
                                                 barPositionInBp -= 3;
                                             }
+                                            if(
+                                                typeof window.BEYONDGBrowseProteinTrack == "object" &&
+                                                window.BEYONDGBrowseProteinTrack.hasOwnProperty('config')
+                                            )
+                                            {
+                                                if(window.BEYONDGBrowseProteinTrack.config.hasOwnProperty('proteoformExtraOffset'))
+                                                {
+                                                    barPositionInBp += parseInt(
+                                                        window.BEYONDGBrowseProteinTrack.config.proteoformExtraOffset
+                                                    ) * 0.01  * (_this.blocks[_this.firstAttached].endBase - _this.blocks[_this.firstAttached].startBase);
+                                                }
+                                            }
+
                                             if(Math.abs(bpX - barPositionInBp) < 1)
                                             {
                                                 let item = _this.lastHighlistItem = mappingResultObjectArray[index];
@@ -366,6 +379,18 @@ define([
                     let barHeight = item.value / maxValue * histogramHeight;
                     let barWidth = 3;
                     let keyPosition = (item.leftBaseInBpWithOffset - blockOffsetStartBase) * xAxisScale;
+                    if(
+                        typeof window.BEYONDGBrowseProteinTrack == "object" &&
+                        window.BEYONDGBrowseProteinTrack.hasOwnProperty('config')
+                    )
+                    {
+                        if(window.BEYONDGBrowseProteinTrack.config.hasOwnProperty('proteoformExtraOffset'))
+                        {
+                            keyPosition += parseInt(
+                                window.BEYONDGBrowseProteinTrack.config.proteoformExtraOffset
+                            ) * 0.01  * blockWidthInPxAfterMinusOffsetAtStartAndEnd;
+                        }
+                    }
                     if(item.type === 'Y')
                     {
                         keyPosition -= 3 * xAxisScale;
