@@ -398,7 +398,7 @@ define(
                     );
 
 
-                    let mapACIDMass=new Map([
+                    let mapACIDMass = _this.config.mapACIDMass || new Map([
                         ["G",57.0215],
                         ["A",71.0371],
                         ["S",87.032],
