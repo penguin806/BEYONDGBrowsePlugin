@@ -708,7 +708,10 @@ define(
                         yIonsResultItem.type = 'Y';
                         yIonsResultItem.label = 'Y' + arrYIonPosition[i];
                         yIonsResultItem.amino_acid = strSenquence.charAt( arrYIonPosition[i] );
-                        yIonsResultItem.position = arrYIonPosition[i];
+                        yIonsResultItem.position = strSenquence.replace(
+                            /\[.*?\]|\(|\)|\./g,
+                            ''
+                        ).length - arrYIonPosition[i];
                         if(yIonsResultItem.key !== undefined)
                         {
                             yIonsResultObjectArray.push(yIonsResultItem);
