@@ -421,7 +421,38 @@ define([
                             context.fillStyle = 'rgba(255,255,255,1)';
                         }
 
-                        // Left diff
+                        item.leftNeighbor = undefined;
+                        item.rightNeighbor = undefined;
+                        // Left Neighbor
+                        for(let i = 0; i < item.index; i++)
+                        {
+                            if(item.type === 'B')
+                            {
+                                if(
+                                    _this.mappingResultObjectArray[i].type === item.type
+                                    && _this.mappingResultObjectArray[i].position < item.position
+                                )
+                                {
+                                    item.leftNeighbor = _this.mappingResultObjectArray[i];
+                                }
+                            }
+                        }
+                        // Right Neighbor
+                        for(let i = item.index; i < _this.mappingResultObjectArray[i].length; i++)
+                        {
+                            if(item.type === 'B')
+                            {
+                                if(
+                                    _this.mappingResultObjectArray[i].type === item.type
+                                    && _this.mappingResultObjectArray[i].position > item.position
+                                )
+                                {
+                                    item.rightNeighbor = _this.mappingResultObjectArray[i];
+                                    break;
+                                }
+                            }
+                        }
+
                         if(_this.mappingResultObjectArray.hasOwnProperty(item.index - 1))
                         {
                             context.textAlign = "right";
