@@ -398,7 +398,7 @@ define(
                     );
 
 
-                    let mapACIDMass=new Map([
+                    let mapACIDMass = _this.config.mapACIDMass || new Map([
                         ["G",57.0215],
                         ["A",71.0371],
                         ["S",87.032],
@@ -598,7 +598,7 @@ define(
                         bIonsResultItem.index = i;
                         bIonsResultItem.type = 'B';
                         // bIonsResultItem.label = 'B' + i + '(+' + bIonsResultItem.ionsNum + ')';
-                        bIonsResultItem.label = 'B' + i;
+                        bIonsResultItem.label = 'B' + arrBIonPosition[i];
                         bIonsResultItem.amino_acid = strSenquence.charAt( arrBIonPosition[i] );
                         bIonsResultItem.position = arrBIonPosition[i];
                         if(bIonsResultItem.key !== undefined)
@@ -706,16 +706,37 @@ define(
                         yIonsResultItem.value = yIonsResultItem.intensityValue - dBIons * yIonsResultItem.ionsNum;
                         yIonsResultItem.index = i;
                         yIonsResultItem.type = 'Y';
-                        yIonsResultItem.label = 'Y' + i;
+                        yIonsResultItem.label = 'Y' + arrYIonPosition[i];
                         yIonsResultItem.amino_acid = strSenquence.charAt( arrYIonPosition[i] );
-                        yIonsResultItem.position = arrYIonPosition[i];
+                        yIonsResultItem.position = strSenquence.replace(
+                            /\[.*?\]|\(|\)|\./g,
+                            ''
+                        ).length - arrYIonPosition[i];
                         if(yIonsResultItem.key !== undefined)
                         {
                             yIonsResultObjectArray.push(yIonsResultItem);
                         }
                     }
 
-                    return bIonsResultObjectArray.concat(yIonsResultObjectArray);
+                    let finalResultObjectArray = [];
+                    let i = 0;
+                    bIonsResultObjectArray.forEach(
+                        function (item) {
+                            item.finalIndex = i;
+                            i++;
+                            finalResultObjectArray.push(item);
+                        }
+                    );
+
+                    yIonsResultObjectArray.forEach(
+                        function (item) {
+                            item.finalIndex = i;
+                            i++;
+                            finalResultObjectArray.push(item);
+                        }
+                    );
+
+                    return finalResultObjectArray;
 
                     function check(i, j) {
                         if (i > j) {

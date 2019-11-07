@@ -58,6 +58,26 @@
     background-color: #7df6d5e6;
 }
 
+.Snow_translatedSequence td.Snow_aminoAcid_Hydrophile {
+    background-color: #81ecece6;
+}
+
+.Snow_translatedSequence td.Snow_aminoAcid_Hydrophobe {
+    background-color: #a29bfee6;
+}
+
+.Snow_translatedSequence td.Snow_aminoAcid_Acidity {
+    background-color: #ff7675e6;
+}
+
+.Snow_translatedSequence td.Snow_aminoAcid_Alkaline {
+    background-color: #ffeaa7e6;
+}
+
+.Snow_translatedSequence td.Snow_aminoAcid_Unknown {
+    background-color: #b2bec3e6;
+}
+
 .Snow_translatedSequence td.Snow_aminoAcid_mark_left_bottom::after {
     content: "";
     position: absolute;

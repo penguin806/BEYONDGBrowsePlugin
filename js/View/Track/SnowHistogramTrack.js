@@ -276,6 +276,19 @@ define([
                                             {
                                                 barPositionInBp -= 3;
                                             }
+                                            if(
+                                                typeof window.BEYONDGBrowseProteinTrack == "object" &&
+                                                window.BEYONDGBrowseProteinTrack.hasOwnProperty('config')
+                                            )
+                                            {
+                                                if(window.BEYONDGBrowseProteinTrack.config.hasOwnProperty('proteoformExtraOffset'))
+                                                {
+                                                    barPositionInBp += parseInt(
+                                                        window.BEYONDGBrowseProteinTrack.config.proteoformExtraOffset
+                                                    ) * 0.01  * (_this.blocks[_this.firstAttached].endBase - _this.blocks[_this.firstAttached].startBase);
+                                                }
+                                            }
+
                                             if(Math.abs(bpX - barPositionInBp) < 1)
                                             {
                                                 let item = _this.lastHighlistItem = mappingResultObjectArray[index];
@@ -366,6 +379,18 @@ define([
                     let barHeight = item.value / maxValue * histogramHeight;
                     let barWidth = 3;
                     let keyPosition = (item.leftBaseInBpWithOffset - blockOffsetStartBase) * xAxisScale;
+                    if(
+                        typeof window.BEYONDGBrowseProteinTrack == "object" &&
+                        window.BEYONDGBrowseProteinTrack.hasOwnProperty('config')
+                    )
+                    {
+                        if(window.BEYONDGBrowseProteinTrack.config.hasOwnProperty('proteoformExtraOffset'))
+                        {
+                            keyPosition += parseInt(
+                                window.BEYONDGBrowseProteinTrack.config.proteoformExtraOffset
+                            ) * 0.01  * blockWidthInPxAfterMinusOffsetAtStartAndEnd;
+                        }
+                    }
                     if(item.type === 'Y')
                     {
                         keyPosition -= 3 * xAxisScale;
@@ -396,42 +421,108 @@ define([
                             context.fillStyle = 'rgba(255,255,255,1)';
                         }
 
-                        // Left diff
-                        if(_this.mappingResultObjectArray.hasOwnProperty(item.index - 1))
+                        item.leftNeighbor = undefined;
+                        item.rightNeighbor = undefined;
+                        // Left Neighbor
+                        for(let i = 0; i < item.finalIndex; i++)
+                        {
+                            if(item.type === 'B')
+                            {
+                                if(
+                                    _this.mappingResultObjectArray[i].type === item.type
+                                    && _this.mappingResultObjectArray[i].position < item.position
+                                )
+                                {
+                                    item.leftNeighbor = _this.mappingResultObjectArray[i];
+                                }
+                            }
+                            else if(item.type === 'Y')
+                            {
+                                if(
+                                    _this.mappingResultObjectArray[i].type === item.type
+                                    && _this.mappingResultObjectArray[i].position > item.position
+                                )
+                                {
+                                    item.rightNeighbor = _this.mappingResultObjectArray[i];
+                                }
+                            }
+                        }
+                        // Right Neighbor
+                        for(let i = item.finalIndex + 1; i < _this.mappingResultObjectArray.length; i++)
+                        {
+                            if(item.type === 'B')
+                            {
+                                if(
+                                    _this.mappingResultObjectArray[i].type === item.type
+                                    && _this.mappingResultObjectArray[i].position > item.position
+                                )
+                                {
+                                    item.rightNeighbor = _this.mappingResultObjectArray[i];
+                                    break;
+                                }
+                            }
+                            else if(item.type === 'Y')
+                            {
+                                if(
+                                    _this.mappingResultObjectArray[i].type === item.type
+                                    && _this.mappingResultObjectArray[i].position < item.position
+                                )
+                                {
+                                    item.leftNeighbor = _this.mappingResultObjectArray[i];
+                                    break;
+                                }
+                            }
+                        }
+
+                        if(item.leftNeighbor !== undefined)
                         {
                             context.textAlign = "right";
-                            let leftDiffValue =
+                            let leftDiffValue = Math.abs(
                                 Math.round(
                                     (
                                         item.key -
-                                        _this.mappingResultObjectArray[item.index - 1].key
+                                        item.leftNeighbor.key
                                     ) * 100
-                                ) / 100;
+                                ) / 100
+                            );
+
                             for(let count = isHighLightState === true ? 4 : 0; count < 5; count++)
                             {
                                 context.fillText(
+                                    item.leftNeighbor.label,
+                                    barLeft_X - 4,
+                                    trackTotalHeight - 48 - bottomLineHeight
+                                );
+                                context.fillText(
                                     leftDiffValue.toString(),
-                                    barLeft_X - 3,
+                                    barLeft_X - 4,
                                     trackTotalHeight - 40 - bottomLineHeight
                                 );
                             }
                         }
-                        // Right diff
-                        if(_this.mappingResultObjectArray.hasOwnProperty(item.index + 1))
+
+                        if(item.rightNeighbor !== undefined)
                         {
                             context.textAlign = "left";
-                            let RightDiffValue =
+                            let RightDiffValue = Math.abs(
                                 Math.round(
                                     (
-                                        _this.mappingResultObjectArray[item.index + 1].key -
+                                        item.rightNeighbor.key -
                                         item.key
                                     ) * 100
-                                ) / 100;
+                                ) / 100
+                            );
+
                             for(let count = isHighLightState === true ? 4 : 0; count < 5; count++)
                             {
                                 context.fillText(
+                                    item.rightNeighbor.label,
+                                    barLeft_X + 8,
+                                    trackTotalHeight - 48 - bottomLineHeight
+                                );
+                                context.fillText(
                                     RightDiffValue.toString(),
-                                    barLeft_X + 6,
+                                    barLeft_X + 8,
                                     trackTotalHeight - 40 - bottomLineHeight
                                 );
                             }
@@ -493,8 +584,10 @@ define([
                         // Draw value above the label
                         // context.fillText((Math.round(item.value * 100) / 100).toString(),
                         //     barLeft_X + 1, barLeft_Y - 85);
-                        context.fillText((Math.round(item.value * 100) / 100).toString(),
+                        context.fillText('Int: ' + (Math.round(item.intensityValue * 100) / 100).toString(),
                             barLeft_X + 1, trackTotalHeight - 45 - histogramHeight - bottomLineHeight);
+                        context.fillText('M/z: ' + (Math.round(item.mzValue * 100) / 100).toString(),
+                            barLeft_X + 1, trackTotalHeight - 54 - histogramHeight - bottomLineHeight);
                         if(viewArgs.showMzValue)
                         {
                             // Draw key under the X-axis

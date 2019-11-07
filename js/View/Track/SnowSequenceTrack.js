@@ -246,6 +246,34 @@ define(
                     newConfig.animationEnabled = !!oldConfig.animationEnabled || true;
                     newConfig.proteoformExtraOffset = oldConfig.proteoformExtraOffset || 8;
 
+                    // 0: Hydrophile
+                    // 1: Hydrophobe
+                    // 2: Acidity
+                    // 3: Alkaline
+                    newConfig.mapAminoAcidHydrophilicity =
+                        oldConfig.mapAminoAcidHydrophilicity || {
+                            'G' : 0,
+                            'A' : 1,
+                            'V' : 1,
+                            'L' : 1,
+                            'I' : 1,
+                            'F' : 1,
+                            'W' : 1,
+                            'Y' : 0,
+                            'D' : 2,
+                            'N' : 0,
+                            'E' : 2,
+                            'K' : 3,
+                            'Q' : 0,
+                            'M' : 1,
+                            'S' : 0,
+                            'T' : 0,
+                            'C' : 0,
+                            'P' : 1,
+                            'H' : 3,
+                            'R' : 3
+                        };
+
                     return newConfig;
                 },
 
@@ -1101,6 +1129,43 @@ define(
                             if( drawChars ) {
                                 aminoAcidSpan.innerHTML = detailArrayOfProteoformInThisBlock[index].aminoAcidCharacter;
                             }
+
+                            if(
+                                _this.config.mapAminoAcidHydrophilicity.hasOwnProperty(
+                                    detailArrayOfProteoformInThisBlock[index].aminoAcidCharacter.toUpperCase()
+                                )
+                            )
+                            {
+                                switch(
+                                    _this.config.mapAminoAcidHydrophilicity[
+                                        detailArrayOfProteoformInThisBlock[index].aminoAcidCharacter.toUpperCase()
+                                        ]
+                                    )
+                                {
+                                    case 0:
+                                        aminoAcidSpan.className += ' Snow_aminoAcid_Hydrophile';
+                                        break;
+                                    case 1:
+                                        aminoAcidSpan.className += ' Snow_aminoAcid_Hydrophobe';
+                                        break;
+                                    case 2:
+                                        aminoAcidSpan.className += ' Snow_aminoAcid_Acidity';
+                                        break;
+                                    case 3:
+                                        aminoAcidSpan.className += ' Snow_aminoAcid_Alkaline';
+                                        break;
+                                    default:
+                                        aminoAcidSpan.className += ' Snow_aminoAcid_Unknown';
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                aminoAcidSpan.className += ' Snow_aminoAcid_Unknown';
+                            }
+
+
+
                             if(_this.config.drawCircle)
                             {
                                 aminoAcidSpan.className += ' Snow_aminoAcid_circle';
