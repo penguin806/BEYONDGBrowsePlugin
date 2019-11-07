@@ -1130,27 +1130,40 @@ define(
                                 aminoAcidSpan.innerHTML = detailArrayOfProteoformInThisBlock[index].aminoAcidCharacter;
                             }
 
-                            switch(
-                                _this.config.mapAminoAcidHydrophilicity[
-                                    detailArrayOfProteoformInThisBlock[index].aminoAcidCharacter
-                                ]
+                            if(
+                                _this.config.mapAminoAcidHydrophilicity.hasOwnProperty(
+                                    detailArrayOfProteoformInThisBlock[index].aminoAcidCharacter.toUpperCase()
+                                )
                             )
                             {
-                                case 0:
-                                    aminoAcidSpan.className += ' Snow_aminoAcid_Hydrophile';
-                                    break;
-                                case 1:
-                                    aminoAcidSpan.className += ' Snow_aminoAcid_Hydrophobe';
-                                    break;
-                                case 2:
-                                    aminoAcidSpan.className += ' Snow_aminoAcid_Acidity';
-                                    break;
-                                case 3:
-                                    aminoAcidSpan.className += ' Snow_aminoAcid_Alkaline';
-                                    break;
-                                default:
-                                    break;
+                                switch(
+                                    _this.config.mapAminoAcidHydrophilicity[
+                                        detailArrayOfProteoformInThisBlock[index].aminoAcidCharacter.toUpperCase()
+                                        ]
+                                    )
+                                {
+                                    case 0:
+                                        aminoAcidSpan.className += ' Snow_aminoAcid_Hydrophile';
+                                        break;
+                                    case 1:
+                                        aminoAcidSpan.className += ' Snow_aminoAcid_Hydrophobe';
+                                        break;
+                                    case 2:
+                                        aminoAcidSpan.className += ' Snow_aminoAcid_Acidity';
+                                        break;
+                                    case 3:
+                                        aminoAcidSpan.className += ' Snow_aminoAcid_Alkaline';
+                                        break;
+                                    default:
+                                        aminoAcidSpan.className += ' Snow_aminoAcid_Unknown';
+                                        break;
+                                }
                             }
+                            else
+                            {
+                                aminoAcidSpan.className += ' Snow_aminoAcid_Unknown';
+                            }
+
 
 
                             if(_this.config.drawCircle)
