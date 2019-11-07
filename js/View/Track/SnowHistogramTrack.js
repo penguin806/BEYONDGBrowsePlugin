@@ -518,8 +518,10 @@ define([
                         // Draw value above the label
                         // context.fillText((Math.round(item.value * 100) / 100).toString(),
                         //     barLeft_X + 1, barLeft_Y - 85);
-                        context.fillText((Math.round(item.value * 100) / 100).toString(),
+                        context.fillText('Int: ' + (Math.round(item.intensityValue * 100) / 100).toString(),
                             barLeft_X + 1, trackTotalHeight - 45 - histogramHeight - bottomLineHeight);
+                        context.fillText('M/z: ' + (Math.round(item.mzValue * 100) / 100).toString(),
+                            barLeft_X + 1, trackTotalHeight - 54 - histogramHeight - bottomLineHeight);
                         if(viewArgs.showMzValue)
                         {
                             // Draw key under the X-axis
