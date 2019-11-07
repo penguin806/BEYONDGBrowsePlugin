@@ -424,7 +424,7 @@ define([
                         item.leftNeighbor = undefined;
                         item.rightNeighbor = undefined;
                         // Left Neighbor
-                        for(let i = 0; i < item.index; i++)
+                        for(let i = 0; i < item.finalIndex; i++)
                         {
                             if(item.type === 'B')
                             {
@@ -436,9 +436,19 @@ define([
                                     item.leftNeighbor = _this.mappingResultObjectArray[i];
                                 }
                             }
+                            else if(item.type === 'Y')
+                            {
+                                if(
+                                    _this.mappingResultObjectArray[i].type === item.type
+                                    && _this.mappingResultObjectArray[i].position > item.position
+                                )
+                                {
+                                    item.rightNeighbor = _this.mappingResultObjectArray[i];
+                                }
+                            }
                         }
                         // Right Neighbor
-                        for(let i = item.index; i < _this.mappingResultObjectArray[i].length; i++)
+                        for(let i = item.finalIndex + 1; i < _this.mappingResultObjectArray.length; i++)
                         {
                             if(item.type === 'B')
                             {
@@ -451,43 +461,68 @@ define([
                                     break;
                                 }
                             }
+                            else if(item.type === 'Y')
+                            {
+                                if(
+                                    _this.mappingResultObjectArray[i].type === item.type
+                                    && _this.mappingResultObjectArray[i].position < item.position
+                                )
+                                {
+                                    item.leftNeighbor = _this.mappingResultObjectArray[i];
+                                    break;
+                                }
+                            }
                         }
 
-                        if(_this.mappingResultObjectArray.hasOwnProperty(item.index - 1))
+                        if(item.leftNeighbor !== undefined)
                         {
                             context.textAlign = "right";
-                            let leftDiffValue =
+                            let leftDiffValue = Math.abs(
                                 Math.round(
                                     (
                                         item.key -
-                                        _this.mappingResultObjectArray[item.index - 1].key
+                                        item.leftNeighbor.key
                                     ) * 100
-                                ) / 100;
+                                ) / 100
+                            );
+
                             for(let count = isHighLightState === true ? 4 : 0; count < 5; count++)
                             {
                                 context.fillText(
+                                    item.leftNeighbor.label,
+                                    barLeft_X - 4,
+                                    trackTotalHeight - 48 - bottomLineHeight
+                                );
+                                context.fillText(
                                     leftDiffValue.toString(),
-                                    barLeft_X - 3,
+                                    barLeft_X - 4,
                                     trackTotalHeight - 40 - bottomLineHeight
                                 );
                             }
                         }
-                        // Right diff
-                        if(_this.mappingResultObjectArray.hasOwnProperty(item.index + 1))
+
+                        if(item.rightNeighbor !== undefined)
                         {
                             context.textAlign = "left";
-                            let RightDiffValue =
+                            let RightDiffValue = Math.abs(
                                 Math.round(
                                     (
-                                        _this.mappingResultObjectArray[item.index + 1].key -
+                                        item.rightNeighbor.key -
                                         item.key
                                     ) * 100
-                                ) / 100;
+                                ) / 100
+                            );
+
                             for(let count = isHighLightState === true ? 4 : 0; count < 5; count++)
                             {
                                 context.fillText(
+                                    item.rightNeighbor.label,
+                                    barLeft_X + 8,
+                                    trackTotalHeight - 48 - bottomLineHeight
+                                );
+                                context.fillText(
                                     RightDiffValue.toString(),
-                                    barLeft_X + 6,
+                                    barLeft_X + 8,
                                     trackTotalHeight - 40 - bottomLineHeight
                                 );
                             }

@@ -718,7 +718,25 @@ define(
                         }
                     }
 
-                    return bIonsResultObjectArray.concat(yIonsResultObjectArray);
+                    let finalResultObjectArray = [];
+                    let i = 0;
+                    bIonsResultObjectArray.forEach(
+                        function (item) {
+                            item.finalIndex = i;
+                            i++;
+                            finalResultObjectArray.push(item);
+                        }
+                    );
+
+                    yIonsResultObjectArray.forEach(
+                        function (item) {
+                            item.finalIndex = i;
+                            i++;
+                            finalResultObjectArray.push(item);
+                        }
+                    );
+
+                    return finalResultObjectArray;
 
                     function check(i, j) {
                         if (i > j) {

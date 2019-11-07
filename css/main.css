@@ -63,7 +63,7 @@
 }
 
 .Snow_translatedSequence td.Snow_aminoAcid_Hydrophobe {
-    background-color: #ffeaa7e6;
+    background-color: #a29bfee6;
 }
 
 .Snow_translatedSequence td.Snow_aminoAcid_Acidity {
@@ -71,7 +71,7 @@
 }
 
 .Snow_translatedSequence td.Snow_aminoAcid_Alkaline {
-    background-color: #a29bfee6;
+    background-color: #ffeaa7e6;
 }
 
 .Snow_translatedSequence td.Snow_aminoAcid_Unknown {
