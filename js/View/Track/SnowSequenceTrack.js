@@ -15,7 +15,8 @@ define(
         'JBrowse/View/TrackConfigEditor',
         'JBrowse/View/ConfirmDialog',
         'JBrowse/Util',
-        '../Dialog/SnowAnnotationDialog'
+        '../Dialog/SnowAnnotationDialog',
+        '../../Util/diff'
     ],
     function(
         declare,
@@ -33,7 +34,8 @@ define(
         TrackConfigEditor,
         ConfirmDialog,
         Util,
-        SnowAnnotationDialog
+        SnowAnnotationDialog,
+        JsDiff
     )
     {
         return declare(
@@ -129,7 +131,8 @@ define(
                         'BEYONDGBrowse/addSingleProteoformScan',
                         function(
                             proteoformSequence, proteoformStartPosition, proteoformEndPosition,
-                            isReverseStrand, scanId, mSScanMassMappingResultArray, msScanMassTrackId
+                            isReverseStrand, scanId, mSScanMassMappingResultArray, msScanMassTrackId,
+                            translatedRefSequenceForProteoform, selectedRefSeqIndex
                         ){
                             console.info('Event: BEYONDGBrowse/addSingleProteoformScan', arguments);
                             _this.proteoformToDrawScanIdArray[scanId] = {
@@ -139,7 +142,12 @@ define(
                                 isReverseStrand: isReverseStrand,
                                 scanId: scanId,
                                 mSScanMassMappingResultArray: mSScanMassMappingResultArray,
-                                msScanMassTrackId: msScanMassTrackId
+                                msScanMassTrackId: msScanMassTrackId,
+                                diffFromRefSequenceResult: JsDiff.diffChars(
+                                    translatedRefSequenceForProteoform[0],
+                                    proteoformSequence
+                                ),
+                                selectedRefSeqIndex
                             };
 
                             drawProteoform();
