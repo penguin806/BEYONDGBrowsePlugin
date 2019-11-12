@@ -171,23 +171,41 @@ define(
 
                 _translateGenomeSequenceToProtein: function(sequence, isReverse)
                 {
-                    let threeTranslatedSeqs = [];
+                    let sixTranslatedSeqs = [];
 
-                    for(let offset=0; offset<3; offset++)
+                    for(let offset = 0; offset < 3; offset++)
                     {
-                        let slicedSequence = sequence.slice(offset,sequence.length-offset);
+                        let extraBases = (sequence.length - offset) % 3;
+                        let slicedSequence = sequence.slice(offset, sequence.length - extraBases);
                         let translatedSeq = "";
                         for(let i=0; i<slicedSequence.length; i+=3)
                         {
-                            let theCodon = slicedSequence.slice(i, i+3);
+                            let theCodon = slicedSequence.slice(i, i + 3);
                             let aminoAcid = this._codonTable[theCodon] || '#';
                             translatedSeq += aminoAcid;
                         }
 
-                        threeTranslatedSeqs[offset] = translatedSeq;
+                        sixTranslatedSeqs[offset] = translatedSeq;
                     }
 
-                    return threeTranslatedSeqs;
+                    for(let offset = 3; offset < 6; offset++)
+                    {
+                        sequence = Util.revcom(sequence);
+                        let extraBases = (sequence.length - offset) % 3;
+                        let slicedSequence = sequence.slice(offset, sequence.length - extraBases);
+                        let translatedSeq = "";
+                        for(let i=0; i<slicedSequence.length; i+=3)
+                        {
+                            let theCodon = slicedSequence.slice(i, i + 3);
+                            let aminoAcid = this._codonTable[theCodon] || '#';
+                            translatedSeq += aminoAcid;
+                        }
+
+                        translatedSeq = translatedSeq.split("").reverse().join("");
+                        sixTranslatedSeqs[offset] = translatedSeq;
+                    }
+
+                    return sixTranslatedSeqs;
                 },
 
                 _parseRequestedObject: function(recordObjectArray)
@@ -1094,7 +1112,7 @@ define(
                                         end: fullRangeRightPos
                                     },
                                     function( refGenomeSequenceForProteoform ) {
-                                        // #6. Translate entire reference genome sequences into conceptual protein sequence,
+                                        // #6. Translate reference genome sequences corresponding to proteoform
                                         let translatedRefSequenceForProteoform =
                                             _this._translateGenomeSequenceToProtein(refGenomeSequenceForProteoform, false);
                                         console.info('refGenomeSequenceForProteoform:', fullRangeLeftPos, fullRangeRightPos, refGenomeSequenceForProteoform);
@@ -1159,24 +1177,29 @@ define(
 
                                 proteinInfoObject.requestedProteoformObjectArray[i].lcsMatrix = [];
                                 proteinInfoObject.requestedProteoformObjectArray[i].lcsLengthArray = [];
-                                proteinInfoObject.translatedRefSequenceForProteoform.forEach(
-                                    function (item, indexJ) {
-                                        proteinInfoObject.requestedProteoformObjectArray[i].lcsMatrix.push(
-                                            _this._getLongestCommonSubSequenceMatrix(
-                                                proteinInfoObject.translatedRefSequenceForProteoform[indexJ],
-                                                proteoformWithoutModificationToCompare
-                                            )
-                                        );
+                                for(let indexJ = 0; indexJ < 3; indexJ++)
+                                {
+                                    let translatedRefSequenceForProteoformToCompare =
+                                        proteinInfoObject.requestedProteoformObjectArray[i].strand === '-' ?
+                                            proteinInfoObject.translatedRefSequenceForProteoform[3 + indexJ] :
+                                            proteinInfoObject.translatedRefSequenceForProteoform[indexJ];
 
-                                        proteinInfoObject.requestedProteoformObjectArray[i].lcsLengthArray.push(
-                                            _this._getLcsMatrixLength(
-                                                proteinInfoObject.translatedRefSequenceForProteoform[indexJ],
-                                                proteoformWithoutModificationToCompare,
-                                                proteinInfoObject.requestedProteoformObjectArray[i].lcsMatrix[indexJ]
-                                            )
-                                        );
-                                    }
-                                );
+
+                                    proteinInfoObject.requestedProteoformObjectArray[i].lcsMatrix.push(
+                                        _this._getLongestCommonSubSequenceMatrix(
+                                            translatedRefSequenceForProteoformToCompare,
+                                            proteoformWithoutModificationToCompare
+                                        )
+                                    );
+
+                                    proteinInfoObject.requestedProteoformObjectArray[i].lcsLengthArray.push(
+                                        _this._getLcsMatrixLength(
+                                            translatedRefSequenceForProteoformToCompare,
+                                            proteoformWithoutModificationToCompare,
+                                            proteinInfoObject.requestedProteoformObjectArray[i].lcsMatrix[indexJ]
+                                        )
+                                    );
+                                }
 
                                 proteinInfoObject.requestedProteoformObjectArray[i].selectedRefSeqIndex = 0;
                                 proteinInfoObject.requestedProteoformObjectArray[i].lcsLength =
@@ -1228,12 +1251,23 @@ define(
                                 }
 
                                 let thisProteoformObject = proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId];
+                                if(!isNaN(_this.config.msScanId))
+                                {
+                                    let targetObject = proteinInfoObject.requestedProteoformObjectArray.find(
+                                        function (item) {
+                                            return item.scanId == _this.config.msScanId;
+                                        }
+                                    );
+                                    if(targetObject)
+                                    {
+                                        thisProteoformObject = targetObject;
+                                    }
+                                }
                                 let thisProteoformSequence = thisProteoformObject.sequence;
                                 let thisProteoformScanId = thisProteoformObject.scanId;
                                 let thisProteoformStartPosition = thisProteoformObject._start;
                                 let thisProteoformEndPosition = thisProteoformObject.end;
                                 let isThisProteoformReverse = thisProteoformObject.strand === '-' ? true : false;
-                                let thisProteoformRefSequence = thisProteoformObject.translatedRefSequenceForProteoform
                                 console.info('msScanMassTrackId:', msScanMassTrackId);
                                 console.info('thisProteoformObject:', thisProteoformObject);
 

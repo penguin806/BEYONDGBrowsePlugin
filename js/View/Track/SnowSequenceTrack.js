@@ -135,6 +135,9 @@ define(
                             translatedRefSequenceForProteoform, selectedRefSeqIndex
                         ){
                             console.info('Event: BEYONDGBrowse/addSingleProteoformScan', arguments);
+                            let translatedRefSequenceForDiffCompare =
+                                isReverseStrand ? translatedRefSequenceForProteoform[3 + selectedRefSeqIndex] :
+                                    translatedRefSequenceForProteoform[selectedRefSeqIndex];
                             _this.proteoformToDrawScanIdArray[scanId] = {
                                 proteoformSequence: proteoformSequence,
                                 proteoformStartPosition: proteoformStartPosition,
@@ -144,8 +147,11 @@ define(
                                 mSScanMassMappingResultArray: mSScanMassMappingResultArray,
                                 msScanMassTrackId: msScanMassTrackId,
                                 diffFromRefSequenceResult: JsDiff.diffChars(
-                                    translatedRefSequenceForProteoform[selectedRefSeqIndex],
-                                    proteoformSequence
+                                    translatedRefSequenceForDiffCompare,
+                                    proteoformSequence/*.replace(
+                                        /\[.*?\]|\(|\)|\./g,
+                                        ''
+                                    )*/
                                 ),
                                 selectedRefSeqIndex
                             };
