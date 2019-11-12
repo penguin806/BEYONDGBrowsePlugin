@@ -12,7 +12,8 @@ define(
         'JBrowse/View/ConfirmDialog',
         'JBrowse/Util',
         'JBrowse/CodonTable',
-        './SnowHistogramTrack'
+        './SnowHistogramTrack',
+        '../../Util/diff'
     ],
     function (
         declare,
@@ -26,7 +27,8 @@ define(
         ConfirmDialog,
         Util,
         CodonTable,
-        SnowHistogramTrack
+        SnowHistogramTrack,
+        JsDiff
     ) {
         return declare(
             [
@@ -169,23 +171,41 @@ define(
 
                 _translateGenomeSequenceToProtein: function(sequence, isReverse)
                 {
-                    let threeTranslatedSeqs = [];
+                    let sixTranslatedSeqs = [];
 
-                    for(let offset=0; offset<3; offset++)
+                    for(let offset = 0; offset < 3; offset++)
                     {
-                        let slicedSequence = sequence.slice(offset,sequence.length-offset);
+                        let extraBases = (sequence.length - offset) % 3;
+                        let slicedSequence = sequence.slice(offset, sequence.length - extraBases);
                         let translatedSeq = "";
                         for(let i=0; i<slicedSequence.length; i+=3)
                         {
-                            let theCodon = slicedSequence.slice(i, i+3);
+                            let theCodon = slicedSequence.slice(i, i + 3);
                             let aminoAcid = this._codonTable[theCodon] || '#';
                             translatedSeq += aminoAcid;
                         }
 
-                        threeTranslatedSeqs[offset] = translatedSeq;
+                        sixTranslatedSeqs[offset] = translatedSeq;
                     }
 
-                    return threeTranslatedSeqs;
+                    for(let offset = 3; offset < 6; offset++)
+                    {
+                        sequence = Util.revcom(sequence);
+                        let extraBases = (sequence.length - offset) % 3;
+                        let slicedSequence = sequence.slice(offset, sequence.length - extraBases);
+                        let translatedSeq = "";
+                        for(let i=0; i<slicedSequence.length; i+=3)
+                        {
+                            let theCodon = slicedSequence.slice(i, i + 3);
+                            let aminoAcid = this._codonTable[theCodon] || '#';
+                            translatedSeq += aminoAcid;
+                        }
+
+                        translatedSeq = translatedSeq.split("").reverse().join("");
+                        sixTranslatedSeqs[offset] = translatedSeq;
+                    }
+
+                    return sixTranslatedSeqs;
                 },
 
                 _parseRequestedObject: function(recordObjectArray)
@@ -751,6 +771,7 @@ define(
                     }
                 },
 
+                // Deprecated
                 _calcMSScanMass: function(strSenquence, arrMSScanMass, arrMSScanPeakAundance)
                 {
                     this._sortArrMSScanMassAndArrMSScanPeakAundance(arrMSScanMass, arrMSScanPeakAundance);
@@ -974,12 +995,14 @@ define(
 
                 _publishDrawProteoformSequenceEvent: function(
                     proteoformSequence, proteoformStartPosition, proteoformEndPosition,
-                    isReverseStrand, scanId, mSScanMassMappingResultArray, msScanMassTrackId
+                    isReverseStrand, scanId, mSScanMassMappingResultArray, msScanMassTrackId,
+                    translatedRefSequenceForProteoform, selectedRefSeqIndex
                 )
                 {
                     dojoTopic.publish('BEYONDGBrowse/addSingleProteoformScan',
                         proteoformSequence, proteoformStartPosition, proteoformEndPosition,
-                        isReverseStrand, scanId, mSScanMassMappingResultArray, msScanMassTrackId
+                        isReverseStrand, scanId, mSScanMassMappingResultArray, msScanMassTrackId,
+                        translatedRefSequenceForProteoform, selectedRefSeqIndex
                     );
                 },
 
@@ -1051,21 +1074,21 @@ define(
 
                     let proteinInfoObject = {
                         translatedReferenceSequence: null,              // Eg: chr1:149813526..149813620 (95 b)
-                        translatedFullRangeReferenceSequence: null,     // Eg: chr1:149813271..149813681 (411 b)
+                        translatedRefSequenceForProteoform: null,     // Eg: chr1:149813271..149813681 (411 b)
                         requestedProteoformObjectArray: null
                     };
 
-                    // 1. Retrieve reference genome sequence within current block:
+                    // #1. Retrieve reference genome sequence within current block:
                     getReferenceSequenceDeferred.then(
                         function (refGenomeSeq)
                         {
-                            // 2. Translate genome sequence into conceptual protein sequence
+                            // #2. Translate genome sequence into conceptual protein sequences
                             let translatedProteinSequence = _this._translateGenomeSequenceToProtein(refGenomeSeq, false);
                             console.info('refGenomeSeq:', leftBase, rightBase, refGenomeSeq);
                             console.info('translatedProteinSequence:', leftBase, rightBase, translatedProteinSequence);
                             proteinInfoObject.translatedReferenceSequence = translatedProteinSequence;
 
-                            // 3. Query BeyondGBrowse backend, return 'promise' produced by dojo/request
+                            // #3. Query BeyondGBrowse backend, return 'promise' produced by dojo/request
                             return _this._queryFeatures(_this.refSeq.name, leftBase, rightBase);
                         },
                         function (errorReason)
@@ -1075,31 +1098,33 @@ define(
                     ).then(
                         function (recordObjectArray)
                         {
-                            // 4. If region of this block is included in database, BeyondGBrowse backend will response with a json array,
-                            //    which contains <start & end position>, <proteoform sequence>, <strand (forward/reverse)>, <msScan mass&intensity> of all scan(s)
+                            // #4. If block region is in database, retrieve a JSON array from BeyondGBrowseBackend,
+                            //     which contains <start & end position>, <proteoform sequence>, <strand (forward/reverse)>, <msScan mass&intensity> of all scan(s)
                             if(recordObjectArray !== undefined && recordObjectArray.length > 0)
                             {
                                 let fullRangeLeftPos = parseInt(recordObjectArray[0]._start);
                                 let fullRangeRightPos = parseInt(recordObjectArray[0].end);
-                                // 5. Retrieve reference genome sequence within ENTIRE proteoform region
+                                // #5. Retrieve ENTIRE reference genome sequence for proteoform
                                 _this.store.getReferenceSequence(
                                     {
                                         ref: _this.refSeq.name,
                                         start: fullRangeLeftPos,
                                         end: fullRangeRightPos
                                     },
-                                    function( fullRangeReferenceGenomeSequence ) {
-                                        // 6. Translate reference genome sequence for entire proteoform into conceptual protein sequence,
-                                        //    currently three forward translation only, Todo: using reverse translation if the proteoform strand is <->
-                                        let translatedFullRangeProteinSequence =
-                                            _this._translateGenomeSequenceToProtein(fullRangeReferenceGenomeSequence, false);
-                                        console.info('fullRangeReferenceGenomeSequence:', fullRangeLeftPos, fullRangeRightPos, fullRangeReferenceGenomeSequence);
-                                        console.info('translatedFullRangeProteinSequence:', fullRangeLeftPos, fullRangeRightPos, translatedFullRangeProteinSequence);
-                                        proteinInfoObject.translatedFullRangeReferenceSequence = translatedFullRangeProteinSequence;
+                                    function( refGenomeSequenceForProteoform ) {
+                                        // #6. Translate reference genome sequences corresponding to proteoform
+                                        let translatedRefSequenceForProteoform =
+                                            _this._translateGenomeSequenceToProtein(refGenomeSequenceForProteoform, false);
+                                        console.info('refGenomeSequenceForProteoform:', fullRangeLeftPos, fullRangeRightPos, refGenomeSequenceForProteoform);
+                                        console.info('translatedRefSequenceForProteoform:', fullRangeLeftPos, fullRangeRightPos, translatedRefSequenceForProteoform);
+                                        proteinInfoObject.translatedRefSequenceForProteoform = translatedRefSequenceForProteoform;
 
                                         proteinInfoObject.requestedProteoformObjectArray = _this._parseRequestedObject(recordObjectArray);
-                                        // 7. Fill <Conceptual protein sequence of this block>, <Conceptual protein sequence of entire proteoform region>,
-                                        //    <json array responded from backend> into object <proteinInfoObject>, call resolve() to pass <proteinInfoObject> to <mapTranslatedProteinSequenceToRequestedProteoformDeferred>
+                                        // #7. Fill <Conceptual protein sequence of this block>,
+                                        //     <Conceptual protein sequence of entire proteoform region>,
+                                        //     <json array responded from backend>
+                                        //     into object <proteinInfoObject>,
+                                        //     call resolve() to pass <proteinInfoObject> to <mapTranslatedProteinSequenceToRequestedProteoformDeferred>
                                         mapTranslatedProteinSequenceToRequestedProteoformDeferred.resolve(proteinInfoObject);
                                     },
                                     function(errorReason) {
@@ -1124,9 +1149,9 @@ define(
                         function (proteinInfoObject)
                         {
                             console.info('proteinInfoObject:', proteinInfoObject);
-                            // 8. Sort the json array responded from BeyondGBrowse backend (DESCEND),
-                            //    according to the SIMILARITY between proteoform and conceptual protein sequence,
-                            //    implemented using Longest Common Sequence (LCS) algorithm
+                            // #8. Sort the json array responded from BeyondGBrowse backend (DESCEND),
+                            //     according to the SIMILARITY between proteoform and conceptual protein sequence,
+                            //     implemented using Longest Common SubSequence (LCS) algorithm
                             for(let i=0; i < proteinInfoObject.requestedProteoformObjectArray.length; i++)
                             {
                                 // 2019-08-14: At first, we format proteoform sequence of each scan.
@@ -1144,37 +1169,55 @@ define(
                                         proteinInfoObject.requestedProteoformObjectArray[i].arrMSScanPeakAundance.reverse();
                                 }
 
-                                // 2019-08-04
-                                // console.debug('proteinInfoObject.translatedFullRangeReferenceSequence:',
-                                //     proteinInfoObject.translatedFullRangeReferenceSequence);
-                                // console.debug('proteinInfoObject.requestedProteoformObjectArray[i].sequence:',
-                                //     proteinInfoObject.requestedProteoformObjectArray[i].sequence);
-                                // const translatedReferenceProteinSequence =
-                                //     proteinInfoObject.translatedReferenceSequence[0];
-
-                                // Todo: compare with each of translatedFullRangeReferenceSequence (currently 3 sequence)
-                                const translatedReferenceProteinSequence =
-                                    proteinInfoObject.translatedFullRangeReferenceSequence[0];
-                                const proteoformRemoveModificationToCompare =
+                                const proteoformWithoutModificationToCompare =
                                     proteinInfoObject.requestedProteoformObjectArray[i].sequence.replace(
                                         /\[.*?\]|\(|\)|\./g,
                                         ''
                                     );
-                                // Todo: reverse <proteoformRemoveModificationToCompare> if the strand is <->
-                                // const proteoformRemoveModificationToCompare = proteoformRemoveModificationToCompare.split('').reverse().join();
 
-                                proteinInfoObject.requestedProteoformObjectArray[i].lcsMatrix =
-                                    _this._getLongestCommonSubSequenceMatrix(
-                                        translatedReferenceProteinSequence,
-                                        proteoformRemoveModificationToCompare
+                                proteinInfoObject.requestedProteoformObjectArray[i].lcsMatrix = [];
+                                proteinInfoObject.requestedProteoformObjectArray[i].lcsLengthArray = [];
+                                for(let indexJ = 0; indexJ < 3; indexJ++)
+                                {
+                                    let translatedRefSequenceForProteoformToCompare =
+                                        proteinInfoObject.requestedProteoformObjectArray[i].strand === '-' ?
+                                            proteinInfoObject.translatedRefSequenceForProteoform[3 + indexJ] :
+                                            proteinInfoObject.translatedRefSequenceForProteoform[indexJ];
+
+
+                                    proteinInfoObject.requestedProteoformObjectArray[i].lcsMatrix.push(
+                                        _this._getLongestCommonSubSequenceMatrix(
+                                            translatedRefSequenceForProteoformToCompare,
+                                            proteoformWithoutModificationToCompare
+                                        )
                                     );
 
+                                    proteinInfoObject.requestedProteoformObjectArray[i].lcsLengthArray.push(
+                                        _this._getLcsMatrixLength(
+                                            translatedRefSequenceForProteoformToCompare,
+                                            proteoformWithoutModificationToCompare,
+                                            proteinInfoObject.requestedProteoformObjectArray[i].lcsMatrix[indexJ]
+                                        )
+                                    );
+                                }
+
+                                proteinInfoObject.requestedProteoformObjectArray[i].selectedRefSeqIndex = 0;
                                 proteinInfoObject.requestedProteoformObjectArray[i].lcsLength =
-                                    _this._getLcsMatrixLength(
-                                        translatedReferenceProteinSequence,
-                                        proteoformRemoveModificationToCompare,
-                                        proteinInfoObject.requestedProteoformObjectArray[i].lcsMatrix
-                                    );
+                                    proteinInfoObject.requestedProteoformObjectArray[i].lcsLengthArray[0];
+                                for(let index in proteinInfoObject.requestedProteoformObjectArray[i].lcsLengthArray)
+                                {
+                                    if(
+                                        proteinInfoObject.requestedProteoformObjectArray[i].lcsLengthArray[index] >
+                                        proteinInfoObject.requestedProteoformObjectArray[i].lcsLengthArray[
+                                            proteinInfoObject.requestedProteoformObjectArray[i].selectedRefSeqIndex
+                                        ]
+                                    )
+                                    {
+                                        proteinInfoObject.requestedProteoformObjectArray[i].selectedRefSeqIndex = index;
+                                        proteinInfoObject.requestedProteoformObjectArray[i].lcsLength =
+                                            proteinInfoObject.requestedProteoformObjectArray[i].lcsLengthArray[index];
+                                    }
+                                }
                             }
 
                             proteinInfoObject.requestedProteoformObjectArray.sort(
@@ -1208,6 +1251,18 @@ define(
                                 }
 
                                 let thisProteoformObject = proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId];
+                                if(!isNaN(_this.config.msScanId))
+                                {
+                                    let targetObject = proteinInfoObject.requestedProteoformObjectArray.find(
+                                        function (item) {
+                                            return item.scanId == _this.config.msScanId;
+                                        }
+                                    );
+                                    if(targetObject)
+                                    {
+                                        thisProteoformObject = targetObject;
+                                    }
+                                }
                                 let thisProteoformSequence = thisProteoformObject.sequence;
                                 let thisProteoformScanId = thisProteoformObject.scanId;
                                 let thisProteoformStartPosition = thisProteoformObject._start;
@@ -1224,7 +1279,7 @@ define(
                                     _this.setLabel(_this.originalLabelText + labelTextToAppend);
                                 }
 
-                                // 9. Calculating MsScanMass and mapping with proteoform ions
+                                // #9. Calculating MsScanMass and mapping with proteoform ions
                                 let mappingResultObjectArray = undefined;
                                 if(
                                     window.BEYONDGBrowse.mSScanMassResultArray.hasOwnProperty(thisProteoformObject.scanId)
@@ -1260,7 +1315,7 @@ define(
                                     console.info('mappingResultObjectArray:', mappingResultObjectArray);
                                 }
 
-                                // 10. Take out the parts that needed for current view block
+                                // #10. Take out the parts that needed for current view block
                                 let filteredMSScanMassMappingResultArray = _this._filterMSScanMassMappingResultForCurrentBlock(
                                     leftBase,
                                     rightBase,
@@ -1270,7 +1325,7 @@ define(
                                     proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].end
                                 );
 
-                                // 11. Draw proteoform sequence at the bottom of SnowSequenceTrack, including ions and modification mark
+                                // #11. Draw proteoform sequence at the bottom of SnowSequenceTrack, including ions and modification mark
                                 _this._publishDrawProteoformSequenceEvent(
                                     thisProteoformSequence,
                                     thisProteoformStartPosition,
@@ -1278,14 +1333,16 @@ define(
                                     isThisProteoformReverse,
                                     thisProteoformScanId,
                                     mappingResultObjectArray,
-                                    msScanMassTrackId + 1
+                                    msScanMassTrackId + 1,
+                                    proteinInfoObject.translatedRefSequenceForProteoform,
+                                    thisProteoformObject.selectedRefSeqIndex
                                 );
 
                                 console.info('filteredMSScanMassMappingResultArray:', filteredMSScanMassMappingResultArray);
                                 renderArgs.showMzValue = _this.config.showMzValue === true;
-                                // 12. Draw protein mass spectrum histogram within current block region
-                                //     X-Axis: m/z
-                                //     Y-Axis: intensity
+                                // #12. Draw protein mass spectrum histogram within current block region
+                                //      X-Axis: m/z
+                                //      Y-Axis: intensity
                                 let isAlignByIonPosition = _this.config.alignByIonPosition === true;
                                 if(isAlignByIonPosition)
                                 {
