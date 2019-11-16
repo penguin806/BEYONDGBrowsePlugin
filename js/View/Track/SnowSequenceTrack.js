@@ -1578,7 +1578,7 @@ define(
                     }
 
                     let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
-                        + ':12080' + '/annotation/query/' + refName + '/'
+                        + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + refName + '/'
                         + (
                             isProteoformSequence === true ?
                                 Math.min.apply(null, proteoformPositionArray) : blockStartExtended
@@ -1646,8 +1646,9 @@ define(
                 },
 
                 _loadSpecificAnnotationAndPopupModal: function (name, position, finishCallback) {
+                    let _this = this;
                     let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
-                        + ':12080' + '/annotation/query/' + name + '/' + position + '..' + position;
+                        + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId + '/annotation/query/' + name + '/' + position + '..' + position;
 
                     dojoRequest(
                         requestUrl,
@@ -1666,7 +1667,7 @@ define(
                                     refName: name,
                                     position: position,
                                     annotationObjectArray: annotationObjectArray,
-                                    browser: this.browser,
+                                    browser: _this.browser,
                                     style: {
                                         width: '360px'
                                     },

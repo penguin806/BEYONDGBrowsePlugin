@@ -245,8 +245,10 @@ define(
 
                 _queryFeatures: function(refName, startPos, endPos)
                 {
+                    let _this = this;
                     let requestPromise = dojoRequest(
-                        'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1') + ':12080' + '/ref/' + refName + '/' +
+                        'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1') + ':12080'
+                        + '/' + _this.browser.config.BEYONDGBrowseDatasetId + '/ref/' + refName + '/' +
                         startPos + '..' + endPos,
                         {
                             method: 'GET',
