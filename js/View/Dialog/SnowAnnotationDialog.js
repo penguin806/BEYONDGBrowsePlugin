@@ -119,7 +119,7 @@ define(
                     let annotationContent = _this.annotationContentInput.get('value');
                     let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
                         + ':12080/';
-                    let URIParam = 'annotation/insert/' + this.refName + '/' + this.position + '/';
+                    let URIParam =  _this.browser.config.BEYONDGBrowseDatasetId + '/annotation/insert/' + this.refName + '/' + this.position + '/';
                     let currentDateTimeInMysqlFormat = _this._getCurrentTimeInMysqlFormat();
                     if(
                         this.annotationExistAtThisPosition

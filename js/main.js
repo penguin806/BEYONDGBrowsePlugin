@@ -306,6 +306,10 @@ define([
                                     arrDatasets[index].label =
                                         '(' + arrDatasets[index].id + ') ' +
                                         arrDatasets[index].dataset_name;
+                                    if(parseInt(arrDatasets[index].id) === _this.browser.config.BEYONDGBrowseDatasetId)
+                                    {
+                                        arrDatasets[index].selected = true;
+                                    }
                                 }
                             );
                             console.info('datasetsList:', datasetsList);
@@ -344,8 +348,10 @@ define([
 
                 _queryProteinRegion: function (proteinName, finishCallback)
                 {
+                    let _this = this;
                     dojoRequest(
-                        'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1') + ':12080' + '/locate/' + proteinName,
+                        'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1') + ':12080'
+                        + '/' + _this.browser.config.BEYONDGBrowseDatasetId + '/locate/' + proteinName,
                         {
                             method: 'GET',
                             headers: {
