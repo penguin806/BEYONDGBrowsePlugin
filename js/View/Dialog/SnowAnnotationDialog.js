@@ -139,6 +139,9 @@ define(
                         requestUrl + encodeURIComponent(URIParam),
                         {
                             method: 'GET',
+                            query: {
+                                author: _this.browser.config.BEYONDGBrowseUsername || 'Anonymous'
+                            },
                             headers: {
                                 'X-Requested-With': null
                             },

@@ -1646,6 +1646,7 @@ define(
                 },
 
                 _loadSpecificAnnotationAndPopupModal: function (name, position, finishCallback) {
+                    let _this = this;
                     let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
                         + ':12080' + '/annotation/query/' + name + '/' + position + '..' + position;
 
@@ -1666,7 +1667,7 @@ define(
                                     refName: name,
                                     position: position,
                                     annotationObjectArray: annotationObjectArray,
-                                    browser: this.browser,
+                                    browser: _this.browser,
                                     style: {
                                         width: '360px'
                                     },
