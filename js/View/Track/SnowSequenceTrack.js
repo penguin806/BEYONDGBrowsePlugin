@@ -134,7 +134,7 @@ define(
                             isReverseStrand, scanId, mSScanMassMappingResultArray, msScanMassTrackId,
                             selectedRefSeqIndex, diffFromRefSequenceResult
                         ){
-                            console.info('Event: BEYONDGBrowse/addSingleProteoformScan', arguments);
+                            SnowConsole.info('Event: BEYONDGBrowse/addSingleProteoformScan', arguments);
                             _this.proteoformToDrawScanIdArray[scanId] = {
                                 proteoformSequence: proteoformSequence,
                                 proteoformStartPosition: proteoformStartPosition,
@@ -1495,7 +1495,7 @@ define(
                 },
 
                 _renderAnnotationMark: function (refName, blockObject, blockStart, blockEnd, isProteoformSequence) {
-                    console.debug('_renderAnnotationMark', refName, blockObject, blockStart, blockEnd);
+                    SnowConsole.debug('_renderAnnotationMark', refName, blockObject, blockStart, blockEnd);
 
                     let _this = this;
                     let renderAnnotationDeferred = new dojoDeferred();
@@ -1521,7 +1521,7 @@ define(
                     );
                     // Add dblclick event handler on all AmioAcid table cell
                     allAminoAcidCell.on('dblclick', function (event) {
-                            console.debug('dblclick on .Snow_aminoAcid:', arguments);
+                        SnowConsole.debug('dblclick on .Snow_aminoAcid:', arguments);
                             let finishCallback = function () {
                                 domClass.add(event.target, 'Snow_annotation_mark');
                             };
@@ -1590,7 +1590,7 @@ define(
                         }
                     ).then(
                         function (annotationObjectArray) {
-                            console.info('annotationObjectArray:', annotationObjectArray);
+                            SnowConsole.info('annotationObjectArray:', annotationObjectArray);
                             renderAnnotationDeferred.resolve(annotationObjectArray);
                         },
                         function (errorReason) {
@@ -1652,7 +1652,7 @@ define(
                         }
                     ).then(
                         function (annotationObjectArray) {
-                            console.info('annotationObjectArray:', annotationObjectArray);
+                            SnowConsole.info('annotationObjectArray:', annotationObjectArray);
                             let annotationDialog = new SnowAnnotationDialog(
                                 {
                                     refName: name,
@@ -1725,14 +1725,14 @@ define(
                             let extEndSeq = refGenomeSequence.substring(2);
 
                             let refGenomeSequenceReverse = refGenomeSequence.split("").reverse().join("");
-                            console.info('refGenomeSequence', refName, startPos, endPos, refGenomeSequence);
-                            console.info('refGenomeSequenceReverse', refName, startPos, endPos, refGenomeSequenceReverse);
+                            SnowConsole.info('refGenomeSequence', refName, startPos, endPos, refGenomeSequence);
+                            SnowConsole.info('refGenomeSequenceReverse', refName, startPos, endPos, refGenomeSequenceReverse);
 
                             for (let i = 0; i < 3; i++) {
                                 let transStart = startPos + i;
                                 let frame = (transStart % 3 + 3) % 3;
                                 let translatedProteinSeq = _this._getTranslationSequence(_this, extEndSeq, i, false);
-                                console.info('translatedProteinSeq', refName, startPos, endPos, 'frame' + frame, 'forward', translatedProteinSeq);
+                                SnowConsole.info('translatedProteinSeq', refName, startPos, endPos, 'frame' + frame, 'forward', translatedProteinSeq);
                             }
 
                             for (let i = 0; i < 3; i++) {
@@ -1740,7 +1740,7 @@ define(
                                 let leftover = (refGenomeSequence.length - 2) % 3;
                                 let frame = (transStart % 3 + 3 + leftover) % 3;
                                 let translatedProteinSeqReverse = _this._getTranslationSequence(_this, extStartSeq, i, true);
-                                console.info('translatedProteinSeq', refName, startPos, endPos, 'frame' + frame, 'reverse', translatedProteinSeqReverse);
+                                SnowConsole.info('translatedProteinSeq', refName, startPos, endPos, 'frame' + frame, 'reverse', translatedProteinSeqReverse);
                             }
 
                         },

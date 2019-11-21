@@ -149,7 +149,7 @@ define(
                         }
                     ).then(
                         function (isInsertSuccess) {
-                            console.info(isInsertSuccess);
+                            SnowConsole.info(isInsertSuccess);
                         }
                     );
                 },
