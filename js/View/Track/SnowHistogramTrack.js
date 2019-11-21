@@ -292,7 +292,7 @@ define([
                                             if(Math.abs(bpX - barPositionInBp) < 1)
                                             {
                                                 let item = _this.lastHighlistItem = mappingResultObjectArray[index];
-                                                console.info('bpX', bpX, 'barPositionInBp', barPositionInBp, item, item.context, item.viewArgs);
+                                                SnowConsole.info('bpX', bpX, 'barPositionInBp', barPositionInBp, item, item.context, item.viewArgs);
                                                 _this._drawGraph(item, item.context, item.viewArgs, true);
 
                                                 if(item.type === 'B')
@@ -338,7 +338,7 @@ define([
                         this._mouseoutEvent = this.own(
                             dojoOn(
                                 this.staticCanvas, 'mouseout', function(evt) {
-                                    console.info('mouseout', evt);
+                                    SnowConsole.info('mouseout', evt);
                                     if(_this.lastHighlistItem)
                                     {
                                         let item = _this.lastHighlistItem;

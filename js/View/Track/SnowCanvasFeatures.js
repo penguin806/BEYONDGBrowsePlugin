@@ -599,8 +599,8 @@ define(
                         }
                     }
 
-                    console.log(arrBIonPosition);
-                    console.log(arrBIonNUM);
+                    SnowConsole.log(arrBIonPosition);
+                    SnowConsole.log(arrBIonNUM);
 
 
                     let bIonsResultObjectArray = [];
@@ -706,8 +706,8 @@ define(
 
                     }
 
-                    console.log(arrYIonPosition);
-                    console.log(arrYIonNUM);
+                    SnowConsole.log(arrYIonPosition);
+                    SnowConsole.log(arrYIonNUM);
 
 
 
@@ -828,7 +828,7 @@ define(
                             //收敛到一点，向后探索
 
                             let doubleCheckMassDistance = arrMSScanMass[j] - dCurrentMassSUM;
-                            console.log("sum:",dCurrentMassSUM,"POS:",j," mass:",arrMSScanMass[j]," span:",doubleCheckMassDistance);
+                            SnowConsole.log("sum:",dCurrentMassSUM,"POS:",j," mass:",arrMSScanMass[j]," span:",doubleCheckMassDistance);
 
                             if (doubleCheckMassDistance > dSpan)
                                 if(dSpan===dSpanThreshold)//质量间隔非常远
@@ -865,7 +865,7 @@ define(
                             dCurrentMassSUM += dCurrentMass;
                             iCurrentSeqPositionWithoutPTM++;
 
-                            console.log(iCurrentSeqPositionWithoutPTM," ",strSenquence[i],dCurrentMass," sum:",dCurrentMassSUM)
+                            SnowConsole.log(iCurrentSeqPositionWithoutPTM," ",strSenquence[i],dCurrentMass," sum:",dCurrentMassSUM)
 
                             RecongnazieTheBIonPosition();
 
@@ -887,7 +887,7 @@ define(
 
                                 if(!isNaN(dCurrentMass))
                                     dCurrentMassSUM += dCurrentMass;
-                                console.log(strPTM,dCurrentMass," sum:",dCurrentMassSUM);
+                                SnowConsole.log(strPTM,dCurrentMass," sum:",dCurrentMassSUM);
                                 RecongnazieTheBIonPosition();
 
                                 strPTM="";//set PTM is nothing
@@ -900,7 +900,7 @@ define(
                                 //console.log(";",strPTM,dCurrentMass)
                                 if(!isNaN(dCurrentMass))
                                     dCurrentMassSUM += dCurrentMass;
-                                console.log(strPTM,dCurrentMass," sum:",dCurrentMassSUM);
+                                SnowConsole.log(strPTM,dCurrentMass," sum:",dCurrentMassSUM);
 
                                 RecongnazieTheBIonPosition();
 
@@ -931,8 +931,8 @@ define(
                             }
                         }
 
-                        console.log(arrBIonPosition);
-                        console.log(arrBIonNUM);
+                        SnowConsole.log(arrBIonPosition);
+                        SnowConsole.log(arrBIonNUM);
 
                         let arrBionPositionAndNumObject = [];
                         for(let i=0; i<arrBIonPosition.length && i<arrBIonNUM.length; i++)
@@ -1086,8 +1086,8 @@ define(
                         {
                             // #2. Translate genome sequence into conceptual protein sequences
                             let translatedProteinSequence = _this._translateGenomeSequenceToProtein(refGenomeSeq, false);
-                            console.info('refGenomeSeq:', leftBase, rightBase, refGenomeSeq);
-                            console.info('translatedProteinSequence:', leftBase, rightBase, translatedProteinSequence);
+                            SnowConsole.info('refGenomeSeq:', leftBase, rightBase, refGenomeSeq);
+                            SnowConsole.info('translatedProteinSequence:', leftBase, rightBase, translatedProteinSequence);
                             proteinInfoObject.translatedReferenceSequence = translatedProteinSequence;
 
                             // #3. Query BeyondGBrowse backend, return 'promise' produced by dojo/request
@@ -1117,8 +1117,8 @@ define(
                                         // #6. Translate reference genome sequences corresponding to proteoform
                                         let translatedRefSequenceForProteoform =
                                             _this._translateGenomeSequenceToProtein(refGenomeSequenceForProteoform, false);
-                                        console.info('refGenomeSequenceForProteoform:', fullRangeLeftPos, fullRangeRightPos, refGenomeSequenceForProteoform);
-                                        console.info('translatedRefSequenceForProteoform:', fullRangeLeftPos, fullRangeRightPos, translatedRefSequenceForProteoform);
+                                        SnowConsole.info('refGenomeSequenceForProteoform:', fullRangeLeftPos, fullRangeRightPos, refGenomeSequenceForProteoform);
+                                        SnowConsole.info('translatedRefSequenceForProteoform:', fullRangeLeftPos, fullRangeRightPos, translatedRefSequenceForProteoform);
                                         proteinInfoObject.translatedRefSequenceForProteoform = translatedRefSequenceForProteoform;
 
                                         proteinInfoObject.requestedProteoformObjectArray = _this._parseRequestedObject(recordObjectArray);
@@ -1150,7 +1150,7 @@ define(
                     mapTranslatedProteinSequenceToRequestedProteoformDeferred.then(
                         function (proteinInfoObject)
                         {
-                            console.info('proteinInfoObject:', proteinInfoObject);
+                            SnowConsole.info('proteinInfoObject:', proteinInfoObject);
                             // #8. Sort the json array responded from BeyondGBrowse backend (DESCEND),
                             //     according to the SIMILARITY between proteoform and conceptual protein sequence,
                             //     implemented using Longest Common SubSequence (LCS) algorithm
@@ -1290,8 +1290,8 @@ define(
                                 let thisProteoformStartPosition = thisProteoformObject._start;
                                 let thisProteoformEndPosition = thisProteoformObject.end;
                                 let isThisProteoformReverse = thisProteoformObject.strand === '-' ? true : false;
-                                console.info('msScanMassTrackId:', msScanMassTrackId);
-                                console.info('thisProteoformObject:', thisProteoformObject);
+                                SnowConsole.info('msScanMassTrackId:', msScanMassTrackId);
+                                SnowConsole.info('thisProteoformObject:', thisProteoformObject);
 
                                 // Update track label
                                 let labelTextToAppend = ' (Scan: ' + thisProteoformObject.scanId + ')';
@@ -1328,7 +1328,7 @@ define(
                                     //     value: 4461.31
                                     // }
 
-                                    console.info('mappingResultObjectArray:', mappingResultObjectArray);
+                                    SnowConsole.info('mappingResultObjectArray:', mappingResultObjectArray);
                                 }
 
                                 // #10. Take out the parts that needed for current view block

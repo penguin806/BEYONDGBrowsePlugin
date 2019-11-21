@@ -44,8 +44,11 @@ define([
                         info: function () {
                             window.SNOW_DEBUG && console.info.apply(this, arguments);
                         },
-                        error: function () {
-                            window.SNOW_DEBUG && console.error.apply(this, arguments);
+                        // error: function () {
+                        //     window.SNOW_DEBUG && console.error.apply(this, arguments);
+                        // },
+                        debug: function () {
+                            window.SNOW_DEBUG && console.debug.apply(this, arguments);
                         }
                     };
 
@@ -252,7 +255,7 @@ define([
                         {
                             browser: browserObject,
                             setCallback: function (proteinName) {
-                                console.info('proteinName:', proteinName);
+                                SnowConsole.info('proteinName:', proteinName);
                                 if(proteinName.length === 0)
                                 {
                                     return;
@@ -273,7 +276,7 @@ define([
                         {
                             browser: browserObject,
                             setCallback: function (massTrackNumber) {
-                                console.info('massTrackNumber:', massTrackNumber);
+                                SnowConsole.info('massTrackNumber:', massTrackNumber);
                                 if(isNaN(massTrackNumber) || massTrackNumber < 0 || massTrackNumber > 100)
                                 {
                                     return;
@@ -327,14 +330,14 @@ define([
                                     }
                                 }
                             );
-                            console.info('datasetsList:', datasetsList);
+                            SnowConsole.info('datasetsList:', datasetsList);
 
                             let datasetSelectDialog = new SnowDatasetSelectDialog(
                                 {
                                     browser: browserObject,
                                     datasetListInDatabase: datasetsList,
                                     setCallback: function (selectedDatasetId) {
-                                        console.info('selectedDatasetId:', selectedDatasetId);
+                                        SnowConsole.info('selectedDatasetId:', selectedDatasetId);
                                         if(isNaN(selectedDatasetId) || selectedDatasetId < 1 || selectedDatasetId > 100)
                                         {
                                             return;
@@ -347,7 +350,7 @@ define([
                                                 'BEYONDGBrowseDataset',
                                                 selectedDatasetId
                                             );
-                                        console.info(window.location.search, newQueryParam);
+                                        SnowConsole.info(window.location.search, newQueryParam);
                                         window.location.search = newQueryParam;
                                     }
                                 }
@@ -377,7 +380,7 @@ define([
                         }
                     ).then(
                         function (proteinData) {
-                            console.info(proteinData);
+                            SnowConsole.info(proteinData);
                             finishCallback(proteinData);
                         }
                     );
