@@ -27,6 +27,7 @@ define([
                 constructor: function( args )
                 {
                     console.log( "BEYONDGBrowse is starting" );
+                    console.info('高通量多组学序列数据可视化浏览器 v1.0\nadmin@xuefeng.space\n指导老师: 钟坚成');
                     let browser = args.browser;
                     let _this = this;
                     _this.browser = browser;
@@ -34,11 +35,23 @@ define([
                         browser.config.massSpectraTrackNum ? browser.config.massSpectraTrackNum : 0;
                     browser.config.BEYONDGBrowseDatasetId =
                         browser.config.BEYONDGBrowseDatasetId || 1;
+
+                    window.SNOW_DEBUG = browser.config.debugMode;
+                    window.SnowConsole = {
+                        log: function () {
+                            window.SNOW_DEBUG && console.log.apply(this, arguments);
+                        },
+                        info: function () {
+                            window.SNOW_DEBUG && console.info.apply(this, arguments);
+                        },
+                        error: function () {
+                            window.SNOW_DEBUG && console.error.apply(this, arguments);
+                        }
+                    };
+
                     let locateButtonDomNode = this._generateLocateButton();
                     _this._loadBeyondProteinTrackFromConfig();
                     _this._subscribeShowMassSpectraTrackEvent();
-
-                    console.info('高通量多组学序列数据可视化浏览器 v1.0\nadmin@xuefeng.space\n指导老师: 钟坚成');
 
                     browser.afterMilestone(
                         'loadConfig',
@@ -180,7 +193,9 @@ define([
                     let browserTrackConfig = _this.browser.config.tracks;
                     window.BEYONDGBrowseProteinTrack = _this.BEYONDGBrowseProteinTrack = undefined;
                     window.BEYONDGBrowse = {
-                        mSScanMassResultArray: []
+                        mSScanMassResultArray: [],
+                        diffFromRefSequenceResult: [],
+                        requestedProteoformObjectArray: []
                     };
 
                     for(let index in browserTrackConfig)
