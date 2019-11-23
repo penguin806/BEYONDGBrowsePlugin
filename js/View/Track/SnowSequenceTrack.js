@@ -250,7 +250,7 @@ define(
                         });
                     newConfig.drawCircle = !!oldConfig.drawCircle || true;
                     newConfig.animationEnabled = !!oldConfig.animationEnabled || true;
-                    newConfig.proteoformExtraOffset = oldConfig.proteoformExtraOffset || 8;
+                    newConfig.proteoformExtraOffset = oldConfig.proteoformExtraOffset || 0;
 
                     // 0: Hydrophile
                     // 1: Hydrophobe
@@ -558,7 +558,7 @@ define(
 
                                         for(let i = 0; i < mSScanMassMappingResultArray.length; i++)
                                         {
-                                            if(mSScanMassMappingResultArray[i].position === aminoAcidCharacterCount)
+                                            if(mSScanMassMappingResultArray[i].position === aminoAcidWithRemovedCharacterCount)
                                             {
                                                 if(mSScanMassMappingResultArray[i].type === 'B')
                                                 {
@@ -586,8 +586,10 @@ define(
                                     }
                                     let prevNode = detailArrayOfProteoformSequence[detailArrayOfProteoformSequence.length - 1];
                                     let refAddedCharacters = item.value;
-                                    // Todo: Format string if it's known modification type
-                                    refAddedCharacters;
+                                    if(item.modification !== undefined)
+                                    {
+                                        prevNode.modificationColor = item.modification.color;
+                                    }
                                     prevNode.modification = refAddedCharacters;
                                 }
                                 else if(item.removed === true)
@@ -1336,6 +1338,7 @@ define(
                                     {
                                         className: 'Snow_aminoAcid_modification_label',
                                         style: {
+                                            backgroundColor: detailArrayOfProteoformInThisBlock[index].modificationColor,
                                             width: modificationDivWidth + 'px',
                                             height: modificationDivHeight + 'px'
                                             // transform: 'translate( -' + modificationDivWidth/2 +

@@ -65,6 +65,12 @@ define(
                             alignByIonPosition: true
                         });
 
+                    newConfig.PTMColor = window.JBrowse.config.PTMColor || {
+                        'Acetyl': 'red',
+                        'Methyl': 'blue',
+                        'default': 'black'
+                    };
+
                     return newConfig;
                 },
 
@@ -1289,6 +1295,9 @@ define(
                                 let thisProteoformScanId = thisProteoformObject.scanId;
                                 let thisProteoformStartPosition = thisProteoformObject._start;
                                 let thisProteoformEndPosition = thisProteoformObject.end;
+                                // 2019-11-24 Proteoform add offset by 3 bp
+                                thisProteoformStartPosition += 3;
+                                thisProteoformEndPosition += 3;
                                 let isThisProteoformReverse = thisProteoformObject.strand === '-' ? true : false;
                                 SnowConsole.info('msScanMassTrackId:', msScanMassTrackId);
                                 SnowConsole.info('thisProteoformObject:', thisProteoformObject);
@@ -1300,47 +1309,6 @@ define(
                                     _this.scanId = thisProteoformObject.scanId;
                                     _this.setLabel(_this.originalLabelText + labelTextToAppend);
                                 }
-
-                                // #9. Calculating MsScanMass and mapping with proteoform ions
-                                let mappingResultObjectArray = undefined;
-                                if(
-                                    window.BEYONDGBrowse.mSScanMassResultArray.hasOwnProperty(thisProteoformObject.scanId)
-                                    && typeof window.BEYONDGBrowse.mSScanMassResultArray[thisProteoformObject.scanId] == "object"
-                                )
-                                {
-                                    mappingResultObjectArray = window.BEYONDGBrowse.mSScanMassResultArray[thisProteoformObject.scanId];
-                                }
-                                else
-                                {
-                                    window.BEYONDGBrowse.mSScanMassResultArray[thisProteoformObject.scanId] =
-                                        mappingResultObjectArray = _this._calcMSScanMass_v2(
-                                            thisProteoformObject.sequence,
-                                            thisProteoformObject.arrMSScanMassArray,
-                                            thisProteoformObject.arrMSScanPeakAundance,
-                                            thisProteoformObject.arrIonsNum
-                                        );
-                                    // Eg: mappingResultObjectArray[0]
-                                    // {
-                                    //     amino_acid: "F"
-                                    //     key: 3555.93025
-                                    //     label: "A0"
-                                    //     position: 31
-                                    //     value: 4461.31
-                                    // }
-
-                                    SnowConsole.info('mappingResultObjectArray:', mappingResultObjectArray);
-                                }
-
-                                // #10. Take out the parts that needed for current view block
-                                let filteredMSScanMassMappingResultArray = _this._filterMSScanMassMappingResultForCurrentBlock(
-                                    leftBase,
-                                    rightBase,
-                                    mappingResultObjectArray,
-                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].sequence,
-                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId]._start,
-                                    proteinInfoObject.requestedProteoformObjectArray[msScanMassTrackId].end
-                                );
-
 
                                 let diffFromRefSequenceResult = undefined;
                                 if(
@@ -1354,15 +1322,115 @@ define(
                                 {
                                     let translatedRefSequenceForDiffCompare =
                                         isThisProteoformReverse ? proteinInfoObject.translatedRefSequenceForProteoform[
-                                                    3 + thisProteoformObject.selectedRefSeqIndex
-                                                ] : proteinInfoObject.translatedRefSequenceForProteoform[
-                                                    thisProteoformObject.selectedRefSeqIndex
+                                        3 + thisProteoformObject.selectedRefSeqIndex
+                                            ] : proteinInfoObject.translatedRefSequenceForProteoform[
+                                            thisProteoformObject.selectedRefSeqIndex
                                             ];
                                     window.BEYONDGBrowse.diffFromRefSequenceResult[thisProteoformObject.scanId] =
                                         diffFromRefSequenceResult = JsDiff.diffChars(
                                             translatedRefSequenceForDiffCompare,
                                             thisProteoformSequence /*.replace(/\[.*?\]|\(|\)|\./g,'')*/
                                         );
+
+                                    // Filter the PTM (modification)
+                                    diffFromRefSequenceResult.forEach(
+                                        function (item, index) {
+                                            if(item.added === true && /\[.*?\]/g.test(item.value) === true)
+                                            {
+                                                let ptmLength = 0;
+                                                let matches = item.value.match(/\[.*?\]/g);
+                                                matches.forEach(
+                                                    (item) => { ptmLength += item.length }
+                                                );
+                                                matches = /\[(.*?)\]/g.exec(item.value);
+                                                let ptmContent = matches[1];
+                                                let ptmColor;
+                                                if(_this.config.PTMColor[ptmContent.split(';')[0]] !== undefined)
+                                                {
+                                                    ptmColor = _this.config.PTMColor[ptmContent.split(';')[0]];
+                                                }
+                                                else
+                                                {
+                                                    ptmColor = _this.config.PTMColor['default'];
+                                                }
+
+                                                diffFromRefSequenceResult[index].modification = {
+                                                    length: ptmLength,
+                                                    content: ptmContent,
+                                                    color: ptmColor
+                                                };
+                                            }
+                                        }
+                                    );
+                                }
+
+                                // #9. Calculating MsScanMass and mapping with proteoform ions
+                                let mappingResultObjectArray = undefined;
+                                if(
+                                    window.BEYONDGBrowse.mSScanMassResultArray.hasOwnProperty(thisProteoformObject.scanId)
+                                    && typeof window.BEYONDGBrowse.mSScanMassResultArray[thisProteoformObject.scanId] == "object"
+                                )
+                                {
+                                    mappingResultObjectArray = window.BEYONDGBrowse.mSScanMassResultArray[thisProteoformObject.scanId];
+                                }
+                                else
+                                {
+                                    mappingResultObjectArray = _this._calcMSScanMass_v2(
+                                        thisProteoformObject.sequence,
+                                        thisProteoformObject.arrMSScanMassArray,
+                                        thisProteoformObject.arrMSScanPeakAundance,
+                                        thisProteoformObject.arrIonsNum
+                                    );
+                                    // Eg: mappingResultObjectArray[0]
+                                    // {
+                                    //     amino_acid: "F"
+                                    //     key: 3555.93025
+                                    //     label: "A0"
+                                    //     position: 31
+                                    //     value: 4461.31
+                                    // }
+
+                                    // Offset the position
+                                    mappingResultObjectArray.forEach(
+                                        (item, index) => {
+                                            mappingResultObjectArray[index].oldPosition = item.position;
+                                        }
+                                    );
+                                    for(let i = 0; i < mappingResultObjectArray.length; i++)
+                                    {
+                                        let accumulator;
+                                        for(
+                                            let j = 0, accumulator = diffFromRefSequenceResult[j].count;
+                                            j < diffFromRefSequenceResult.length &&
+                                            accumulator < mappingResultObjectArray[i].position
+                                            ; j++, accumulator += diffFromRefSequenceResult[j].count
+                                        )
+                                        {
+                                            if(diffFromRefSequenceResult[j].removed === true)
+                                            {
+                                                mappingResultObjectArray[i].position += diffFromRefSequenceResult[j].count;
+                                            }
+                                            if(diffFromRefSequenceResult[j].added === true)
+                                            {
+                                                if(diffFromRefSequenceResult.modification === undefined)
+                                                {
+                                                    // Not PTM
+                                                    mappingResultObjectArray[i].position -= diffFromRefSequenceResult[j].count;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // Calculate the leftBaseInBp
+                                    mappingResultObjectArray.forEach(
+                                        (item, index) => {
+                                            mappingResultObjectArray[index].leftBaseInBp =
+                                                thisProteoformStartPosition + 3 * item.position;
+                                        }
+                                    );
+
+                                    window.BEYONDGBrowse.mSScanMassResultArray[thisProteoformObject.scanId] = mappingResultObjectArray;
+                                    SnowConsole.info('mappingResultObjectArray:', mappingResultObjectArray);
                                 }
 
                                 // #11. Draw proteoform sequence at the bottom of SnowSequenceTrack, including ions and modification mark
@@ -1393,6 +1461,15 @@ define(
                                 }
                                 else
                                 {
+                                    // #10. Take out the parts that needed for current view block
+                                    let filteredMSScanMassMappingResultArray = _this._filterMSScanMassMappingResultForCurrentBlock(
+                                        leftBase,
+                                        rightBase,
+                                        mappingResultObjectArray,
+                                        thisProteoformSequence,
+                                        thisProteoformStartPosition,
+                                        thisProteoformEndPosition
+                                    );
                                     renderArgs.dataToDraw = filteredMSScanMassMappingResultArray;
                                     _this.fillHistograms(renderArgs, false);
                                 }
@@ -1430,9 +1507,6 @@ define(
                                 _this.markBlockHeightOverflow(blockObject);
 
                             _this.heightUpdate(totalHeight, blockIndex);
-
-                            // this.renderFeatures(args, fRects);
-                            // this.renderClickMap(args, fRects);
                         }
 
                     );
