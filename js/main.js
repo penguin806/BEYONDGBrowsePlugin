@@ -62,8 +62,11 @@ define([
                             let queryParam = window.location.search;
                             let datasetRegExp = /([?&])BEYONDGBrowseDataset=(.*?)(&|$)/i;
                             let extractResult = datasetRegExp.exec(queryParam);
-                            let BEYONDGBrowseDatasetId = parseInt(extractResult[2]);
-                            browser.config.BEYONDGBrowseDatasetId = BEYONDGBrowseDatasetId;
+                            if(extractResult && extractResult[2] && !isNaN(extractResult[2]))
+                            {
+                                let BEYONDGBrowseDatasetId = parseInt(extractResult[2]);
+                                browser.config.BEYONDGBrowseDatasetId = BEYONDGBrowseDatasetId;
+                            }
                         }
                     );
 
