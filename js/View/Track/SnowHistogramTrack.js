@@ -142,22 +142,6 @@ define([
                     // let blockBpLength = blockOffsetEndBase - blockOffsetStartBase;
                     // let blockActualWidthInPx = blockBpLength * blockScaleLevel;
 
-                    // Calculate the leftBaseInBp
-                    for(let index in mappingResultObjectArray)
-                    {
-                        if(
-                            mappingResultObjectArray.hasOwnProperty(index) &&
-                            typeof mappingResultObjectArray[index] == "object"
-                        )
-                        {
-                            if(!mappingResultObjectArray[index].hasOwnProperty('leftBaseInBp'))
-                            {
-                                mappingResultObjectArray[index].leftBaseInBp =
-                                    proteoformStartPosition + 3 * mappingResultObjectArray[index].position;
-                            }
-                        }
-                    }
-
                     domConstruct.empty(block.domNode);
                     let c = block.featureCanvas =
                         domConstruct.create(
@@ -211,6 +195,7 @@ define([
                                     resultObjectInThisBlock.leftBaseInBp + 3;
                                 // Minus block left offset
                                 resultObjectInThisBlock.leftBaseInBpWithOffset -= (blockStartBase - blockOffsetStartBase);
+                                resultObjectInThisBlock.leftBaseInBpWithOffset -= (proteoformStartPosition % 3);
                                 resultObjectInThisBlock.context = context;
                                 resultObjectInThisBlock.viewArgs = viewArgs;
 

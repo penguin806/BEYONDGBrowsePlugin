@@ -250,7 +250,7 @@ define(
                         });
                     newConfig.drawCircle = !!oldConfig.drawCircle || true;
                     newConfig.animationEnabled = !!oldConfig.animationEnabled || true;
-                    newConfig.proteoformExtraOffset = oldConfig.proteoformExtraOffset || 8;
+                    newConfig.proteoformExtraOffset = oldConfig.proteoformExtraOffset || 0;
 
                     // 0: Hydrophile
                     // 1: Hydrophobe
@@ -558,7 +558,7 @@ define(
 
                                         for(let i = 0; i < mSScanMassMappingResultArray.length; i++)
                                         {
-                                            if(mSScanMassMappingResultArray[i].position === aminoAcidCharacterCount)
+                                            if(mSScanMassMappingResultArray[i].position === aminoAcidWithRemovedCharacterCount)
                                             {
                                                 if(mSScanMassMappingResultArray[i].type === 'B')
                                                 {
