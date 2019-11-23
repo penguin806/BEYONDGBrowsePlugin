@@ -519,13 +519,15 @@ define([
                     if(isHighLightState === true)
                     {
                         drawLeftAndRightDiff(true);
-                        context.fillStyle = 'rgba(253, 121, 168, 0.3)';
+                        context.fillStyle = item.type === 'B' ?
+                            'rgba(253, 121, 168, 0.3)' : 'rgba(125, 246, 213, 0.3)';
                     }
                     else
                     {
                         drawLeftAndRightDiff(false);
                         // context.fillStyle = _this.config.histograms.color || '#fd79a8';
-                        context.fillStyle = _this.config.histograms.color || 'rgba(253, 121, 168, 1)';
+                        context.fillStyle = item.type === 'B' ?
+                            'rgba(253, 121, 168, 1)' : 'rgba(125, 246, 213, 1)';
                     }
 
                     // Clear and draw histogram
@@ -557,6 +559,8 @@ define([
                         // Draw label above the arrow
                         // context.fillText(item.label,barLeft_X + 1, barLeft_Y - 75);
 
+                        context.fillStyle = item.type === 'B' ?
+                            'rgba(253, 121, 168, 1)' : 'rgba(125, 246, 213, 1)';
                         context.fillText(
                             item.label + '(+' + item.ionsNum + ')',
                             barLeft_X + 1,

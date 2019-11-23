@@ -83,8 +83,8 @@
     position: absolute;
     left: -1%;
     top: 0;
-    border-left: 0.12em solid #d63031;
-    border-bottom: 0.2em solid #d63031;
+    border-left: 0.12em solid #2ecc71;
+    border-bottom: 0.2em solid #2ecc71;
     width: 18%;
     height: 98%;
 }
@@ -197,7 +197,7 @@
 }
 
 .Snow_translatedSequence td span.Snow_aminoAcid_head_strand_yIon_label {
-    color: #d63031;
+    color: #2ecc71;
     text-align: center;
     position: absolute;
     top: 0;
