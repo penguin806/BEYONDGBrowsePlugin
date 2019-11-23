@@ -65,6 +65,12 @@ define(
                             alignByIonPosition: true
                         });
 
+                    newConfig.PTMColor = window.JBrowse.config.PTMColor || {
+                        'Acetyl': 'red',
+                        'Methyl': 'blue',
+                        'default': 'black'
+                    };
+
                     return newConfig;
                 },
 
@@ -1336,11 +1342,22 @@ define(
                                                 matches.forEach(
                                                     (item) => { ptmLength += item.length }
                                                 );
+                                                matches = /\[(.*?)\]/g.exec(item.value);
+                                                let ptmContent = matches[1];
+                                                let ptmColor;
+                                                if(_this.config.PTMColor[ptmContent.split(';')[0]] !== undefined)
+                                                {
+                                                    ptmColor = _this.config.PTMColor[ptmContent.split(';')[0]];
+                                                }
+                                                else
+                                                {
+                                                    ptmColor = _this.config.PTMColor['default'];
+                                                }
+
                                                 diffFromRefSequenceResult[index].modification = {
                                                     length: ptmLength,
-                                                    color: () => function () {
-                                                        // Load from Config
-                                                    }
+                                                    content: ptmContent,
+                                                    color: ptmColor
                                                 };
                                             }
                                         }
