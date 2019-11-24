@@ -203,7 +203,7 @@ define(
                                     proteoformObject.proteoformEndPosition, proteoformObject.isReverseStrand,
                                     proteoformObject.scanId, proteoformObject.mSScanMassMappingResultArray,
                                     proteoformObject.msScanMassTrackId, proteoformObject.diffFromRefSequenceResult,
-                                    _this
+                                    proteoformObject.selectedRefSeqIndex, _this
                                 );
                             }
                         }
@@ -431,7 +431,7 @@ define(
                 _drawProteoformSequenceEventCallback: function(
                     proteoformSequence, proteoformStartPosition, proteoformEndPosition,
                     isReverseStrand, scanId, mSScanMassMappingResultArray, msScanMassTrackId,
-                    diffFromRefSequenceResult, _this
+                    diffFromRefSequenceResult, selectedRefSeqIndex, _this
                 ){
                     // 2019-08-16: New implementation:
                     // if(_this.proteoformScanIdArray.hasOwnProperty(scanId) && _this.proteoformScanIdArray[scanId] === true)
@@ -765,6 +765,19 @@ define(
                             domClass.add( newProteoformSequenceDiv, "snow_proteoform_frame");
                             domClass.add( newProteoformSequenceDiv, "scan_" + scanId);
                             domClass.add( newProteoformSequenceDiv, "msScanMassTrackId_" + msScanMassTrackId);
+                            newProteoformSequenceDiv.onmouseover = function () {
+                                dojoQuery(
+                                    (isReverseStrand ? '.Snow_translatedSequence_R' :
+                                        '.Snow_translatedSequence_F') + selectedRefSeqIndex + ' td'
+                                ).addClass('hoverState');
+                            };
+                            newProteoformSequenceDiv.onmouseout = function () {
+                                dojoQuery(
+                                    (isReverseStrand ? '.Snow_translatedSequence_R' :
+                                        '.Snow_translatedSequence_F') + selectedRefSeqIndex + ' td'
+                                ).removeClass('hoverState');
+                            };
+
                             snowSequenceTrackBlocks[blockIndex].domNode.appendChild(newProteoformSequenceDiv);
                             _this._renderAnnotationMark(
                                 'Scan' + scanId,
@@ -976,6 +989,7 @@ define(
                             let translatedDiv = this._renderTranslation( extEndSeq, i, blockStart, blockEnd, blockLength, scale );
                             frameDiv[frame] = translatedDiv;
                             domClass.add( translatedDiv, "frame" + frame );
+                            domClass.add( translatedDiv, "Snow_translatedSequence_F" + (2 - frame) );
                         }
 
                         for( let i = 2; i >= 0; i-- ) {
@@ -1027,6 +1041,7 @@ define(
                                 let translatedDiv = this._renderTranslation( extStartSeq, i, blockStart, blockEnd, blockLength, scale, true );
                                 frameDiv[frame] = translatedDiv;
                                 domClass.add( translatedDiv, "frame" + frame );
+                                domClass.add( translatedDiv, "Snow_translatedSequence_R" + (2 - frame) );
                             }
                             for( let i = 0; i < 3; i++ ) {
                                 if(translationToShow[ 3 + i ])

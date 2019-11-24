@@ -175,27 +175,33 @@ define(
                     return matrix[str1Length - 1][str2Length - 1];
                 },
 
-                _translateGenomeSequenceToProtein: function(sequence, isReverse)
+                _translateGenomeSequenceToProtein: function(sequence, isReverse, leftBase)
                 {
                     let sixTranslatedSeqs = [];
 
                     for(let offset = 0; offset < 3; offset++)
                     {
+                        let transStart = leftBase + offset;
+                        let frame = (transStart % 3 + 3) % 3;
+
                         let extraBases = (sequence.length - offset) % 3;
                         let slicedSequence = sequence.slice(offset, sequence.length - extraBases);
                         let translatedSeq = "";
-                        for(let i=0; i<slicedSequence.length; i+=3)
+                        for(let i = 0; i<slicedSequence.length; i += 3)
                         {
                             let theCodon = slicedSequence.slice(i, i + 3);
                             let aminoAcid = this._codonTable[theCodon] || '#';
                             translatedSeq += aminoAcid;
                         }
 
-                        sixTranslatedSeqs[offset] = translatedSeq;
+                        sixTranslatedSeqs[frame] = translatedSeq;
                     }
 
-                    for(let offset = 3; offset < 6; offset++)
+                    for(let offset = 0; offset < 3; offset++)
                     {
+                        let transStart = leftBase + offset;
+                        let frame = (transStart % 3 + 3) % 3;
+
                         sequence = Util.revcom(sequence);
                         let extraBases = (sequence.length - offset) % 3;
                         let slicedSequence = sequence.slice(offset, sequence.length - extraBases);
@@ -208,7 +214,7 @@ define(
                         }
 
                         translatedSeq = translatedSeq.split("").reverse().join("");
-                        sixTranslatedSeqs[offset] = translatedSeq;
+                        sixTranslatedSeqs[3 + frame] = translatedSeq;
                     }
 
                     return sixTranslatedSeqs;
@@ -1091,7 +1097,7 @@ define(
                         function (refGenomeSeq)
                         {
                             // #2. Translate genome sequence into conceptual protein sequences
-                            let translatedProteinSequence = _this._translateGenomeSequenceToProtein(refGenomeSeq, false);
+                            let translatedProteinSequence = _this._translateGenomeSequenceToProtein(refGenomeSeq, false, leftBase);
                             SnowConsole.info('refGenomeSeq:', leftBase, rightBase, refGenomeSeq);
                             SnowConsole.info('translatedProteinSequence:', leftBase, rightBase, translatedProteinSequence);
                             proteinInfoObject.translatedReferenceSequence = translatedProteinSequence;
@@ -1122,7 +1128,7 @@ define(
                                     function( refGenomeSequenceForProteoform ) {
                                         // #6. Translate reference genome sequences corresponding to proteoform
                                         let translatedRefSequenceForProteoform =
-                                            _this._translateGenomeSequenceToProtein(refGenomeSequenceForProteoform, false);
+                                            _this._translateGenomeSequenceToProtein(refGenomeSequenceForProteoform, false, fullRangeLeftPos);
                                         SnowConsole.info('refGenomeSequenceForProteoform:', fullRangeLeftPos, fullRangeRightPos, refGenomeSequenceForProteoform);
                                         SnowConsole.info('translatedRefSequenceForProteoform:', fullRangeLeftPos, fullRangeRightPos, translatedRefSequenceForProteoform);
                                         proteinInfoObject.translatedRefSequenceForProteoform = translatedRefSequenceForProteoform;
