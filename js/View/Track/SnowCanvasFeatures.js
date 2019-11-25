@@ -1301,9 +1301,10 @@ define(
                                 let thisProteoformScanId = thisProteoformObject.scanId;
                                 let thisProteoformStartPosition = thisProteoformObject._start;
                                 let thisProteoformEndPosition = thisProteoformObject.end;
-                                // 2019-11-24 Proteoform add offset by 3 bp
-                                thisProteoformStartPosition += 3;
-                                thisProteoformEndPosition += 3;
+                                // 2019-11-25 Proteoform add offset by 3+x bp
+                                let proteoformPositionOffset = Math.abs((thisProteoformStartPosition - leftBase) % 3);
+                                thisProteoformStartPosition += proteoformPositionOffset;
+                                thisProteoformEndPosition += proteoformPositionOffset;
                                 let isThisProteoformReverse = thisProteoformObject.strand === '-' ? true : false;
                                 SnowConsole.info('msScanMassTrackId:', msScanMassTrackId);
                                 SnowConsole.info('thisProteoformObject:', thisProteoformObject);
