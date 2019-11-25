@@ -1242,7 +1242,7 @@ define(
                                                 ]
                                         )
                                         {
-                                            proteinInfoObject.requestedProteoformObjectArray[i].selectedRefSeqIndex = index;
+                                            proteinInfoObject.requestedProteoformObjectArray[i].selectedRefSeqIndex = parseInt(index);
                                             proteinInfoObject.requestedProteoformObjectArray[i].lcsLength =
                                                 proteinInfoObject.requestedProteoformObjectArray[i].lcsLengthArray[index];
                                         }
