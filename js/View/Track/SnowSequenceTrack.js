@@ -796,6 +796,46 @@ define(
                             );
                             _this.heightUpdate( totalHeight, blockIndex );
 
+
+                            // 2019-11-27
+                            detailArrayOfProteoformInThisBlock.forEach(
+                                function (detailItem, index) {
+                                    if(detailItem.headOrTailFlag === 'HEAD')
+                                    {
+                                        let seqHeadTable = dojoQuery(
+                                            (isReverseStrand ? '.Snow_translatedSequence_R' :
+                                                '.Snow_translatedSequence_F') + selectedRefSeqIndex + ' table',
+                                            snowSequenceTrackBlocks[blockIndex].domNode
+                                        );
+
+                                        if(
+                                            seqHeadTable && seqHeadTable.hasOwnProperty(0)
+                                            && typeof seqHeadTable[0].style == "object" && seqHeadTable[0].style.left
+                                            && seqHeadTable[0].style.width
+                                        )
+                                        {
+                                            let proteinHeadTable = seqHeadTable[0];
+                                            let proteoformHeadTable = newProteoformSequenceDiv.querySelector('table');
+                                            let extraOffset =
+                                                parseFloat(proteinHeadTable.style.width) +
+                                                parseFloat(proteinHeadTable.style.left) -
+                                                (
+                                                    parseFloat(proteoformHeadTable.style.width) +
+                                                    parseFloat(proteoformHeadTable.style.left)
+                                                );
+
+                                            SnowConsole.info(proteinHeadTable);
+                                            console.info(extraOffset);
+                                            _this.config.proteoformExtraOffset = extraOffset;
+                                        }
+                                        else
+                                        {
+                                            console.trace();
+                                        }
+                                    }
+                                }
+                            );
+
                         }
                     }
 
@@ -1121,6 +1161,8 @@ define(
                     table.style.left = tableLeftOffsetPercent + "%";
                     container.snowSequenceOffset = tableLeftOffsetPercent;
                     container.snowSequenceWidth = tableWidthPercent;
+                    container.setAttribute('data-snowSequenceOffset', tableLeftOffsetPercent);
+                    container.setAttribute('data-snowSequenceWidth', tableWidthPercent);
                     let blockRegion = blockEnd - blockStart;
                     let blockStartExtended = blockStart + blockRegion * tableLeftOffsetPercent * 0.01;
                     let blockEndExtended = blockStart + translated.length * 3;
@@ -1241,7 +1283,10 @@ define(
                             {
                                 proteoformPosition: (
                                     typeof detailArrayOfProteoformInThisBlock[index] === "object"
-                                ) ? detailArrayOfProteoformInThisBlock[index].id + 1 : undefined
+                                ) ? detailArrayOfProteoformInThisBlock[index].id + 1 : undefined,
+                                proteoformLeftPositionInBp: (
+                                    typeof detailArrayOfProteoformInThisBlock[index] === "object"
+                                ) ? detailArrayOfProteoformInThisBlock[index].leftPosition : undefined
                             },
                             tr
                         );

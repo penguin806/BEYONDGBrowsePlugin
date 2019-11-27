@@ -1303,7 +1303,7 @@ define(
                                 let thisProteoformEndPosition = thisProteoformObject.end;
                                 // 2019-11-25 Proteoform add offset by 3+x bp
                                 // let proteoformPositionOffset = 3 + Math.abs((thisProteoformStartPosition - leftBase) % 3);
-                                let proteoformPositionOffset = 3;
+                                let proteoformPositionOffset = 0;
                                 thisProteoformStartPosition += proteoformPositionOffset;
                                 thisProteoformEndPosition += proteoformPositionOffset;
                                 let isThisProteoformReverse = thisProteoformObject.strand === '-' ? true : false;
