@@ -1121,6 +1121,8 @@ define(
                     table.style.left = tableLeftOffsetPercent + "%";
                     container.snowSequenceOffset = tableLeftOffsetPercent;
                     container.snowSequenceWidth = tableWidthPercent;
+                    container.setAttribute('data-snowSequenceOffset', tableLeftOffsetPercent);
+                    container.setAttribute('data-snowSequenceWidth', tableWidthPercent);
                     let blockRegion = blockEnd - blockStart;
                     let blockStartExtended = blockStart + blockRegion * tableLeftOffsetPercent * 0.01;
                     let blockEndExtended = blockStart + translated.length * 3;
@@ -1241,7 +1243,10 @@ define(
                             {
                                 proteoformPosition: (
                                     typeof detailArrayOfProteoformInThisBlock[index] === "object"
-                                ) ? detailArrayOfProteoformInThisBlock[index].id + 1 : undefined
+                                ) ? detailArrayOfProteoformInThisBlock[index].id + 1 : undefined,
+                                proteoformLeftPositionInBp: (
+                                    typeof detailArrayOfProteoformInThisBlock[index] === "object"
+                                ) ? detailArrayOfProteoformInThisBlock[index].leftPosition : undefined
                             },
                             tr
                         );
