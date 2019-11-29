@@ -175,19 +175,31 @@ define(
                     return matrix[str1Length - 1][str2Length - 1];
                 },
 
-                _translateGenomeSequenceToProtein: function(sequence, isReverse, leftBase)
+                _translateGenomeSequenceToProtein: function(refSequence, isReverse, fullRangeLeftPos, fullRangeRightPos)
                 {
+                    // let blockStart = block.startBase;
+                    // let blockEnd = block.endBase;
+                    // let extStart = blockStart-2;
+                    // let extEnd = blockStart+2;
+                    let blockSeq = refSequence.substring( 2, refSequence.length - 2 );
+                    let blockLength = blockSeq.length;
+
+                    let leftOver = (refSequence.length - 2) % 3;
+                    let extStartSeq = refSequence.substring( 0, refSequence.length - 2 );
+                    let extEndSeq = refSequence.substring( 2 );
+
+
                     let sixTranslatedSeqs = [];
 
                     for(let offset = 0; offset < 3; offset++)
                     {
-                        let transStart = leftBase + offset;
+                        let transStart = fullRangeLeftPos + offset;
                         let frame = (transStart % 3 + 3) % 3;
 
-                        let extraBases = (sequence.length - offset) % 3;
-                        let slicedSequence = sequence.slice(offset, sequence.length - extraBases);
+                        let extraBases = (extEndSeq.length - offset) % 3;
+                        let slicedSequence = extEndSeq.slice(offset, extEndSeq.length - extraBases);
                         let translatedSeq = "";
-                        for(let i = 0; i<slicedSequence.length; i += 3)
+                        for(let i = 0; i < slicedSequence.length; i += 3)
                         {
                             let theCodon = slicedSequence.slice(i, i + 3);
                             let aminoAcid = this._codonTable[theCodon] || '#';
@@ -199,22 +211,22 @@ define(
 
                     for(let offset = 0; offset < 3; offset++)
                     {
-                        let transStart = leftBase + offset;
-                        let frame = (transStart % 3 + 3) % 3;
+                        let transStart = fullRangeLeftPos + 1 - offset;
+                        let frame = (transStart % 3 + 3 + leftOver) % 3;
 
-                        sequence = Util.revcom(sequence);
-                        let extraBases = (sequence.length - offset) % 3;
-                        let slicedSequence = sequence.slice(offset, sequence.length - extraBases);
+                        extStartSeq = Util.revcom(extStartSeq);
+                        let extraBases = (extStartSeq.length - offset) % 3;
+                        let slicedSequence = extStartSeq.slice(offset, refSequence.length - extraBases);
                         let translatedSeq = "";
-                        for(let i=0; i<slicedSequence.length; i+=3)
+                        for(let i=0; i < slicedSequence.length; i+=3)
                         {
                             let theCodon = slicedSequence.slice(i, i + 3);
-                            let aminoAcid = this._codonTable[theCodon] || '#';
+                            let aminoAcid = this._codonTable[theCodon] || ''  /*'#'*/;
                             translatedSeq += aminoAcid;
                         }
 
                         translatedSeq = translatedSeq.split("").reverse().join("");
-                        sixTranslatedSeqs[3 + frame] = translatedSeq;
+                        sixTranslatedSeqs[3 + 2 - frame] = translatedSeq;
                     }
 
                     return sixTranslatedSeqs;
@@ -1118,17 +1130,19 @@ define(
                             {
                                 let fullRangeLeftPos = parseInt(recordObjectArray[0]._start);
                                 let fullRangeRightPos = parseInt(recordObjectArray[0].end);
+                                let fullRangeLeftPosExtended = fullRangeLeftPos - 2;
+                                let fullRangeRightPosExtended = fullRangeRightPos + 2;
                                 // #5. Retrieve ENTIRE reference genome sequence for proteoform
                                 _this.store.getReferenceSequence(
                                     {
                                         ref: _this.refSeq.name,
-                                        start: fullRangeLeftPos,
-                                        end: fullRangeRightPos
+                                        start: fullRangeLeftPosExtended - 1,
+                                        end: fullRangeRightPosExtended
                                     },
                                     function( refGenomeSequenceForProteoform ) {
                                         // #6. Translate reference genome sequences corresponding to proteoform
                                         let translatedRefSequenceForProteoform =
-                                            _this._translateGenomeSequenceToProtein(refGenomeSequenceForProteoform, false, fullRangeLeftPos);
+                                            _this._translateGenomeSequenceToProtein(refGenomeSequenceForProteoform, false, fullRangeLeftPos - 1, fullRangeRightPos);
                                         SnowConsole.info('refGenomeSequenceForProteoform:', fullRangeLeftPos, fullRangeRightPos, refGenomeSequenceForProteoform);
                                         SnowConsole.info('translatedRefSequenceForProteoform:', fullRangeLeftPos, fullRangeRightPos, translatedRefSequenceForProteoform);
                                         proteinInfoObject.translatedRefSequenceForProteoform = translatedRefSequenceForProteoform;
@@ -1302,7 +1316,8 @@ define(
                                 let thisProteoformStartPosition = thisProteoformObject._start;
                                 let thisProteoformEndPosition = thisProteoformObject.end;
                                 // 2019-11-25 Proteoform add offset by 3+x bp
-                                let proteoformPositionOffset = Math.abs((thisProteoformStartPosition - leftBase) % 3);
+                                // let proteoformPositionOffset = 3 + Math.abs((thisProteoformStartPosition - leftBase) % 3);
+                                let proteoformPositionOffset = 0;
                                 thisProteoformStartPosition += proteoformPositionOffset;
                                 thisProteoformEndPosition += proteoformPositionOffset;
                                 let isThisProteoformReverse = thisProteoformObject.strand === '-' ? true : false;
