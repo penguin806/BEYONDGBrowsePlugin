@@ -736,11 +736,19 @@ define(
                                             else if(detailItem.headOrTailFlag === 'HEAD')
                                             {
                                                 // Prepend to head
-                                                while(detailArrayOfProteoformInThisBlock.length < aminoAcidCharactersPerBlock)
+                                                // while(detailArrayOfProteoformInThisBlock.length < aminoAcidCharactersPerBlock)
+                                                // {
+                                                //     detailArrayOfProteoformInThisBlock.unshift(emptyAminoAcidDetail);
+                                                // }
+                                                for(let i = 0; (detailItem.leftPosition - (blockStartBaseWithOffset + 1)) - i >= 3; i += 3)
                                                 {
                                                     detailArrayOfProteoformInThisBlock.unshift(emptyAminoAcidDetail);
                                                 }
                                                 return false;
+                                            }
+                                            else
+                                            {
+                                                return true;
                                             }
                                         }
                                     );
@@ -748,7 +756,7 @@ define(
                                 }
                                 else
                                 {
-                                    console.error('detailArrayOfProteoformInThisBlock is Empty!', blockIndex, detailArrayOfProteoformInThisBlock);
+                                    SnowConsole.info('detailArrayOfProteoformInThisBlock is Empty!', blockIndex, detailArrayOfProteoformInThisBlock);
                                     while(detailArrayOfProteoformInThisBlock.length < aminoAcidCharactersPerBlock)
                                     {
                                         detailArrayOfProteoformInThisBlock.push(emptyAminoAcidDetail);
@@ -1117,7 +1125,7 @@ define(
                     let tr = domConstruct.create('tr', {}, table );
 
                     let tableLeftOffsetPercent = reverse ? 100 - charWidth * (translated.length + offset / 3)
-                        : charWidth*offset/3;
+                        : charWidth * offset / 3;
                     table.style.left = tableLeftOffsetPercent + "%";
                     container.snowSequenceOffset = tableLeftOffsetPercent;
                     container.snowSequenceWidth = tableWidthPercent;
@@ -1196,14 +1204,30 @@ define(
 
                 _renderProteoformSequence: function(
                     detailArrayOfProteoformInThisBlock, proteoformStartPosition, proteoformEndPosition,
-                    offset, blockStart, blockEnd,
-                    blockLength, scale
+                    blockLeftOffsetValue, blockStartBaseWithOffset, blockEndBaseWithOffset,
+                    blockActualBpLength, scale
                 ){
                     let _this = this;
                     let proteoformArrayLength = detailArrayOfProteoformInThisBlock.length;
                     let charSize = _this.getCharacterMeasurements("aminoAcid");
                     let bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
-                    let charWidth = 100 / (blockLength / 3);
+                    let charWidth = 100 / (blockActualBpLength / 3);
+
+                    let proteoformExtraOffset;
+                    detailArrayOfProteoformInThisBlock.every(
+                        function (item) {
+                            if(item.leftPosition)
+                            {
+                                proteoformExtraOffset = (item.leftPosition - (blockStartBaseWithOffset + 1)) % 3 / blockActualBpLength;
+                                _this.config.proteoformExtraOffset = proteoformExtraOffset = proteoformExtraOffset * 100;
+                                return false;
+                            }
+                            else
+                            {
+                                return true;
+                            }
+                        }
+                    );
 
                     let container = domConstruct.create(
                         'div',
@@ -1216,7 +1240,7 @@ define(
                     // tableWidthPercent = tableWidthPercent <= 100 ? tableWidthPercent : 100;
                     let table  = domConstruct.create('table',
                         {
-                            className: 'Snow_translatedSequence offset' + offset + (bigTiles ? ' big' : ''),
+                            className: 'Snow_translatedSequence offset' + blockLeftOffsetValue + (bigTiles ? ' big' : ''),
                             style:
                                 {
                                     // width: (charWidth * proteoformSequence.length) + "%"
@@ -1226,9 +1250,9 @@ define(
                         container
                     );
                     let tr = domConstruct.create('tr', {}, table );
-                    table.style.left = (charWidth * offset / 3) + parseInt(_this.config.proteoformExtraOffset) + "%";
+                    table.style.left = (charWidth * blockLeftOffsetValue / 3) + parseFloat(proteoformExtraOffset) + "%";
 
-                    let blockWidth = blockLength * scale;
+                    let blockWidth = blockActualBpLength * scale;
                     // let aminoAcidTableCellActualWidth = blockWidth * (tableWidthPercent * 0.01) / (blockLength / 3);
                     let aminoAcidTableCellActualWidth = blockWidth * (tableWidthPercent * 0.01) / proteoformArrayLength;
 
@@ -1739,8 +1763,8 @@ define(
                     _this.store.getReferenceSequence(
                         {
                             ref: refName,
-                            start: startPos,
-                            end: endPos
+                            start: startPos - 2,
+                            end: endPos + 2
                         },
                         function (refGenomeSequence) {
                             let leftover = (refGenomeSequence.length - 2) % 3;
