@@ -190,6 +190,12 @@ define(
 
                     // Draw proteoform
                     function drawProteoform() {
+                        _this.proteoformToDrawScanIdArray.sort(
+                            (itemA, itemB) => {
+                                return itemA.msScanMassTrackId - itemB.msScanMassTrackId;
+                            }
+                        );
+
                         for(let index in _this.proteoformToDrawScanIdArray)
                         {
                             if(
@@ -570,7 +576,6 @@ define(
                                                     newNode.yIonFlag = mSScanMassMappingResultArray[i].label;
                                                     newNode.yIonFlagTag = true;
                                                 }
-                                                break;
                                             }
                                         }
                                         aminoAcidCharacterCount++;
