@@ -78,7 +78,7 @@
     background-color: #b2bec3e6;
 }
 
-.Snow_translatedSequence td.Snow_aminoAcid_mark_left_bottom::after {
+.Snow_translatedSequence td.Snow_aminoAcid_mark_left_bottom::before {
     content: "";
     position: absolute;
     left: -1%;

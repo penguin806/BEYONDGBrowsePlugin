@@ -1137,7 +1137,7 @@ define(
                                     {
                                         ref: _this.refSeq.name,
                                         start: fullRangeLeftPosExtended - 1,
-                                        end: fullRangeRightPosExtended
+                                        end: fullRangeRightPosExtended + 3 - ((fullRangeRightPos - fullRangeLeftPos) % 3)
                                     },
                                     function( refGenomeSequenceForProteoform ) {
                                         // #6. Translate reference genome sequences corresponding to proteoform
@@ -1413,35 +1413,35 @@ define(
                                     // }
 
                                     // Offset the position
-                                    mappingResultObjectArray.forEach(
-                                        (item, index) => {
-                                            mappingResultObjectArray[index].oldPosition = item.position;
-                                        }
-                                    );
-                                    for(let i = 0; i < mappingResultObjectArray.length; i++)
-                                    {
-                                        let accumulator;
-                                        for(
-                                            let j = 0, accumulator = diffFromRefSequenceResult[j].count;
-                                            j < diffFromRefSequenceResult.length &&
-                                            accumulator < mappingResultObjectArray[i].position
-                                            ; j++, accumulator += diffFromRefSequenceResult[j].count
-                                        )
-                                        {
-                                            if(diffFromRefSequenceResult[j].removed === true)
-                                            {
-                                                mappingResultObjectArray[i].position += diffFromRefSequenceResult[j].count;
-                                            }
-                                            if(diffFromRefSequenceResult[j].added === true)
-                                            {
-                                                if(diffFromRefSequenceResult.modification === undefined)
-                                                {
-                                                    // Not PTM
-                                                    mappingResultObjectArray[i].position -= diffFromRefSequenceResult[j].count;
-                                                }
-                                            }
-                                        }
-                                    }
+                                    // mappingResultObjectArray.forEach(
+                                    //     (item, index) => {
+                                    //         mappingResultObjectArray[index].oldPosition = item.position;
+                                    //     }
+                                    // );
+                                    // for(let i = 0; i < mappingResultObjectArray.length; i++)
+                                    // {
+                                    //     let j = 0;
+                                    //     let accumulator;
+                                    //     for(accumulator = diffFromRefSequenceResult[j].count;
+                                    //         j < diffFromRefSequenceResult.length &&
+                                    //         accumulator < mappingResultObjectArray[i].position
+                                    //         ; j++, accumulator += diffFromRefSequenceResult[j].count
+                                    //     )
+                                    //     {
+                                    //         if(diffFromRefSequenceResult[j].removed === true)
+                                    //         {
+                                    //             mappingResultObjectArray[i].position += diffFromRefSequenceResult[j].count;
+                                    //         }
+                                    //         if(diffFromRefSequenceResult[j].added === true)
+                                    //         {
+                                    //             if(diffFromRefSequenceResult.modification === undefined)
+                                    //             {
+                                    //                 // Not PTM
+                                    //                 mappingResultObjectArray[i].position -= diffFromRefSequenceResult[j].count;
+                                    //             }
+                                    //         }
+                                    //     }
+                                    // }
 
                                     // Calculate the leftBaseInBp
                                     mappingResultObjectArray.forEach(
