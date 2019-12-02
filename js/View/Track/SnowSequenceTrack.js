@@ -135,25 +135,45 @@ define(
                             selectedRefSeqIndex, diffFromRefSequenceResult
                         ){
                             SnowConsole.info('Event: BEYONDGBrowse/addSingleProteoformScan', arguments);
-                            _this.proteoformToDrawScanIdArray[scanId] = {
-                                proteoformSequence: proteoformSequence,
-                                proteoformStartPosition: proteoformStartPosition,
-                                proteoformEndPosition: proteoformEndPosition,
-                                isReverseStrand: isReverseStrand,
-                                scanId: scanId,
-                                mSScanMassMappingResultArray: mSScanMassMappingResultArray,
-                                msScanMassTrackId: msScanMassTrackId,
-                                diffFromRefSequenceResult: diffFromRefSequenceResult,
-                                selectedRefSeqIndex
-                            };
+                            if(_this.proteoformToDrawScanIdArray.hasOwnProperty(scanId) && typeof(_this.proteoformToDrawScanIdArray[scanId]) == "object" )
+                            {
+                                _this.proteoformToDrawScanIdArray[scanId] = {
+                                    proteoformSequence: proteoformSequence,
+                                    proteoformStartPosition: proteoformStartPosition,
+                                    proteoformEndPosition: proteoformEndPosition,
+                                    isReverseStrand: isReverseStrand,
+                                    scanId: scanId,
+                                    mSScanMassMappingResultArray: mSScanMassMappingResultArray,
+                                    msScanMassTrackId: msScanMassTrackId,
+                                    diffFromRefSequenceResult: diffFromRefSequenceResult,
+                                    selectedRefSeqIndex
+                                };
+                            }
+                            else
+                            {
+                                _this.proteoformToDrawScanIdArray[scanId] = {
+                                    proteoformSequence: proteoformSequence,
+                                    proteoformStartPosition: proteoformStartPosition,
+                                    proteoformEndPosition: proteoformEndPosition,
+                                    isReverseStrand: isReverseStrand,
+                                    scanId: scanId,
+                                    mSScanMassMappingResultArray: mSScanMassMappingResultArray,
+                                    msScanMassTrackId: msScanMassTrackId,
+                                    diffFromRefSequenceResult: diffFromRefSequenceResult,
+                                    selectedRefSeqIndex
+                                };
+                                drawProteoform();
+                            }
 
-                            drawProteoform();
+
+                            // drawProteoform();
                         }
                     );
 
                     _this.browser.subscribe(
                         '/jbrowse/v1/n/tracks/navigate',
                         function () {
+                            drawProteoform();
                             _this.proteoformToDrawScanIdArray = [];
                         }
                     );
@@ -177,6 +197,8 @@ define(
                                     }
                                 }
                             );
+
+                            drawProteoform();
                         }
                     );
 
@@ -221,12 +243,12 @@ define(
                     //         drawProteoform();
                     //     }
                     // );
-                    // _this.browser.subscribe(
-                    //     '/jbrowse/v1/n/tracks/redraw',
-                    //     function () {
-                    //         drawProteoform();
-                    //     }
-                    // );
+                    _this.browser.subscribe(
+                        '/jbrowse/v1/n/tracks/redraw',
+                        function () {
+                            drawProteoform();
+                        }
+                    );
                     // _this.browser.subscribe(
                     //     '/jbrowse/v1/n/tracks/redrawFinished',
                     //     function () {
@@ -804,7 +826,10 @@ define(
                             dojoArray.forEach(
                                 snowSequenceTrackBlocks[blockIndex].domNode.childNodes,
                                 function( table ) {
-                                    totalHeight += (table.clientHeight || table.offsetHeight);
+                                    if(table.className !== 'loading')
+                                    {
+                                        totalHeight += (table.clientHeight || table.offsetHeight);
+                                    }
                                 }
                             );
                             _this.heightUpdate( totalHeight, blockIndex );
