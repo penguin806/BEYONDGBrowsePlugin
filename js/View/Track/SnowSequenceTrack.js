@@ -1380,7 +1380,7 @@ define(
                             if(detailArrayOfProteoformInThisBlock[index].modification !== undefined)
                             {
                                 let modificationText = detailArrayOfProteoformInThisBlock[index].modification;
-                                modificationText = modificationText.replace(';', ';<br>');
+                                // modificationText = modificationText.replace(';', ';<br>');
                                 let modificationDivWidth = aminoAcidTableCellActualWidth / 2;
                                 let modificationDivHeight = aminoAcidTableCellActualWidth / 2;
                                 let modificationDivNode = domConstruct.create('div',
@@ -1414,7 +1414,9 @@ define(
                                     modificationDivNode,
                                     'mouseover',
                                     function () {
-                                        modificationDivNode.style.width = modificationDivWidth * 2 + 'px';
+                                        let suitableWidth = modificationDivWidth * 2 > charSize.w * modificationText.length ?
+                                            modificationDivWidth * 2 : charSize.w * modificationText.length;
+                                        modificationDivNode.style.width = suitableWidth + 'px';
                                         modificationDivNode.style.height = modificationDivHeight * 2 + 'px';
                                         modificationDivNode.style.fontSize = 'x-small';
                                     }
