@@ -8,6 +8,7 @@ define(
         'dojo/Deferred',
         'dojo/topic',
         'JBrowse/View/Track/CanvasFeatures',
+        'JBrowse/View/Track/BlockBased',
         'JBrowse/View/TrackConfigEditor',
         'JBrowse/View/ConfirmDialog',
         'JBrowse/Util',
@@ -23,6 +24,7 @@ define(
         dojoDeferred,
         dojoTopic,
         CanvasFeatures,
+        BlockBased,
         TrackConfigEditor,
         ConfirmDialog,
         Util,
@@ -30,9 +32,11 @@ define(
         SnowHistogramTrack,
         JsDiff
     ) {
+        let SnowConsole = window.SnowConsole || console;
         return declare(
             [
                 CanvasFeatures,
+                BlockBased,
                 CodonTable,
                 SnowHistogramTrack
             ],
@@ -175,12 +179,8 @@ define(
                     return matrix[str1Length - 1][str2Length - 1];
                 },
 
-                _translateGenomeSequenceToProtein: function(refSequence, isReverse, fullRangeLeftPos, fullRangeRightPos)
+                _translateGenomeSequenceToProtein: function(refSequence, fullRangeLeftPos, fullRangeRightPos)
                 {
-                    // let blockStart = block.startBase;
-                    // let blockEnd = block.endBase;
-                    // let extStart = blockStart-2;
-                    // let extEnd = blockStart+2;
                     let blockSeq = refSequence.substring( 2, refSequence.length - 2 );
                     let blockLength = blockSeq.length;
 
@@ -230,60 +230,6 @@ define(
                     }
 
                     return sixTranslatedSeqs;
-                },
-
-                _parseRequestedObject: function(recordObjectArray)
-                {
-                    if(recordObjectArray === undefined)
-                        return;
-                    for(let i=0; i<recordObjectArray.length; i++)
-                    {
-                        if(recordObjectArray[i].hasOwnProperty('_start'))
-                        {
-                            recordObjectArray[i]._start = parseInt(recordObjectArray[i]._start);
-                        }
-                        if(recordObjectArray[i].hasOwnProperty('end'))
-                        {
-                            recordObjectArray[i].end = parseInt(recordObjectArray[i].end);
-                        }
-                        if(recordObjectArray[i].hasOwnProperty('arrMSScanMassArray'))
-                        {
-                            for(let property in recordObjectArray[i].arrMSScanMassArray)
-                            {
-                                recordObjectArray[i].arrMSScanMassArray[property] =
-                                    parseFloat(recordObjectArray[i].arrMSScanMassArray[property]);
-                            }
-                        }
-                        if(recordObjectArray[i].hasOwnProperty('arrMSScanPeakAundance'))
-                        {
-                            for(let property in recordObjectArray[i].arrMSScanPeakAundance)
-                            {
-                                recordObjectArray[i].arrMSScanPeakAundance[property] =
-                                    parseFloat(recordObjectArray[i].arrMSScanPeakAundance[property]);
-                            }
-                        }
-                    }
-
-                    return recordObjectArray;
-                },
-
-                _queryFeatures: function(refName, startPos, endPos)
-                {
-                    let _this = this;
-                    let requestPromise = dojoRequest(
-                        'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1') + ':12080'
-                        + '/' + _this.browser.config.BEYONDGBrowseDatasetId + '/ref/' + refName + '/' +
-                        startPos + '..' + endPos,
-                        {
-                            method: 'GET',
-                            headers: {
-                                'X-Requested-With': null
-                                //'User-Agent': 'SnowPlugin-FrontEnd'
-                            },
-                            handleAs: 'json'
-                        }
-                    );
-                    return requestPromise;
                 },
 
                 _sortArrMSScanMassAndArrMSScanPeakAundance: function(arrMSScanMass, arrMSScanPeakAundance)
@@ -1032,36 +978,6 @@ define(
                     );
                 },
 
-                _formatProteoformSequenceString: function(
-                    proteoformSequence, isReverse
-                )
-                {
-                    let proteoformSequenceWithoutPrefixAndSuffix =
-                        proteoformSequence.replace(/(.*\.)(.*)(\..*)/, '$2');
-                    let proteoformSequenceWithoutParentheses =
-                        proteoformSequenceWithoutPrefixAndSuffix.replace(/\(|\)/g, '');
-                    // Example:
-                    // A.TKAARKSAPATGGVKKPHRYRPGTVALREIRRYQKST(ELLIRKLPFQRLVREIAQDFKTDLRFQSSAV)[Acetyl]MALQEASEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA.
-                    // -> TKAARKSAPATGGVKKPHRYRPGTVALREIRRYQKSTELLIRKLPFQRLVREIAQDFKTDLRFQSSAV[Acetyl]MALQEASEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA
-
-                    if(isReverse)
-                    {
-                        return proteoformSequenceWithoutParentheses.replace(
-                                /\[.*?\]/g,
-                                function(modification)
-                                {
-                                    return modification.split('').reverse().join('')
-                                }
-                            ).split('').reverse().join('');
-                        // -> AREGRIRRALQIDKPMITVRKAHIACLNTDEFLGVLYAESAEQLAM[Acetyl]VASSQFRLDTKFDQAIERVLRQFPLKRILLETSKQYRRIERLAVTGPRYRHPKKVGGTAPASKRAAKT
-                    }
-                    else
-                    {
-                        return proteoformSequenceWithoutParentheses;
-                    }
-
-                },
-
                 // showRange: function(
                 //     first, last, startBase,
                 //     bpPerBlock, scale,
@@ -1082,8 +998,465 @@ define(
                 //         ]
                 //     );
                 // },
+                _formatProteoformSequenceString: function(
+                    proteoformSequence, isReverse
+                )
+                {
+                    let proteoformSequenceWithoutPrefixAndSuffix =
+                        proteoformSequence.replace(/(.*\.)(.*)(\..*)/, '$2');
+                    let proteoformSequenceWithoutParentheses =
+                        proteoformSequenceWithoutPrefixAndSuffix.replace(/\(|\)/g, '');
+                    // Example:
+                    // A.TKAARKSAPATGGVKKPHRYRPGTVALREIRRYQKST(ELLIRKLPFQRLVREIAQDFKTDLRFQSSAV)[Acetyl]MALQEASEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA.
+                    // -> TKAARKSAPATGGVKKPHRYRPGTVALREIRRYQKSTELLIRKLPFQRLVREIAQDFKTDLRFQSSAV[Acetyl]MALQEASEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA
 
-                fillBlock: function(renderArgs)
+                    if(isReverse)
+                    {
+                        return proteoformSequenceWithoutParentheses.replace(
+                            /\[.*?\]/g,
+                            function(modification)
+                            {
+                                return modification.split('').reverse().join('')
+                            }
+                        ).split('').reverse().join('');
+                        // -> AREGRIRRALQIDKPMITVRKAHIACLNTDEFLGVLYAESAEQLAM[Acetyl]VASSQFRLDTKFDQAIERVLRQFPLKRILLETSKQYRRIERLAVTGPRYRHPKKVGGTAPASKRAAKT
+                    }
+                    else
+                    {
+                        return proteoformSequenceWithoutParentheses;
+                    }
+
+                },
+
+                _parseRequestedObject: function(recordObjectArray)
+                {
+                    if(recordObjectArray === undefined)
+                        return;
+                    for(let i = 0; i < recordObjectArray.length; i++)
+                    {
+                        if(recordObjectArray[i].hasOwnProperty('_start'))
+                        {
+                            recordObjectArray[i]._start = parseInt(recordObjectArray[i]._start);
+                        }
+                        if(recordObjectArray[i].hasOwnProperty('end'))
+                        {
+                            recordObjectArray[i].end = parseInt(recordObjectArray[i].end);
+                        }
+                        if(recordObjectArray[i].hasOwnProperty('arrMSScanMassArray'))
+                        {
+                            for(let property in recordObjectArray[i].arrMSScanMassArray)
+                            {
+                                recordObjectArray[i].arrMSScanMassArray[property] =
+                                    parseFloat(recordObjectArray[i].arrMSScanMassArray[property]);
+                            }
+                        }
+                        if(recordObjectArray[i].hasOwnProperty('arrMSScanPeakAundance'))
+                        {
+                            for(let property in recordObjectArray[i].arrMSScanPeakAundance)
+                            {
+                                recordObjectArray[i].arrMSScanPeakAundance[property] =
+                                    parseFloat(recordObjectArray[i].arrMSScanPeakAundance[property]);
+                            }
+                        }
+                    }
+
+                    return recordObjectArray;
+                },
+
+                _queryMsScanDataFromBackend: function(refName, startPos, endPos, finishCallback)
+                {
+                    let _this = this;
+                    let requestPromise = dojoRequest(
+                        'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1') + ':12080'
+                        + '/' + _this.browser.config.BEYONDGBrowseDatasetId + '/ref/' + refName + '/' +
+                        startPos + '..' + endPos,
+                        {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': null
+                                //'User-Agent': 'SnowPlugin-FrontEnd'
+                            },
+                            handleAs: 'json'
+                        }
+                    );
+
+                    requestPromise.then(
+                        function (data) {
+                            let parsedData = _this._parseRequestedObject(data);
+
+                            if(finishCallback)
+                            {
+                                finishCallback(parsedData);
+                            }
+                        },
+                        function (error) {
+                            console.error('_queryMsScanDataFromBackend', error);
+                        }
+                    );
+
+                },
+
+                showRange: function(first, last, startBase, bpPerBlock, scale,
+                                    containerStart, containerEnd, finishCallback) {
+                    let _this = this;
+                    let _arguments = arguments;
+                    let mapMsScanDataToTranslatedRefSeqDeferred = new dojoDeferred();
+                    let currentRangeLeftBase = startBase;
+                    let currentRangeRightBase = startBase + (last - first + 1) * bpPerBlock;
+
+                    _this._queryMsScanDataFromBackend(
+                        _this.refSeq.name,
+                        currentRangeLeftBase,
+                        currentRangeRightBase,
+                        function (msScanData) {
+                            if(!msScanData || typeof msScanData != "object" || msScanData.length === 0)
+                            {
+                                SnowConsole.info(
+                                    '_queryMsScanDataFromBackend_No_Data',
+                                    _this.refSeq.name,
+                                    currentRangeLeftBase,
+                                    currentRangeRightBase
+                                );
+                                return;
+                            }
+
+                            // Attention: Only a single Uniprot_Id is handled here
+                            SnowConsole.info('_queryMsScanDataFromBackend_Uniprot_Id', msScanData[0].uniprot_id);
+                            let proteinLeftPos = parseInt(msScanData[0]._start);
+                            let proteinRightPos = parseInt(msScanData[0].end);
+                            let proteinLeftPosExtended = proteinLeftPos - 2;
+                            let proteinRightPosExtended = proteinRightPos + 2;
+
+                            _this.store.getReferenceSequence(
+                                {
+                                    ref: _this.refSeq.name,
+                                    start: proteinLeftPosExtended - 1,
+                                    end: proteinRightPosExtended + 3 - ((proteinRightPosExtended - proteinLeftPosExtended) % 3)
+                                },
+                                function(refGenomeSequenceForProteoform)
+                                {
+                                    let translatedRefSeqsArrayForProteoform =
+                                        _this._translateGenomeSequenceToProtein(refGenomeSequenceForProteoform, proteinLeftPos - 1, proteinRightPos);
+                                    SnowConsole.info(
+                                        'translatedRefSeqsArrayForProteoform',
+                                        proteinLeftPos - 1,
+                                        proteinRightPos,
+                                        translatedRefSeqsArrayForProteoform
+                                    );
+
+                                    if(translatedRefSeqsArrayForProteoform.length !== 6 || msScanData.length === 0)
+                                    {
+                                        return;
+                                    }
+
+
+                                    for(let i = 0; i < msScanData.length; i++)
+                                    {
+                                        if(
+                                            window.BEYONDGBrowse.msScanDataInfoStore.hasOwnProperty(
+                                                msScanData[i].scanId
+                                            )
+                                        )
+                                        {
+                                            msScanData[i].lcsLengthArray = window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].lcsLengthArray;
+                                            msScanData[i].selectedRefSeqIndex = window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].selectedRefSeqIndex;
+                                        }
+                                        else
+                                        {
+                                            const proteoformWithoutModificationToCompare =
+                                                _this._formatProteoformSequenceString(
+                                                    msScanData[i].sequence,
+                                                    msScanData[i].strand === '-'
+                                                ).replace(/\[.*?]|\(|\)|\./g, '');
+
+                                            if(msScanData[i].strand === '-')
+                                            {
+                                                msScanData[i].arrMSScanMassArray = msScanData[i].arrMSScanMassArray.reverse();
+                                                msScanData[i].arrMSScanPeakAundance = msScanData[i].arrMSScanPeakAundance.reverse();
+                                                msScanData[i].arrIonsNum = msScanData[i].arrIonsNum.reverse();
+                                            }
+
+                                            let lcsMatrix = [];
+                                            msScanData[i].lcsLengthArray = [];
+                                            for(let indexJ = 0; indexJ < 3; indexJ++)
+                                            {
+                                                let translatedRefSeqForProteoformToCompare = msScanData[i].strand === '-' ?
+                                                    translatedRefSeqsArrayForProteoform[3 + indexJ] :
+                                                    translatedRefSeqsArrayForProteoform[indexJ];
+
+
+                                                lcsMatrix.push(
+                                                    _this._getLongestCommonSubSequenceMatrix(
+                                                        translatedRefSeqForProteoformToCompare,
+                                                        proteoformWithoutModificationToCompare
+                                                    )
+                                                );
+
+                                                msScanData[i].lcsLengthArray.push(
+                                                    _this._getLcsMatrixLength(
+                                                        translatedRefSeqForProteoformToCompare,
+                                                        proteoformWithoutModificationToCompare,
+                                                        lcsMatrix[indexJ]
+                                                    )
+                                                );
+                                            }
+
+                                            msScanData[i].selectedRefSeqIndex = 0;
+                                            for(let indexK = 1; indexK < msScanData[i].lcsLengthArray.length; indexK++)
+                                            {
+                                                if(
+                                                    msScanData[i].lcsLengthArray[indexK] > msScanData[i].lcsLengthArray[
+                                                        msScanData[i].selectedRefSeqIndex
+                                                    ]
+                                                )
+                                                {
+                                                    msScanData[i].selectedRefSeqIndex = indexK;
+                                                }
+                                            }
+
+                                            window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId] =
+                                                window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId] || { };
+                                            window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].lcsLengthArray =
+                                                msScanData[i].lcsLengthArray;
+                                            window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].selectedRefSeqIndex =
+                                                msScanData[i].selectedRefSeqIndex;
+                                        }
+                                    }
+
+                                    msScanData.sort(
+                                        (itemA, itemB) => itemB - itemA
+                                    );
+
+                                    if(msScanData.length >= 1)
+                                    {
+                                        // Read configuration file, determine which rank of scan to take
+                                        let thisMsScanTrackId = _this.config.msScanMassTrackId - 1;
+                                        if(
+                                            thisMsScanTrackId === undefined || isNaN(thisMsScanTrackId) ||
+                                            thisMsScanTrackId < 0 || thisMsScanTrackId >= msScanData.length
+                                        )
+                                        {
+                                            thisMsScanTrackId = 0;
+                                        }
+
+                                        let thisProteoformObject = msScanData[thisMsScanTrackId];
+                                        if(_this.config.DEBUG_SCANID && !isNaN(_this.config.DEBUG_SCANID))
+                                        {
+                                            let targetObject = msScanData.find(
+                                                function (item) {
+                                                    return item.scanId === _this.config.DEBUG_SCANID;
+                                                }
+                                            );
+                                            if(targetObject)
+                                            {
+                                                thisProteoformObject = targetObject;
+                                            }
+                                        }
+
+                                        _this.scanId = thisProteoformObject.scanId;
+                                        _this.proteoformStartPosition = thisProteoformObject._start;
+                                        let thisProteoformStartPosition = thisProteoformObject._start;
+                                        let thisProteoformEndPosition = thisProteoformObject.end;
+                                        // let proteoformPositionOffset = 3 + Math.abs((thisProteoformStartPosition - leftBase) % 3);
+                                        // thisProteoformStartPosition += proteoformPositionOffset;
+                                        // thisProteoformEndPosition += proteoformPositionOffset;
+                                        let isThisProteoformReverse = thisProteoformObject.strand === '-';
+                                        SnowConsole.info('msScanMassTrackId:', thisMsScanTrackId);
+                                        SnowConsole.info('thisProteoformObject:', thisProteoformObject);
+
+                                        // Update track label
+                                        let labelTextToAppend = ' (Scan: ' + thisProteoformObject.scanId + ')';
+                                        if(_this.originalLabelText + labelTextToAppend !== _this.labelHTML)
+                                        {
+                                            _this.setLabel(_this.originalLabelText + labelTextToAppend);
+                                        }
+
+                                        let diffFromRefSequenceResult = undefined;
+                                        if(
+                                            window.BEYONDGBrowse.msScanDataInfoStore.hasOwnProperty(thisProteoformObject.scanId)
+                                            && typeof window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].diffFromRefSequenceResult == "object"
+                                        )
+                                        {
+                                            diffFromRefSequenceResult = window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].diffFromRefSequenceResult;
+                                        }
+                                        else
+                                        {
+                                            let translatedRefSequenceForDiffCompare = isThisProteoformReverse ? translatedRefSeqsArrayForProteoform[
+                                                    3 + thisProteoformObject.selectedRefSeqIndex
+                                                ] : translatedRefSeqsArrayForProteoform[thisProteoformObject.selectedRefSeqIndex];
+
+                                            diffFromRefSequenceResult = JsDiff.diffChars(
+                                                translatedRefSequenceForDiffCompare,
+                                                _this._formatProteoformSequenceString(
+                                                    thisProteoformObject.sequence,
+                                                    thisProteoformObject.strand === '-'
+                                                ) /*.replace(/\[.*?\]|\(|\)|\./g,'')*/
+                                            );
+
+                                            // Filter the PTM (modification)
+                                            diffFromRefSequenceResult.forEach(
+                                                function (item, index) {
+                                                    if(item.added === true && /\[.*?]/g.test(item.value) === true)
+                                                    {
+                                                        let ptmLength = 0;
+                                                        let matches = item.value.match(/\[.*?]/g);
+                                                        matches.forEach(
+                                                            (item) => { ptmLength += item.length }
+                                                        );
+                                                        matches = /\[(.*?)]/g.exec(item.value);
+                                                        let ptmContent = matches[1];
+                                                        let ptmColor;
+                                                        if(_this.config.PTMColor[ptmContent.split(';')[0]] !== undefined)
+                                                        {
+                                                            ptmColor = _this.config.PTMColor[ptmContent.split(';')[0]];
+                                                        }
+                                                        else
+                                                        {
+                                                            ptmColor = _this.config.PTMColor['default'];
+                                                        }
+
+                                                        diffFromRefSequenceResult[index].modification = {
+                                                            length: ptmLength,
+                                                            content: ptmContent,
+                                                            color: ptmColor
+                                                        };
+                                                    }
+                                                }
+                                            );
+
+                                            window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].diffFromRefSequenceResult = diffFromRefSequenceResult;
+                                        }
+
+                                        let massAndIntensityMappingResult = undefined;
+                                        if(
+                                            window.BEYONDGBrowse.msScanDataInfoStore.hasOwnProperty(thisProteoformObject.scanId) &&
+                                            typeof window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].massAndIntensityMappingResult == "object"
+                                        )
+                                        {
+                                            massAndIntensityMappingResult =
+                                                window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].massAndIntensityMappingResult;
+                                        }
+                                        else
+                                        {
+                                            massAndIntensityMappingResult = _this._calcMSScanMass_v2(
+                                                thisProteoformObject.sequence,
+                                                thisProteoformObject.arrMSScanMassArray,
+                                                thisProteoformObject.arrMSScanPeakAundance,
+                                                thisProteoformObject.arrIonsNum
+                                            );
+                                            // Eg: massAndIntensityMappingResult[0]
+                                            // {
+                                            //     amino_acid: "F"
+                                            //     key: 3555.93025
+                                            //     label: "A0"
+                                            //     position: 31
+                                            //     value: 4461.31
+                                            // }
+
+                                            // Offset the position
+                                            // mappingResultObjectArray.forEach(
+                                            //     (item, index) => {
+                                            //         mappingResultObjectArray[index].oldPosition = item.position;
+                                            //     }
+                                            // );
+                                            // for(let i = 0; i < mappingResultObjectArray.length; i++)
+                                            // {
+                                            //     let j = 0;
+                                            //     let accumulator;
+                                            //     for(accumulator = diffFromRefSequenceResult[j].count;
+                                            //         j < diffFromRefSequenceResult.length &&
+                                            //         accumulator < mappingResultObjectArray[i].position
+                                            //         ; j++, accumulator += diffFromRefSequenceResult[j].count
+                                            //     )
+                                            //     {
+                                            //         if(diffFromRefSequenceResult[j].removed === true)
+                                            //         {
+                                            //             mappingResultObjectArray[i].position += diffFromRefSequenceResult[j].count;
+                                            //         }
+                                            //         if(diffFromRefSequenceResult[j].added === true)
+                                            //         {
+                                            //             if(diffFromRefSequenceResult.modification === undefined)
+                                            //             {
+                                            //                 // Not PTM
+                                            //                 mappingResultObjectArray[i].position -= diffFromRefSequenceResult[j].count;
+                                            //             }
+                                            //         }
+                                            //     }
+                                            // }
+
+                                            // Calculate the leftBaseInBp
+                                            massAndIntensityMappingResult.forEach(
+                                                (item, index) => {
+                                                    massAndIntensityMappingResult[index].leftBaseInBp =
+                                                        thisProteoformStartPosition + 3 * item.position;
+                                                }
+                                            );
+
+                                            window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].massAndIntensityMappingResult = massAndIntensityMappingResult;
+                                            SnowConsole.info('massAndIntensityMappingResult', massAndIntensityMappingResult);
+                                        }
+
+                                        _this._publishDrawProteoformSequenceEvent(
+                                            thisProteoformObject.sequence,
+                                            thisProteoformStartPosition,
+                                            thisProteoformEndPosition,
+                                            isThisProteoformReverse,
+                                            thisProteoformObject.scanId,
+                                            massAndIntensityMappingResult,
+                                            thisMsScanTrackId + 1,
+                                            thisProteoformObject.selectedRefSeqIndex,
+                                            diffFromRefSequenceResult
+                                        );
+
+                                        _this.inherited(_arguments);
+                                    }
+
+                                },
+                                function(errorReason) {
+                                    console.error('Retrieve reference genome sequence fail!', errorReason);
+                                }
+                            );
+
+                        }
+                    );
+                },
+
+                fillBlock: function(renderArgs) {
+                    let _this = this;
+                    let blockIndex = renderArgs.blockIndex;
+                    let blockObject = renderArgs.block;
+                    let blockWidth = blockObject.domNode.offsetWidth;
+                    let leftBase = renderArgs.leftBase;
+                    let rightBase = renderArgs.rightBase;
+                    let scaleLevel = renderArgs.scale;
+
+                    renderArgs.showMzValue = _this.config.showMzValue === true;
+
+                    let isAlignByIonPosition = _this.config.alignByIonPosition === true;
+                    if(isAlignByIonPosition)
+                    {
+                        renderArgs.proteoformStartPosition = _this.proteoformStartPosition;
+                        renderArgs.scanId = _this.scanId;
+                        renderArgs.mappingResultObjectArray =
+                            window.BEYONDGBrowse.msScanDataInfoStore[_this.scanId].massAndIntensityMappingResult;
+                        _this.fillHistograms(renderArgs, true);
+                    }
+                    else
+                    {
+                        // let filteredMSScanMassMappingResultArray = _this._filterMSScanMassMappingResultForCurrentBlock(
+                        //     leftBase,
+                        //     rightBase,
+                        //     mappingResultObjectArray,
+                        //     thisProteoformSequence,
+                        //     thisProteoformStartPosition,
+                        //     thisProteoformEndPosition
+                        // );
+                        // renderArgs.dataToDraw = filteredMSScanMassMappingResultArray;
+                        // _this.fillHistograms(renderArgs, false);
+                    }
+                },
+
+                fillBlock_Old: function(renderArgs)
                 {
                     let _this = this;
                     let blockIndex = renderArgs.blockIndex;
@@ -1115,7 +1488,7 @@ define(
                             proteinInfoObject.translatedReferenceSequence = translatedProteinSequence;
 
                             // #3. Query BeyondGBrowse backend, return 'promise' produced by dojo/request
-                            return _this._queryFeatures(_this.refSeq.name, leftBase, rightBase);
+                            return _this._queryMsScanDataFromBackend(_this.refSeq.name, leftBase, rightBase);
                         },
                         function (errorReason)
                         {

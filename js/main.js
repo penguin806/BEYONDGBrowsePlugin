@@ -32,7 +32,7 @@ define([
                     let _this = this;
                     _this.browser = browser;
                     browser.config.massSpectraTrackNum =
-                        browser.config.massSpectraTrackNum ? browser.config.massSpectraTrackNum : 0;
+                        browser.config.massSpectraTrackNum || 0;
                     browser.config.BEYONDGBrowseDatasetId =
                         browser.config.BEYONDGBrowseDatasetId || 1;
 
@@ -201,7 +201,8 @@ define([
                     window.BEYONDGBrowse = {
                         mSScanMassResultArray: [],
                         diffFromRefSequenceResult: [],
-                        requestedProteoformObjectArray: []
+                        requestedProteoformObjectArray: [],
+                        msScanDataInfoStore: []   // {lcsLengthArray, selectedRefSeqIndex, diffFromRefSequenceResult, massAndIntensityMappingResult} of each ScanId
                     };
 
                     for(let index in browserTrackConfig)
