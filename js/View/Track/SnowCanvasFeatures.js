@@ -1224,7 +1224,9 @@ define(
                                     }
 
                                     msScanData.sort(
-                                        (itemA, itemB) => itemB - itemA
+                                        (itemA, itemB) =>
+                                            itemB.lcsLengthArray[itemB.selectedRefSeqIndex] -
+                                            itemA.lcsLengthArray[itemA.selectedRefSeqIndex]
                                     );
 
                                     if(msScanData.length >= 1)
