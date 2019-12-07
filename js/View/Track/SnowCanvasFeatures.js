@@ -1232,16 +1232,16 @@ define(
                                     if(msScanData.length >= 1)
                                     {
                                         // Read configuration file, determine which rank of scan to take
-                                        let thisMsScanTrackId = _this.config.msScanMassTrackId - 1;
+                                        let thisMsScanTrackId = _this.config.msScanMassTrackId;
                                         if(
                                             thisMsScanTrackId === undefined || isNaN(thisMsScanTrackId) ||
-                                            thisMsScanTrackId < 0 || thisMsScanTrackId >= msScanData.length
+                                            thisMsScanTrackId < 1 || thisMsScanTrackId > msScanData.length
                                         )
                                         {
-                                            thisMsScanTrackId = 0;
+                                            thisMsScanTrackId = 1;
                                         }
 
-                                        let thisProteoformObject = msScanData[thisMsScanTrackId];
+                                        let thisProteoformObject = msScanData[thisMsScanTrackId - 1];
                                         if(_this.config.DEBUG_SCANID && !isNaN(_this.config.DEBUG_SCANID))
                                         {
                                             let targetObject = msScanData.find(
@@ -1405,7 +1405,7 @@ define(
                                             isThisProteoformReverse,
                                             thisProteoformObject.scanId,
                                             massAndIntensityMappingResult,
-                                            thisMsScanTrackId + 1,
+                                            thisMsScanTrackId,
                                             thisProteoformObject.selectedRefSeqIndex,
                                             diffFromRefSequenceResult
                                         );
