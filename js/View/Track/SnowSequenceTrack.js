@@ -205,12 +205,12 @@ define(
                         }
                     }
 
-                    _this.browser.subscribe(
-                        '/jbrowse/v1/n/tracks/redraw',
-                        function () {
-                            drawProteoform();
-                        }
-                    );
+                    // _this.browser.subscribe(
+                    //     '/jbrowse/v1/n/tracks/redraw',
+                    //     function () {
+                    //         drawProteoform();
+                    //     }
+                    // );
                     // _this.browser.subscribe(
                     //     '/jbrowse/v1/n/tracks/redrawFinished',
                     //     function () {

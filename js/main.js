@@ -200,10 +200,11 @@ define([
                     window.BEYONDGBrowseProteinTrack = _this.BEYONDGBrowseProteinTrack = undefined;
                     window.BEYONDGBrowse = {
                         msScanDataInfoStore: [],  // {lcsLengthArray, selectedRefSeqIndex, diffFromRefSequenceResult, massAndIntensityMappingResult, detailArrayOfProteoformSequence} of each ScanId
-                        // The following are deprecated
-                        mSScanMassResultArray: [],
-                        diffFromRefSequenceResult: [],
-                        requestedProteoformObjectArray: []
+                        annotationStore: []
+                        // Following are deprecated
+                        // mSScanMassResultArray: [],
+                        // diffFromRefSequenceResult: [],
+                        // requestedProteoformObjectArray: []
                     };
 
                     for(let index in browserTrackConfig)

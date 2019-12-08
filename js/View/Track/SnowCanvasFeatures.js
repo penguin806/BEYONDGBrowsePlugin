@@ -32,7 +32,6 @@ define(
         SnowHistogramTrack,
         JsDiff
     ) {
-        let SnowConsole = window.SnowConsole || console;
         return declare(
             [
                 CanvasFeatures,
@@ -936,8 +935,7 @@ define(
                 },
 
                 _filterMSScanMassMappingResultForCurrentBlock: function(
-                    blockLeftBase, blockRightBase, mappingResultObjectArray,
-                    proteoformSequence, proteoformStartPosition, proteoformEndPosition
+                    blockLeftBase, blockRightBase, mappingResultObjectArray, proteoformStartPosition
                 )
                 {
                     // let proteoformSequenceLengthWithoutModification = proteoformSequence.replace(/\[\w*\]|\(|\)|\./g,'').length;
@@ -1100,7 +1098,6 @@ define(
                                     containerStart, containerEnd, finishCallback) {
                     let _this = this;
                     let _arguments = arguments;
-                    let mapMsScanDataToTranslatedRefSeqDeferred = new dojoDeferred();
                     let currentRangeLeftBase = startBase;
                     let currentRangeRightBase = startBase + (last - first + 1) * bpPerBlock;
 
@@ -1330,13 +1327,17 @@ define(
                                         }
 
                                         let massAndIntensityMappingResult = undefined;
+                                        let maxIntensityValue = undefined;
                                         if(
                                             window.BEYONDGBrowse.msScanDataInfoStore.hasOwnProperty(thisProteoformObject.scanId) &&
-                                            typeof window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].massAndIntensityMappingResult == "object"
+                                            typeof window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].massAndIntensityMappingResult == "object" &&
+                                            window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].maxIntensityValue
                                         )
                                         {
                                             massAndIntensityMappingResult =
                                                 window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].massAndIntensityMappingResult;
+                                            maxIntensityValue =
+                                                window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].maxIntensityValue;
                                         }
                                         else
                                         {
@@ -1394,7 +1395,17 @@ define(
                                                 }
                                             );
 
+                                            // Find the max intensity
+                                            maxIntensityValue = Math.max.apply(
+                                                null,
+                                                massAndIntensityMappingResult.map(
+                                                    (item) => item.intensityValue
+                                                )
+                                            );
+                                            maxIntensityValue = maxIntensityValue === 0 ? 10000.0 : maxIntensityValue;
+
                                             window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].massAndIntensityMappingResult = massAndIntensityMappingResult;
+                                            window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].maxIntensityValue = maxIntensityValue;
                                             SnowConsole.info('massAndIntensityMappingResult', massAndIntensityMappingResult);
                                         }
 
@@ -1425,12 +1436,12 @@ define(
 
                 fillBlock: function(renderArgs) {
                     let _this = this;
-                    let blockIndex = renderArgs.blockIndex;
-                    let blockObject = renderArgs.block;
-                    let blockWidth = blockObject.domNode.offsetWidth;
                     let leftBase = renderArgs.leftBase;
                     let rightBase = renderArgs.rightBase;
-                    let scaleLevel = renderArgs.scale;
+                    // let blockIndex = renderArgs.blockIndex;
+                    // let blockObject = renderArgs.block;
+                    // let blockWidth = blockObject.domNode.offsetWidth;
+                    // let scaleLevel = renderArgs.scale;
 
                     renderArgs.showMzValue = _this.config.showMzValue === true;
 
@@ -1439,22 +1450,21 @@ define(
                     {
                         renderArgs.proteoformStartPosition = _this.proteoformStartPosition;
                         renderArgs.scanId = _this.scanId;
-                        renderArgs.mappingResultObjectArray =
+                        renderArgs.massAndIntensityMappingResult =
                             window.BEYONDGBrowse.msScanDataInfoStore[_this.scanId].massAndIntensityMappingResult;
+                        renderArgs.maxIntensityValue =
+                            window.BEYONDGBrowse.msScanDataInfoStore[_this.scanId].maxIntensityValue;
                         _this.fillHistograms(renderArgs, true);
                     }
                     else
                     {
-                        // let filteredMSScanMassMappingResultArray = _this._filterMSScanMassMappingResultForCurrentBlock(
-                        //     leftBase,
-                        //     rightBase,
-                        //     mappingResultObjectArray,
-                        //     thisProteoformSequence,
-                        //     thisProteoformStartPosition,
-                        //     thisProteoformEndPosition
-                        // );
-                        // renderArgs.dataToDraw = filteredMSScanMassMappingResultArray;
-                        // _this.fillHistograms(renderArgs, false);
+                        renderArgs.dataToDraw = _this._filterMSScanMassMappingResultForCurrentBlock(
+                            leftBase,
+                            rightBase,
+                            window.BEYONDGBrowse.msScanDataInfoStore[_this.scanId].massAndIntensityMappingResult,
+                            _this.proteoformStartPosition,
+                        );
+                        _this.fillHistograms(renderArgs, false);
                     }
                 },
 
