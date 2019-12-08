@@ -6,9 +6,14 @@
 }
 
 .Snow_translatedSequence table {
-    border-collapse: separate !important;
-    border-spacing: 1px;
     z-index: 10;
+    table-layout: fixed;
+    /*border-collapse: separate !important;*/
+    /*border-spacing: 1px;*/
+}
+
+.Snow_translatedSequence table.big td {
+    border-right: 1px solid #fff0;
 }
 
 .Snow_translatedSequence.frame0 {
@@ -27,7 +32,6 @@
     text-align: center;
     z-index: 2000;
     position: relative;
-
     color: black;
     font-family: "Comic Sans MS", cursive, sans-serif;
     font-weight: bold;
@@ -169,10 +173,6 @@
     color: white;
     text-align: center;
     position: absolute;
-    /*width: 25px;*/
-    /*height: 25px;*/
-    /*transform: translate(-12.5px, 12.5px);*/
-    /*word-break: break-all;*/
     top: 50%;
     transform: translate(-50%, -50%);
     font-family: monospace;
@@ -182,6 +182,10 @@
     box-shadow: #2d3436 2px 3px 8px;
     overflow: hidden;
     transition: all 0.2s ease-in-out;
+    /*width: 25px;*/
+    /*height: 25px;*/
+    /*transform: translate(-12.5px, 12.5px);*/
+    /*word-break: break-all;*/
 }
 
 .Snow_translatedSequence td span.Snow_aminoAcid_head_strand_bIon_label {

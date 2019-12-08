@@ -1350,6 +1350,17 @@ define(
                                 // modificationText = modificationText.replace(';', ';<br>');
                                 let modificationDivWidth = aminoAcidTableCellActualWidth / 2;
                                 let modificationDivHeight = aminoAcidTableCellActualWidth / 2;
+
+                                let modificationContainer = domConstruct.create('td',
+                                    {
+                                        className: 'Snow_aminoAcid_modification_container',
+                                        style: {
+                                            width: 0,
+                                            borderRight: 0
+                                        }
+                                    }
+                                );
+
                                 let modificationDivNode = domConstruct.create('div',
                                     {
                                         className: 'Snow_aminoAcid_modification_label',
@@ -1360,7 +1371,8 @@ define(
                                             // transform: 'translate( -' + modificationDivWidth/2 +
                                             //     'px, ' + modificationDivHeight/2 + 'px)'
                                         }
-                                    }
+                                    },
+                                    modificationContainer
                                 );
 
                                 let modificationTextSpanNode = domConstruct.create('span',
@@ -1398,7 +1410,7 @@ define(
                                     }
                                 );
 
-                                tr.appendChild(modificationDivNode);
+                                tr.appendChild(modificationContainer);
                             }
 
                             if(detailArrayOfProteoformInThisBlock[index].headOrTailFlag.includes('HEAD'))
