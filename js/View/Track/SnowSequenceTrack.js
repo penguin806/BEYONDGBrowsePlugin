@@ -36,7 +36,6 @@ define(
         SnowAnnotationDialog
     )
     {
-        let SnowConsole = window.SnowConsole || console;
         return declare(
             [
                 Sequence
@@ -149,6 +148,7 @@ define(
                                 selectedRefSeqIndex
                             };
 
+                            _this._queryAnnotationDataFromBackend('Scan' + scanId, undefined, undefined, undefined);
                             drawProteoform();
                         }
                     );
@@ -580,6 +580,73 @@ define(
                     return detailArrayOfProteoformSequence;
                 },
 
+                _queryAnnotationDataFromBackend: function(scanIdLabel, refName, currentRangeStartPosition, currentRangeEndPosition) {
+                    let _this = this;
+
+                    if(scanIdLabel !== undefined)
+                    {
+                        if(
+                            !window.BEYONDGBrowse.annotationStore.hasOwnProperty(scanIdLabel)
+                            && typeof window.BEYONDGBrowse.annotationStore[scanIdLabel] != "object"
+                        )
+                        {
+                            let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
+                                + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + scanIdLabel + '/'
+                                + '1..9999';
+
+                            dojoRequest(
+                                requestUrl,
+                                {
+                                    method: 'GET',
+                                    headers: {
+                                        'X-Requested-With': null
+                                    },
+                                    handleAs: 'json'
+                                }
+                            ).then(
+                                function (proteoformAnnotationData) {
+                                    SnowConsole.info('proteoformAnnotation:', proteoformAnnotationData);
+                                    window.BEYONDGBrowse.annotationStore[scanIdLabel] = proteoformAnnotationData;
+                                },
+                                function (errorReason) {
+                                    console.error('Query proteoformAnnotation error', requestUrl, errorReason);
+                                }
+                            );
+                        }
+                    }
+
+                    if(refName && currentRangeStartPosition && currentRangeEndPosition)
+                    {
+                        let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
+                            + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + refName + '/'
+                            + currentRangeStartPosition + '..' + currentRangeEndPosition;
+
+                        dojoRequest(
+                            requestUrl,
+                            {
+                                method: 'GET',
+                                headers: {
+                                    'X-Requested-With': null
+                                },
+                                handleAs: 'json'
+                            }
+                        ).then(
+                            function (currentRangeAnnotationData) {
+                                SnowConsole.info('currentRangeAnnotation:', currentRangeAnnotationData);
+                                window.BEYONDGBrowse.annotationStore['currentRangeRefSeq'] = {
+                                    refName: refName,
+                                    startPos: currentRangeStartPosition,
+                                    endPos: currentRangeEndPosition,
+                                    annotationData: currentRangeAnnotationData
+                                };
+                            },
+                            function (errorReason) {
+                                console.error('Query currentRangeAnnotation error', requestUrl, errorReason);
+                            }
+                        );
+                    }
+                },
+
                 _drawProteoformSequenceEventCallback: function(
                     proteoformSequence, proteoformStartPosition, proteoformEndPosition,
                     isReverseStrand, scanId, mSScanMassMappingResultArray, msScanMassTrackId,
@@ -683,6 +750,10 @@ define(
                             let blockActualBpLength = blockEndBase - blockStartBase;
                             let aminoAcidCharactersPerBlock = (blockEndBaseWithOffset - blockStartBaseWithOffset) / 3;
                             let detailArrayOfProteoformInThisBlock = [];
+                            dojoQuery(
+                                '.snow_proteoform_frame.msScanMassTrackId_' + msScanMassTrackId,
+                                snowSequenceTrackBlocks[blockIndex].domNode
+                            ).forEach(domConstruct.destroy);
 
                             for(let index in detailArrayOfProteoformSequence)
                             {
@@ -780,11 +851,6 @@ define(
                                         '.Snow_translatedSequence_F') + selectedRefSeqIndex + ' td'
                                 ).removeClass('hoverState');
                             };
-
-                            dojoQuery(
-                                '.snow_proteoform_frame.msScanMassTrackId_' + msScanMassTrackId,
-                                snowSequenceTrackBlocks[blockIndex].domNode
-                            ).forEach(domConstruct.destroy);
                             snowSequenceTrackBlocks[blockIndex].domNode.appendChild(newProteoformSequenceDiv);
 
                             _this._renderAnnotationMark(
@@ -869,6 +935,16 @@ define(
                     //     }
                     // );
                     // this.heightUpdate( totalHeight, block.blockIndex );
+                },
+
+                showRange: function(first, last, startBase, bpPerBlock, scale,
+                                    containerStart, containerEnd, finishCallback) {
+                    let _this = this;
+                    let _arguments = arguments;
+                    let currentRangeLeftBase = startBase;
+                    let currentRangeRightBase = startBase + (last - first + 1) * bpPerBlock;
+                    _this._queryAnnotationDataFromBackend(undefined, _this.refSeq.name, currentRangeLeftBase, currentRangeRightBase);
+                    _this.inherited(_arguments);
                 },
 
                 fillBlock: function(args) {
@@ -1454,33 +1530,21 @@ define(
                 },
 
                 _renderAnnotationMark: function (refName, blockObject, blockStart, blockEnd, isProteoformSequence) {
-                    SnowConsole.debug('_renderAnnotationMark', refName, blockObject, blockStart, blockEnd);
-
                     let _this = this;
-                    let renderAnnotationDeferred = new dojoDeferred();
-                    let blockDomNode;
                     let frameDomNode;
+
                     if(isProteoformSequence === true)
                     {
                         frameDomNode = blockObject;
                     }
                     else
                     {
-                        blockDomNode = blockObject.domNode;
+                        let blockDomNode = blockObject.domNode;
                         frameDomNode = blockDomNode.firstChild;
                     }
                     let allAminoAcidCell = dojoQuery(".Snow_aminoAcid", frameDomNode);
-                    let proteoformPositionArray = [];
-                    allAminoAcidCell.forEach(
-                        function (item) {
-                            proteoformPositionArray.push(
-                                domAttr.get(item, 'proteoformPosition')
-                            );
-                        }
-                    );
-                    // Add dblclick event handler on all AmioAcid table cell
                     allAminoAcidCell.on('dblclick', function (event) {
-                        SnowConsole.debug('dblclick on .Snow_aminoAcid:', arguments);
+                            SnowConsole.debug('dblclick on .Snow_aminoAcid:', arguments);
                             let finishCallback = function () {
                                 domClass.add(event.target, 'Snow_annotation_mark');
                             };
@@ -1503,87 +1567,153 @@ define(
                         }
                     );
 
-                    let blockRegion = blockEnd - blockStart;
-                    let blockStartExtended = undefined;
-                    let blockEndExtended = undefined;
+                    // let proteoformPositionArray = [];
+                    // allAminoAcidCell.forEach(
+                    //     function (item) {
+                    //         proteoformPositionArray.push(
+                    //             domAttr.get(item, 'proteoformPosition')
+                    //         );
+                    //     }
+                    // );
+                    // Add dblclick event handler on all AmioAcid table cell
 
-                    if(isProteoformSequence === true)
+                    // let blockRegion = blockEnd - blockStart;
+                    // let blockStartExtended = undefined;
+                    // let blockEndExtended = undefined;
+                    //
+                    // if(isProteoformSequence === true)
+                    // {
+                    //     // Offset is included in the start and end
+                    //     blockStartExtended = blockStart;
+                    //     blockEndExtended = blockEnd;
+                    // }
+                    // else
+                    // {
+                    //     blockStartExtended = blockStart + blockRegion * frameDomNode.snowSequenceOffset * 0.01;
+                    //     blockEndExtended = blockStart + allAminoAcidCell.length * 3;
+                    // }
+                    //
+                    // let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
+                    //     + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + refName + '/'
+                    //     + (
+                    //         isProteoformSequence === true ?
+                    //             Math.min.apply(null, proteoformPositionArray) : blockStartExtended
+                    //     )
+                    //     + '..' + (
+                    //         isProteoformSequence === true ?
+                    //             Math.max.apply(null, proteoformPositionArray) : blockEndExtended
+                    //     );
+                    //
+                    // dojoRequest(
+                    //     requestUrl,
+                    //     {
+                    //         method: 'GET',
+                    //         headers: {
+                    //             'X-Requested-With': null
+                    //         },
+                    //         handleAs: 'json'
+                    //     }
+                    // ).then(
+                    //     function (annotationObjectArray) {
+                    //         SnowConsole.info('annotationObjectArray:', annotationObjectArray);
+                    //         renderAnnotationDeferred.resolve(annotationObjectArray);
+                    //     },
+                    //     function (errorReason) {
+                    //         console.error('Error', requestUrl, errorReason);
+                    //     }
+                    // );
+                    // let renderAnnotationDeferred = new dojoDeferred();
+
+                    // renderAnnotationDeferred.then(
+                    //     function (annotationObjectArray) {
+                    //         for(let i = 0; i < allAminoAcidCell.length; i++)
+                    //         {
+                    //             let thisCellPosition = domAttr.get(
+                    //                 allAminoAcidCell[i],
+                    //                 isProteoformSequence === true ? 'proteoformPosition' : 'snowseqposition'
+                    //             );
+                    //             for(let j = 0; j < annotationObjectArray.length; j++)
+                    //             {
+                    //                 if(typeof annotationObjectArray[j] != "object")
+                    //                 {
+                    //                     console.error(annotationObjectArray[j]);
+                    //                     break;
+                    //                 }
+                    //                 let thisAnnotationPosition = annotationObjectArray[j].position;
+                    //                 if(
+                    //                     (
+                    //                         (isProteoformSequence === true) &&
+                    //                         (thisCellPosition === thisAnnotationPosition)
+                    //                     ) || (
+                    //                         (isProteoformSequence !== true) &&
+                    //                         (Math.abs(thisCellPosition - thisAnnotationPosition) <= 2)
+                    //                     )
+                    //                 )
+                    //                 {
+                    //                     // Match! Add style
+                    //                     domClass.add(allAminoAcidCell[i], 'Snow_annotation_mark');
+                    //                 }
+                    //             }
+                    //         }
+                    //     },
+                    //     function (errorReason) {
+                    //     }
+                    // );
+
+                    if(isProteoformSequence === true && window.BEYONDGBrowse.annotationStore.hasOwnProperty(refName))
                     {
-                        // Offset is included in the start and end
-                        blockStartExtended = blockStart;
-                        blockEndExtended = blockEnd;
-                    }
-                    else
-                    {
-                        blockStartExtended = blockStart + blockRegion * frameDomNode.snowSequenceOffset * 0.01;
-                        blockEndExtended = blockStart + allAminoAcidCell.length * 3;
-                    }
-
-                    let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
-                        + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + refName + '/'
-                        + (
-                            isProteoformSequence === true ?
-                                Math.min.apply(null, proteoformPositionArray) : blockStartExtended
-                        )
-                        + '..' + (
-                            isProteoformSequence === true ?
-                                Math.max.apply(null, proteoformPositionArray) : blockEndExtended
-                        );
-
-                    dojoRequest(
-                        requestUrl,
-                        {
-                            method: 'GET',
-                            headers: {
-                                'X-Requested-With': null
-                            },
-                            handleAs: 'json'
-                        }
-                    ).then(
-                        function (annotationObjectArray) {
-                            SnowConsole.info('annotationObjectArray:', annotationObjectArray);
-                            renderAnnotationDeferred.resolve(annotationObjectArray);
-                        },
-                        function (errorReason) {
-                            console.error('Error', requestUrl, errorReason);
-                        }
-                    );
-
-                    renderAnnotationDeferred.then(
-                        function (annotationObjectArray) {
-                            for(let i = 0; i < allAminoAcidCell.length; i++)
+                        window.BEYONDGBrowse.annotationStore[refName].forEach(
+                            function(annotationItem)
                             {
-                                let thisCellPosition = domAttr.get(
-                                    allAminoAcidCell[i],
-                                    isProteoformSequence === true ? 'proteoformPosition' : 'snowseqposition'
-                                );
-                                for(let j = 0; j < annotationObjectArray.length; j++)
+                                for(let i = 0; i < allAminoAcidCell.length; i++)
                                 {
-                                    if(typeof annotationObjectArray[j] != "object")
+                                    let thisAminoPosition = domAttr.get(
+                                        allAminoAcidCell[i],
+                                        'proteoformPosition'
+                                    );
+                                    if(thisAminoPosition === annotationItem.position)
                                     {
-                                        console.error(annotationObjectArray[j]);
+                                        // Match! Add style
+                                        domClass.add(allAminoAcidCell[i], 'Snow_annotation_mark');
+                                    }
+                                    else if(thisAminoPosition > annotationItem.position)
+                                    {
                                         break;
                                     }
-                                    let thisAnnotationPosition = annotationObjectArray[j].position;
+                                }
+                            }
+                        );
+                    }
+                    else if(
+                        window.BEYONDGBrowse.annotationStore.hasOwnProperty('currentRangeRefSeq') &&
+                        typeof window.BEYONDGBrowse.annotationStore.currentRangeRefSeq.annotationData == "object"
+                    )
+                    {
+                        window.BEYONDGBrowse.annotationStore.currentRangeRefSeq.annotationData.forEach(
+                            function(annotationItem)
+                            {
+                                for(let i = 0; i < allAminoAcidCell.length; i++)
+                                {
+                                    let thisAminoPosition = domAttr.get(
+                                        allAminoAcidCell[i],
+                                        'snowseqposition'
+                                    );
                                     if(
-                                        (
-                                            (isProteoformSequence === true) &&
-                                            (thisCellPosition === thisAnnotationPosition)
-                                        ) || (
-                                            (isProteoformSequence !== true) &&
-                                            (Math.abs(thisCellPosition - thisAnnotationPosition) <= 2)
-                                        )
+                                        thisAminoPosition === annotationItem.position
+                                        // Math.abs(thisAminoPosition - annotationItem.position) <= 2
                                     )
                                     {
                                         // Match! Add style
                                         domClass.add(allAminoAcidCell[i], 'Snow_annotation_mark');
                                     }
+                                    else if(thisAminoPosition > annotationItem.position)
+                                    {
+                                        break;
+                                    }
                                 }
                             }
-                        },
-                        function (errorReason) {
-                        }
-                    )
+                        );
+                    }
 
                 },
 
