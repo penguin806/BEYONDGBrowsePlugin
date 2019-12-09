@@ -162,30 +162,28 @@ define([
 
                     // Filter mapping result array for this block
                     let filteredMSScanMassMappingResultArray = [];
-                    for(let index in massAndIntensityMappingResult)
+                    for(let index = 0; index < massAndIntensityMappingResult.length; index++)
                     {
                         if(
-                            massAndIntensityMappingResult.hasOwnProperty(index) &&
-                            typeof massAndIntensityMappingResult[index] == "object"
+                            massAndIntensityMappingResult[index].leftBaseInBp >= blockOffsetStartBase &&
+                            massAndIntensityMappingResult[index].leftBaseInBp < blockOffsetEndBase
                         )
                         {
-                            if(
-                                massAndIntensityMappingResult[index].leftBaseInBp >= blockOffsetStartBase &&
-                                massAndIntensityMappingResult[index].leftBaseInBp < blockOffsetEndBase
-                            )
-                            {
-                                let resultObjectInThisBlock = massAndIntensityMappingResult[index];
-                                // Because the bIon mark is on the top right corner, add offset by 3bp here
-                                resultObjectInThisBlock.leftBaseInBpWithOffset =
-                                    resultObjectInThisBlock.leftBaseInBp + 3;
-                                // Minus block left offset
-                                resultObjectInThisBlock.leftBaseInBpWithOffset -= (blockStartBase - blockOffsetStartBase);
-                                resultObjectInThisBlock.leftBaseInBpWithOffset -= (proteoformStartPosition % 3);
-                                resultObjectInThisBlock.context = context;
-                                resultObjectInThisBlock.viewArgs = viewArgs;
+                            let resultObjectInThisBlock = massAndIntensityMappingResult[index];
+                            // Because the bIon mark is on the top right corner, add offset by 3bp here
+                            resultObjectInThisBlock.leftBaseInBpWithOffset =
+                                resultObjectInThisBlock.leftBaseInBp + 3;
+                            // Minus block left offset
+                            resultObjectInThisBlock.leftBaseInBpWithOffset -= (blockStartBase - blockOffsetStartBase);
+                            resultObjectInThisBlock.leftBaseInBpWithOffset -= (proteoformStartPosition % 3);
+                            resultObjectInThisBlock.context = context;
+                            resultObjectInThisBlock.viewArgs = viewArgs;
 
-                                filteredMSScanMassMappingResultArray.push(resultObjectInThisBlock);
-                            }
+                            filteredMSScanMassMappingResultArray.push(resultObjectInThisBlock);
+                        }
+                        else if (massAndIntensityMappingResult[index].leftBaseInBp >= blockOffsetEndBase)
+                        {
+                            break;
                         }
                     }
 

@@ -45,6 +45,12 @@ define(
                     let _this = this;
                     _this._codonTable = this._codonTable ? this._codonTable : this.defaultCodonTable;
                     _this.originalLabelText = _this.config.label || "";
+                    _this.msScanDataCache = {
+                        refName: undefined,
+                        _start: undefined,
+                        end: undefined,
+                        data: undefined
+                    };
                     // _this.browser.subscribe(
                     //     '/jbrowse/v1/n/tracks/visibleChanged',
                     //     function () {
@@ -1101,6 +1107,29 @@ define(
                     let currentRangeLeftBase = startBase;
                     let currentRangeRightBase = startBase + (last - first + 1) * bpPerBlock;
 
+                    if(
+                        _this.msScanDataCache._start && _this.msScanDataCache.end &&
+                        typeof _this.msScanDataCache.data == "object" &&
+                        currentRangeLeftBase >= _this.msScanDataCache._start &&
+                        currentRangeRightBase <= _this.msScanDataCache.end &&
+                        _this.refSeq.name === _this.msScanDataCache.refName
+                    )
+                    {
+                        _this._publishDrawProteoformSequenceEvent(
+                            _this.msScanDataCache.data[_this.config.msScanMassTrackId - 1].sequence,
+                            _this.msScanDataCache.data[_this.config.msScanMassTrackId - 1]._start,
+                            _this.msScanDataCache.data[_this.config.msScanMassTrackId - 1].end,
+                            _this.msScanDataCache.data[_this.config.msScanMassTrackId - 1].strand === '-',
+                            _this.msScanDataCache.data[_this.config.msScanMassTrackId - 1].scanId,
+                            window.BEYONDGBrowse.msScanDataInfoStore[_this.msScanDataCache.data[_this.config.msScanMassTrackId - 1].scanId].massAndIntensityMappingResult,
+                            _this.config.msScanMassTrackId,
+                            _this.msScanDataCache.data[_this.config.msScanMassTrackId - 1].selectedRefSeqIndex,
+                            window.BEYONDGBrowse.msScanDataInfoStore[_this.msScanDataCache.data[_this.config.msScanMassTrackId - 1].scanId].diffFromRefSequenceResult
+                        );
+                        _this.inherited(_arguments);
+                        return;
+                    }
+
                     _this._queryMsScanDataFromBackend(
                         _this.refSeq.name,
                         currentRangeLeftBase,
@@ -1119,6 +1148,29 @@ define(
 
                             // Attention: Only a single Uniprot_Id is handled here
                             SnowConsole.info('_queryMsScanDataFromBackend_Uniprot_Id', msScanData[0].uniprot_id);
+                            if(
+                                _this.msScanDataCache._start && _this.msScanDataCache.end &&
+                                msScanData[0]._start === _this.msScanDataCache._start &&
+                                msScanData[0].end === _this.msScanDataCache.end &&
+                                _this.msScanDataCache.data &&
+                                msScanData.length === _this.msScanDataCache.data.length
+                            )
+                            {
+                                _this._publishDrawProteoformSequenceEvent(
+                                    _this.msScanDataCache.data[_this.config.msScanMassTrackId - 1].sequence,
+                                    _this.msScanDataCache.data[_this.config.msScanMassTrackId - 1]._start,
+                                    _this.msScanDataCache.data[_this.config.msScanMassTrackId - 1].end,
+                                    _this.msScanDataCache.data[_this.config.msScanMassTrackId - 1].strand === '-',
+                                    _this.msScanDataCache.data[_this.config.msScanMassTrackId - 1].scanId,
+                                    window.BEYONDGBrowse.msScanDataInfoStore[_this.msScanDataCache.data[_this.config.msScanMassTrackId - 1].scanId].massAndIntensityMappingResult,
+                                    _this.config.msScanMassTrackId,
+                                    _this.msScanDataCache.data[_this.config.msScanMassTrackId - 1].selectedRefSeqIndex,
+                                    window.BEYONDGBrowse.msScanDataInfoStore[_this.msScanDataCache.data[_this.config.msScanMassTrackId - 1].scanId].diffFromRefSequenceResult
+                                );
+                                _this.inherited(_arguments);
+                                return;
+                            }
+
                             let proteinLeftPos = parseInt(msScanData[0]._start);
                             let proteinRightPos = parseInt(msScanData[0].end);
                             let proteinLeftPosExtended = proteinLeftPos - 2;
@@ -1145,7 +1197,6 @@ define(
                                     {
                                         return;
                                     }
-
 
                                     for(let i = 0; i < msScanData.length; i++)
                                     {
@@ -1225,6 +1276,10 @@ define(
                                             itemB.lcsLengthArray[itemB.selectedRefSeqIndex] -
                                             itemA.lcsLengthArray[itemA.selectedRefSeqIndex]
                                     );
+                                    _this.msScanDataCache.refName = _this.refSeq.name;
+                                    _this.msScanDataCache._start = msScanData[0]._start;
+                                    _this.msScanDataCache.end = msScanData[0].end;
+                                    _this.msScanDataCache.data = msScanData;
 
                                     if(msScanData.length >= 1)
                                     {
