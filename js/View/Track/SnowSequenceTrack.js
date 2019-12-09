@@ -114,6 +114,7 @@ define(
                         "GGG" : "G",
                         "GGT" : "G"
                     };
+                    _this.blocksJustFilled = [];
 
                     _this._subscribeEvents();
                 },
@@ -733,8 +734,9 @@ define(
                         scanId, diffFromRefSequenceResult, mSScanMassMappingResultArray
                     );
 
-                    let firstAttachedBlockIndex = _this.firstAttached;
-                    let lastAttachedBlockIndex = _this.lastAttached;
+                    // let firstAttachedBlockIndex = _this.firstAttached;
+                    // let lastAttachedBlockIndex = _this.lastAttached;
+                    // let snowSequenceTrackBlocks = _this.blocksJustFilled || _this.blocks;
                     let snowSequenceTrackBlocks = _this.blocks;
                     for(let blockIndex in snowSequenceTrackBlocks)
                     {
@@ -750,10 +752,18 @@ define(
                             let blockActualBpLength = blockEndBase - blockStartBase;
                             let aminoAcidCharactersPerBlock = (blockEndBaseWithOffset - blockStartBaseWithOffset) / 3;
                             let detailArrayOfProteoformInThisBlock = [];
-                            dojoQuery(
-                                '.snow_proteoform_frame.msScanMassTrackId_' + msScanMassTrackId,
-                                snowSequenceTrackBlocks[blockIndex].domNode
-                            ).forEach(domConstruct.destroy);
+                            // dojoQuery(
+                            //     '.snow_proteoform_frame.msScanMassTrackId_' + msScanMassTrackId,
+                            //     snowSequenceTrackBlocks[blockIndex].domNode
+                            // ).forEach(domConstruct.destroy);
+                            if(
+                                dojoQuery(
+                                    '.snow_proteoform_frame.msScanMassTrackId_' + msScanMassTrackId, snowSequenceTrackBlocks[blockIndex].domNode
+                                ).length !== 0
+                            )
+                            {
+                                continue;
+                            }
 
                             for(let index in detailArrayOfProteoformSequence)
                             {
@@ -861,21 +871,19 @@ define(
                                 true
                             );
 
-                            let totalHeight = 0;
-                            dojoArray.forEach(
-                                snowSequenceTrackBlocks[blockIndex].domNode.childNodes,
-                                function( table ) {
-                                    if(table.className !== 'loading')
-                                    {
-                                        totalHeight += (table.clientHeight || table.offsetHeight);
-                                    }
-                                }
-                            );
-                            _this.heightUpdate( totalHeight, blockIndex );
-
+                            // let totalHeight = 0;
+                            // dojoArray.forEach(
+                            //     snowSequenceTrackBlocks[blockIndex].domNode.childNodes,
+                            //     function( table ) {
+                            //         if(table.className !== 'loading')
+                            //         {
+                            //             totalHeight += (table.clientHeight || table.offsetHeight);
+                            //         }
+                            //     }
+                            // );
+                            // _this.heightUpdate( totalHeight, blockIndex );
                         }
                     }
-
 
                     // Old implementation
                     // console.info('snow/showProteoform received:',
@@ -943,6 +951,8 @@ define(
                     let _arguments = arguments;
                     let currentRangeLeftBase = startBase;
                     let currentRangeRightBase = startBase + (last - first + 1) * bpPerBlock;
+
+                    // _this.blocksJustFilled = [];
                     _this._queryAnnotationDataFromBackend(undefined, _this.refSeq.name, currentRangeLeftBase, currentRangeRightBase);
                     _this.inherited(_arguments);
                 },
@@ -957,6 +967,7 @@ define(
                     let leftExtended = leftBase - 2;
                     let rightExtended = rightBase + 2;
                     let renderAnnotationMarkDeferred = new dojoDeferred();
+                    // _this.blocksJustFilled.push(blockObject);
 
                     renderAnnotationMarkDeferred.then(
                         function () {
@@ -1005,7 +1016,7 @@ define(
                                     args.errorCallback(error);
                                 else {
                                     console.error(error);
-                                    args.finishCallback()
+                                    args.finishCallback();
                                 }
                             }
                         );
@@ -1018,6 +1029,7 @@ define(
                 },
 
                 _fillSequenceBlock: function( block, blockIndex, scale, seq ) {
+                    let _this = this;
                     seq = seq.replace(/\s/g,this.nbsp);
                     let blockStart = block.startBase;
                     let blockEnd = block.endBase;
@@ -1116,6 +1128,11 @@ define(
                     dojoArray.forEach( block.domNode.childNodes, function( table ) {
                         totalHeight += (table.clientHeight || table.offsetHeight);
                     });
+                    totalHeight +=
+                        window.BEYONDGBrowse.currentVisibleMsSpectraTrackNum * (
+                            block.domNode.lastChild.clientHeight ||
+                            block.domNode.lastChild.offsetHeight
+                        );
                     this.heightUpdate( totalHeight, blockIndex );
                 },
 

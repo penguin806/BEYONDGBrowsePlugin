@@ -134,6 +134,22 @@ define([
                         }
                     );
 
+                    _this.browser.subscribe(
+                        '/jbrowse/v1/n/tracks/visibleChanged',
+                        function (currentVisibleTracksName) {
+                            let currentVisibleMsSpectraTracks = 0;
+                            _this.browser.view.tracks.forEach(
+                                function(item) {
+                                    if(item.config.BEYONDGBrowseMassTrack === true)
+                                    {
+                                        currentVisibleMsSpectraTracks++;
+                                    }
+                                }
+                            );
+                            window.BEYONDGBrowse.currentVisibleMsSpectraTrackNum = currentVisibleMsSpectraTracks;
+                        }
+                    );
+
                     function deleteAllMassSpectraTrack() {
                         let trackConfigsByName = _this.browser.trackConfigsByName;
                         let massSpectraTracksToDeleteArray = [];
@@ -200,7 +216,8 @@ define([
                     window.BEYONDGBrowseProteinTrack = _this.BEYONDGBrowseProteinTrack = undefined;
                     window.BEYONDGBrowse = {
                         msScanDataInfoStore: [],  // {lcsLengthArray, selectedRefSeqIndex, diffFromRefSequenceResult, massAndIntensityMappingResult, detailArrayOfProteoformSequence} of each ScanId
-                        annotationStore: []
+                        annotationStore: [],
+                        currentVisibleMsSpectraTrackNum: 0
                         // Following are deprecated
                         // mSScanMassResultArray: [],
                         // diffFromRefSequenceResult: [],
