@@ -181,10 +181,10 @@ define([
 
                             filteredMSScanMassMappingResultArray.push(resultObjectInThisBlock);
                         }
-                        else if (massAndIntensityMappingResult[index].leftBaseInBp >= blockOffsetEndBase)
-                        {
-                            break;
-                        }
+                        // else if (massAndIntensityMappingResult[index].leftBaseInBp >= blockOffsetEndBase)
+                        // {
+                        //     break;
+                        // }
                     }
 
                     if(filteredMSScanMassMappingResultArray.length === 0)
