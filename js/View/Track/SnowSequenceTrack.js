@@ -15,8 +15,7 @@ define(
         'JBrowse/View/TrackConfigEditor',
         'JBrowse/View/ConfirmDialog',
         'JBrowse/Util',
-        '../Dialog/SnowAnnotationDialog',
-        '../../Util/diff'
+        '../Dialog/SnowAnnotationDialog'
     ],
     function(
         declare,
@@ -34,8 +33,7 @@ define(
         TrackConfigEditor,
         ConfirmDialog,
         Util,
-        SnowAnnotationDialog,
-        JsDiff
+        SnowAnnotationDialog
     )
     {
         return declare(
@@ -45,7 +43,6 @@ define(
             {
                 constructor: function (args) {
                     let _this = this;
-                    _this.blockObjectArray = [];
                     window.BEYONDGBrowseProteinTrack = _this;
                     window.BEYONDGBrowse_DebugPrintReferenceGenomeSequence = function (refName, startPos, endPos) {
                         _this._printRefSeqAndConceptualTranslation(_this, refName, startPos, endPos)
@@ -117,13 +114,14 @@ define(
                         "GGG" : "G",
                         "GGT" : "G"
                     };
+                    _this.blocksJustFilled = [];
 
                     _this._subscribeEvents();
                 },
 
                 _subscribeEvents: function() {
                     let _this = this;
-                    _this.proteoformToDrawScanIdArray = [];
+                    _this.proteoformTrackToDrawArray = [];
 
                     // Subscribe draw proteoform event from module <SnowCanvasFeatures>
                     // Fill the proteoformToDraw Array
@@ -135,7 +133,11 @@ define(
                             selectedRefSeqIndex, diffFromRefSequenceResult
                         ){
                             SnowConsole.info('Event: BEYONDGBrowse/addSingleProteoformScan', arguments);
-                            _this.proteoformToDrawScanIdArray[scanId] = {
+                            // if(!_this.proteoformToDrawScanIdArray.hasOwnProperty(msScanMassTrackId) || typeof(_this.proteoformToDrawScanIdArray[msScanMassTrackId]) != "object" )
+                            // {
+                            //
+                            // }
+                            _this.proteoformTrackToDrawArray[msScanMassTrackId] = {
                                 proteoformSequence: proteoformSequence,
                                 proteoformStartPosition: proteoformStartPosition,
                                 proteoformEndPosition: proteoformEndPosition,
@@ -147,14 +149,8 @@ define(
                                 selectedRefSeqIndex
                             };
 
+                            _this._queryAnnotationDataFromBackend('Scan' + scanId, undefined, undefined, undefined);
                             drawProteoform();
-                        }
-                    );
-
-                    _this.browser.subscribe(
-                        '/jbrowse/v1/n/tracks/navigate',
-                        function () {
-                            _this.proteoformToDrawScanIdArray = [];
                         }
                     );
 
@@ -166,44 +162,39 @@ define(
                                 function (trackToHide) {
                                     if(trackToHide.BEYONDGBrowseMassTrack === true)
                                     {
-                                        _this.proteoformToDrawScanIdArray.forEach(
-                                            function (item, index) {
-                                                if(trackToHide.msScanMassTrackId === item.msScanMassTrackId)
-                                                {
-                                                    delete _this.proteoformToDrawScanIdArray[index];
-                                                }
-                                            }
-                                        );
+                                        delete _this.proteoformTrackToDrawArray[trackToHide.msScanMassTrackId];
+                                        // _this.proteoformTrackToDrawArray.forEach(
+                                        //     function (item, index) {
+                                        //         if(trackToHide.msScanMassTrackId === item.msScanMassTrackId)
+                                        //         {
+                                        //             delete _this.proteoformTrackToDrawArray[index];
+                                        //         }
+                                        //     }
+                                        // );
                                     }
                                 }
                             );
+
+                            drawProteoform();
                         }
                     );
 
-                    // _this.browser.subscribe(
-                    //     '/jbrowse/v1/n/tracks/visibleChanged',
-                    //     function () {
-                    //         dojoQuery('.snow_proteoform_frame').forEach(domConstruct.destroy);
-                    //         drawProteoform();
-                    //     }
-                    // );
-
                     // Draw proteoform
                     function drawProteoform() {
-                        _this.proteoformToDrawScanIdArray.sort(
-                            (itemA, itemB) => {
-                                return itemA.msScanMassTrackId - itemB.msScanMassTrackId;
-                            }
-                        );
+                        // _this.proteoformTrackToDrawArray.sort(
+                        //     (itemA, itemB) => {
+                        //         return itemA.msScanMassTrackId - itemB.msScanMassTrackId;
+                        //     }
+                        // );
 
-                        for(let index in _this.proteoformToDrawScanIdArray)
+                        for(let index in _this.proteoformTrackToDrawArray)
                         {
                             if(
-                                _this.proteoformToDrawScanIdArray.hasOwnProperty(index) &&
-                                typeof _this.proteoformToDrawScanIdArray[index] == "object"
+                                _this.proteoformTrackToDrawArray.hasOwnProperty(index) &&
+                                typeof _this.proteoformTrackToDrawArray[index] == "object"
                             )
                             {
-                                let proteoformObject = _this.proteoformToDrawScanIdArray[index];
+                                let proteoformObject = _this.proteoformTrackToDrawArray[index];
                                 _this._drawProteoformSequenceEventCallback(
                                     proteoformObject.proteoformSequence, proteoformObject.proteoformStartPosition,
                                     proteoformObject.proteoformEndPosition, proteoformObject.isReverseStrand,
@@ -215,12 +206,6 @@ define(
                         }
                     }
 
-                    // _this.browser.subscribe(
-                    //     '/jbrowse/v1/n/tracks/navigate',
-                    //     function () {
-                    //         drawProteoform();
-                    //     }
-                    // );
                     // _this.browser.subscribe(
                     //     '/jbrowse/v1/n/tracks/redraw',
                     //     function () {
@@ -235,10 +220,11 @@ define(
                     //         _this.proteoformToDrawScanIdArray = [];
                     //     }
                     // );
+
                     // _this.browser.subscribe(
-                    //     '/jbrowse/v1/n/tracks/visibleChanged',
+                    //     '/jbrowse/v1/n/tracks/navigate',
                     //     function () {
-                    //         drawProteoform();
+                    //         _this.proteoformToDrawScanIdArray = [];
                     //     }
                     // );
                 },
@@ -434,19 +420,240 @@ define(
                     return newTrackMenuOptions;
                 },
 
+                _generateDetailArrayOfProteoformSequence: function(
+                    proteoformStartPosition, proteoformEndPosition,
+                    isReverseStrand, scanId, diffFromRefSequenceResult, mSScanMassMappingResultArray
+                ){
+                    if(
+                        window.BEYONDGBrowse.msScanDataInfoStore.hasOwnProperty(scanId) &&
+                        typeof window.BEYONDGBrowse.msScanDataInfoStore[scanId].detailArrayOfProteoformSequence == "object"
+                    )
+                    {
+                        return window.BEYONDGBrowse.msScanDataInfoStore[scanId].detailArrayOfProteoformSequence;
+                    }
+
+                    let detailArrayOfProteoformSequence = [];
+                    let aminoAcidDetailTemplate = {
+                        id: undefined,
+                        isEmpty: false,
+                        isReverse: isReverseStrand,
+                        scan: scanId,
+                        headOrTailFlag: undefined,
+                        leftPosition: undefined,
+                        aminoAcidCharacter: undefined,
+                        bIonFlag: undefined,
+                        bIonFlagTag: undefined,
+                        yIonFlag: undefined,
+                        yIonFlagTag: undefined,
+                        modification: undefined,
+                        isRefAdded: undefined,
+                        isRefRemoved: undefined
+                    };
+                    let aminoAcidCharacterCount = 0;
+                    let aminoAcidWithRemovedCharacterCount = 0;
+
+                    diffFromRefSequenceResult.forEach(
+                        function(item, index) {
+                            if(typeof item === 'object' && item.value !== undefined)
+                            {
+                                if(item.added === undefined && item.removed === undefined)
+                                {
+                                    for(let i = 0; i < item.value.length; i++)
+                                    {
+                                        let newNode = dojoLang.clone(aminoAcidDetailTemplate);
+                                        newNode.id = aminoAcidCharacterCount;
+                                        newNode.headOrTailFlag = (index === 0 && i === 0) ? 'HEAD' : '';
+                                        newNode.headOrTailFlag += (
+                                            index === diffFromRefSequenceResult.length - 1 &&
+                                            i === item.value.length - 1
+                                        ) ? 'TAIL' : '';
+                                        newNode.leftPosition =
+                                            proteoformStartPosition + 3 * aminoAcidWithRemovedCharacterCount;
+                                        newNode.aminoAcidCharacter = item.value.charAt(i);
+
+                                        for(let i = 0; i < mSScanMassMappingResultArray.length; i++)
+                                        {
+                                            if(mSScanMassMappingResultArray[i].position === aminoAcidWithRemovedCharacterCount)
+                                            {
+                                                if(mSScanMassMappingResultArray[i].type === 'B')
+                                                {
+                                                    newNode.bIonFlag = mSScanMassMappingResultArray[i].label;
+                                                    newNode.bIonFlagTag = true;
+                                                }
+                                                else if (mSScanMassMappingResultArray[i].type === 'Y')
+                                                {
+                                                    newNode.yIonFlag = mSScanMassMappingResultArray[i].label;
+                                                    newNode.yIonFlagTag = true;
+                                                }
+                                            }
+                                        }
+                                        aminoAcidCharacterCount++;
+                                        aminoAcidWithRemovedCharacterCount++;
+                                        detailArrayOfProteoformSequence.push(newNode);
+                                    }
+                                }
+                                else if(item.added === true)
+                                {
+                                    if(detailArrayOfProteoformSequence.length <= 0 || typeof detailArrayOfProteoformSequence[0] !== 'object')
+                                    {
+                                        return false;
+                                    }
+                                    let prevNode = detailArrayOfProteoformSequence[detailArrayOfProteoformSequence.length - 1];
+                                    let refAddedCharacters = item.value;
+                                    if(item.modification !== undefined)
+                                    {
+                                        prevNode.modificationColor = item.modification.color;
+                                    }
+                                    prevNode.modification = refAddedCharacters;
+                                }
+                                else if(item.removed === true)
+                                {
+                                    for(let i = 0; i < item.value.length; i++)
+                                    {
+                                        let newNode = dojoLang.clone(aminoAcidDetailTemplate);
+                                        newNode.id = aminoAcidCharacterCount;
+                                        newNode.headOrTailFlag = (index === 0 && i === 0) ? 'HEAD' : '';
+                                        newNode.headOrTailFlag += (
+                                            index === diffFromRefSequenceResult.length - 1 &&
+                                            i === item.value.length - 1
+                                        ) ? 'TAIL' : '';
+                                        newNode.leftPosition =
+                                            proteoformStartPosition + 3 * aminoAcidWithRemovedCharacterCount;
+                                        newNode.aminoAcidCharacter = '-';
+                                        newNode.isRefRemoved = true;
+                                        aminoAcidWithRemovedCharacterCount++;
+                                        detailArrayOfProteoformSequence.push(newNode);
+                                    }
+                                }
+                                else
+                                {
+                                    console.error('diffFromRefSequenceResult error', item, index);
+                                }
+                            }
+                            else
+                            {
+                                console.error('diffFromRefSequenceResult error', item, index);
+                            }
+                        }
+                    );
+
+                    let lastIndexForBIon = 0;
+                    let lastIndexForYIon = detailArrayOfProteoformSequence.length - 1;
+                    for(let index = 0; index < detailArrayOfProteoformSequence.length; index++)
+                    {
+                        if(detailArrayOfProteoformSequence.hasOwnProperty(index))
+                        {
+                            if(detailArrayOfProteoformSequence[index].bIonFlag !== undefined)
+                            {
+                                for(let j = lastIndexForBIon; j < index; j++)
+                                {
+                                    detailArrayOfProteoformSequence[j].bIonFlag =
+                                        detailArrayOfProteoformSequence[index].bIonFlag;
+                                }
+                                lastIndexForBIon = index + 1;
+                            }
+
+                            if(
+                                detailArrayOfProteoformSequence[
+                                    detailArrayOfProteoformSequence.length - 1 - index
+                                ].yIonFlag !== undefined
+                            )
+                            {
+                                for(
+                                    let k = lastIndexForYIon;
+                                    k > detailArrayOfProteoformSequence.length - 1 - index;
+                                    k--
+                                )
+                                {
+                                    detailArrayOfProteoformSequence[k].yIonFlag =
+                                        detailArrayOfProteoformSequence[
+                                            detailArrayOfProteoformSequence.length - 1 - index
+                                        ].yIonFlag;
+                                }
+                                lastIndexForYIon = detailArrayOfProteoformSequence.length - 1 - index - 1;
+                            }
+                        }
+                    }
+
+                    window.BEYONDGBrowse.msScanDataInfoStore[scanId] =
+                        window.BEYONDGBrowse.msScanDataInfoStore[scanId] || {};
+                    window.BEYONDGBrowse.msScanDataInfoStore[scanId].detailArrayOfProteoformSequence = detailArrayOfProteoformSequence;
+                    return detailArrayOfProteoformSequence;
+                },
+
+                _queryAnnotationDataFromBackend: function(scanIdLabel, refName, currentRangeStartPosition, currentRangeEndPosition) {
+                    let _this = this;
+
+                    if(scanIdLabel !== undefined)
+                    {
+                        if(
+                            !window.BEYONDGBrowse.annotationStore.hasOwnProperty(scanIdLabel)
+                            && typeof window.BEYONDGBrowse.annotationStore[scanIdLabel] != "object"
+                        )
+                        {
+                            let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
+                                + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + scanIdLabel + '/'
+                                + '1..9999';
+
+                            dojoRequest(
+                                requestUrl,
+                                {
+                                    method: 'GET',
+                                    headers: {
+                                        'X-Requested-With': null
+                                    },
+                                    handleAs: 'json'
+                                }
+                            ).then(
+                                function (proteoformAnnotationData) {
+                                    SnowConsole.info('proteoformAnnotation:', proteoformAnnotationData);
+                                    window.BEYONDGBrowse.annotationStore[scanIdLabel] = proteoformAnnotationData;
+                                },
+                                function (errorReason) {
+                                    console.error('Query proteoformAnnotation error', requestUrl, errorReason);
+                                }
+                            );
+                        }
+                    }
+
+                    if(refName && currentRangeStartPosition && currentRangeEndPosition)
+                    {
+                        let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
+                            + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + refName + '/'
+                            + currentRangeStartPosition + '..' + currentRangeEndPosition;
+
+                        dojoRequest(
+                            requestUrl,
+                            {
+                                method: 'GET',
+                                headers: {
+                                    'X-Requested-With': null
+                                },
+                                handleAs: 'json'
+                            }
+                        ).then(
+                            function (currentRangeAnnotationData) {
+                                SnowConsole.info('currentRangeAnnotation:', currentRangeAnnotationData);
+                                window.BEYONDGBrowse.annotationStore['currentRangeRefSeq'] = {
+                                    refName: refName,
+                                    startPos: currentRangeStartPosition,
+                                    endPos: currentRangeEndPosition,
+                                    annotationData: currentRangeAnnotationData
+                                };
+                            },
+                            function (errorReason) {
+                                console.error('Query currentRangeAnnotation error', requestUrl, errorReason);
+                            }
+                        );
+                    }
+                },
+
                 _drawProteoformSequenceEventCallback: function(
                     proteoformSequence, proteoformStartPosition, proteoformEndPosition,
                     isReverseStrand, scanId, mSScanMassMappingResultArray, msScanMassTrackId,
                     diffFromRefSequenceResult, selectedRefSeqIndex, _this
                 ){
-                    // 2019-08-16: New implementation:
-                    // if(_this.proteoformScanIdArray.hasOwnProperty(scanId) && _this.proteoformScanIdArray[scanId] === true)
-                    // {
-                    //     return;
-                    // }
-                    // _this.proteoformScanIdArray[scanId] = true;
-                    dojoQuery('.snow_proteoform_frame.scan_' + scanId).forEach(domConstruct.destroy);
-
+                    // dojoQuery('.snow_proteoform_frame.scan_' + scanId).forEach(domConstruct.destroy);
                     // Old Implementation, deprecated
                     // const lengthPerAminoAcidCharacter = 3;
                     // let detailArrayOfProteoformSequence = [];
@@ -520,164 +727,16 @@ define(
                     //     }
                     //
                     // }
-
                     // 2019-11-12 New implementation (Analyze the diffFromRefSequenceResult Object Array)
-                    let aminoAcidDetailTemplate = {
-                        id: undefined,
-                        isEmpty: false,
-                        isReverse: isReverseStrand,
-                        scan: scanId,
-                        headOrTailFlag: undefined,
-                        leftPosition: undefined,
-                        aminoAcidCharacter: undefined,
-                        bIonFlag: undefined,
-                        bIonFlagTag: undefined,
-                        yIonFlag: undefined,
-                        yIonFlagTag: undefined,
-                        modification: undefined,
-                        isRefAdded: undefined,
-                        isRefRemoved: undefined
-                    };
-                    const lengthPerAminoAcidCharacter = 3;
-                    let detailArrayOfProteoformSequence = [];
-                    let aminoAcidCharacterCount = 0;
-                    let aminoAcidWithRemovedCharacterCount = 0;
 
-                    diffFromRefSequenceResult.forEach(
-                        function(item, index) {
-                            if(typeof item === 'object' && item.value !== undefined)
-                            {
-                                if(item.added === undefined && item.removed === undefined)
-                                {
-                                    for(let i = 0; i < item.value.length; i++)
-                                    {
-                                        let newNode = dojoLang.clone(aminoAcidDetailTemplate);
-                                        newNode.id = aminoAcidCharacterCount;
-                                        newNode.headOrTailFlag = (index === 0 && i === 0) ? 'HEAD' : '';
-                                        newNode.headOrTailFlag += (
-                                            index === diffFromRefSequenceResult.length - 1 &&
-                                            i === item.value.length - 1
-                                        ) ? 'TAIL' : '';
-                                        newNode.leftPosition =
-                                            proteoformStartPosition + lengthPerAminoAcidCharacter * aminoAcidWithRemovedCharacterCount;
-                                        newNode.aminoAcidCharacter = item.value.charAt(i);
-
-                                        for(let i = 0; i < mSScanMassMappingResultArray.length; i++)
-                                        {
-                                            if(mSScanMassMappingResultArray[i].position === aminoAcidWithRemovedCharacterCount)
-                                            {
-                                                if(mSScanMassMappingResultArray[i].type === 'B')
-                                                {
-                                                    newNode.bIonFlag = mSScanMassMappingResultArray[i].label;
-                                                    newNode.bIonFlagTag = true;
-                                                }
-                                                else if (mSScanMassMappingResultArray[i].type === 'Y')
-                                                {
-                                                    newNode.yIonFlag = mSScanMassMappingResultArray[i].label;
-                                                    newNode.yIonFlagTag = true;
-                                                }
-                                            }
-                                        }
-                                        aminoAcidCharacterCount++;
-                                        aminoAcidWithRemovedCharacterCount++;
-                                        detailArrayOfProteoformSequence.push(newNode);
-                                    }
-                                }
-                                else if(item.added === true)
-                                {
-                                    if(detailArrayOfProteoformSequence.length <= 0 || typeof detailArrayOfProteoformSequence[0] !== 'object')
-                                    {
-                                        return false;
-                                    }
-                                    let prevNode = detailArrayOfProteoformSequence[detailArrayOfProteoformSequence.length - 1];
-                                    let refAddedCharacters = item.value;
-                                    if(item.modification !== undefined)
-                                    {
-                                        prevNode.modificationColor = item.modification.color;
-                                    }
-                                    prevNode.modification = refAddedCharacters;
-                                }
-                                else if(item.removed === true)
-                                {
-                                    for(let i = 0; i < item.value.length; i++)
-                                    {
-                                        let newNode = dojoLang.clone(aminoAcidDetailTemplate);
-                                        newNode.id = aminoAcidCharacterCount;
-                                        newNode.headOrTailFlag = (index === 0 && i === 0) ? 'HEAD' : '';
-                                        newNode.headOrTailFlag += (
-                                            index === diffFromRefSequenceResult.length - 1 &&
-                                            i === item.value.length - 1
-                                        ) ? 'TAIL' : '';
-                                        newNode.leftPosition =
-                                            proteoformStartPosition + lengthPerAminoAcidCharacter * aminoAcidWithRemovedCharacterCount;
-                                        newNode.aminoAcidCharacter = '-';
-                                        newNode.isRefRemoved = true;
-                                        aminoAcidWithRemovedCharacterCount++;
-                                        detailArrayOfProteoformSequence.push(newNode);
-                                    }
-                                }
-                                else
-                                {
-                                    console.error('diffFromRefSequenceResult error', item, index);
-                                }
-                            }
-                            else
-                            {
-                                console.error('diffFromRefSequenceResult error', item, index);
-                            }
-                        }
+                    let detailArrayOfProteoformSequence = _this._generateDetailArrayOfProteoformSequence(
+                        proteoformStartPosition, proteoformEndPosition, isReverseStrand,
+                        scanId, diffFromRefSequenceResult, mSScanMassMappingResultArray
                     );
 
-                    let lastIndexForBIon = 0;
-                    let lastIndexForYIon = detailArrayOfProteoformSequence.length - 1;
-                    for(let index = 0; index < detailArrayOfProteoformSequence.length; index++)
-                    {
-                        if(detailArrayOfProteoformSequence.hasOwnProperty(index))
-                        {
-                            // for(let j = index; j < detailArrayOfProteoformSequence.length; j++)
-                            // {
-                            //     if(detailArrayOfProteoformSequence[j].bIonFlag !== undefined)
-                            //     {
-                            //         detailArrayOfProteoformSequence[index].bIonFlag =
-                            //             detailArrayOfProteoformSequence[j].bIonFlag;
-                            //         break;
-                            //     }
-                            // }
-
-                            if(detailArrayOfProteoformSequence[index].bIonFlag !== undefined)
-                            {
-                                for(let j = lastIndexForBIon; j < index; j++)
-                                {
-                                    detailArrayOfProteoformSequence[j].bIonFlag =
-                                        detailArrayOfProteoformSequence[index].bIonFlag;
-                                }
-                                lastIndexForBIon = index + 1;
-                            }
-
-                            if(
-                                detailArrayOfProteoformSequence[
-                                    detailArrayOfProteoformSequence.length - 1 - index
-                                ].yIonFlag !== undefined
-                            )
-                            {
-                                for(
-                                    let k = lastIndexForYIon;
-                                    k > detailArrayOfProteoformSequence.length - 1 - index;
-                                    k--
-                                )
-                                {
-                                    detailArrayOfProteoformSequence[k].yIonFlag =
-                                        detailArrayOfProteoformSequence[
-                                            detailArrayOfProteoformSequence.length - 1 - index
-                                        ].yIonFlag;
-                                }
-                                lastIndexForYIon = detailArrayOfProteoformSequence.length - 1 - index - 1;
-                            }
-                        }
-                    }
-
-                    let firstAttachedBlockIndex = _this.firstAttached;
-                    let lastAttachedBlockIndex = _this.lastAttached;
+                    // let firstAttachedBlockIndex = _this.firstAttached;
+                    // let lastAttachedBlockIndex = _this.lastAttached;
+                    // let snowSequenceTrackBlocks = _this.blocksJustFilled || _this.blocks;
                     let snowSequenceTrackBlocks = _this.blocks;
                     for(let blockIndex in snowSequenceTrackBlocks)
                     {
@@ -691,8 +750,20 @@ define(
                             let blockEndBaseWithOffset = blockEndBase - (blockEndBase % 3);
                             let blockLeftOffsetValue = blockStartBaseWithOffset - blockStartBase;
                             let blockActualBpLength = blockEndBase - blockStartBase;
-                            let aminoAcidCharactersPerBlock = (blockEndBaseWithOffset - blockStartBaseWithOffset) / lengthPerAminoAcidCharacter;
+                            let aminoAcidCharactersPerBlock = (blockEndBaseWithOffset - blockStartBaseWithOffset) / 3;
                             let detailArrayOfProteoformInThisBlock = [];
+                            // dojoQuery(
+                            //     '.snow_proteoform_frame.msScanMassTrackId_' + msScanMassTrackId,
+                            //     snowSequenceTrackBlocks[blockIndex].domNode
+                            // ).forEach(domConstruct.destroy);
+                            if(
+                                dojoQuery(
+                                    '.snow_proteoform_frame.msScanMassTrackId_' + msScanMassTrackId, snowSequenceTrackBlocks[blockIndex].domNode
+                                ).length !== 0
+                            )
+                            {
+                                continue;
+                            }
 
                             for(let index in detailArrayOfProteoformSequence)
                             {
@@ -790,8 +861,8 @@ define(
                                         '.Snow_translatedSequence_F') + selectedRefSeqIndex + ' td'
                                 ).removeClass('hoverState');
                             };
-
                             snowSequenceTrackBlocks[blockIndex].domNode.appendChild(newProteoformSequenceDiv);
+
                             _this._renderAnnotationMark(
                                 'Scan' + scanId,
                                 newProteoformSequenceDiv,
@@ -800,18 +871,19 @@ define(
                                 true
                             );
 
-                            let totalHeight = 0;
-                            dojoArray.forEach(
-                                snowSequenceTrackBlocks[blockIndex].domNode.childNodes,
-                                function( table ) {
-                                    totalHeight += (table.clientHeight || table.offsetHeight);
-                                }
-                            );
-                            _this.heightUpdate( totalHeight, blockIndex );
-
+                            // let totalHeight = 0;
+                            // dojoArray.forEach(
+                            //     snowSequenceTrackBlocks[blockIndex].domNode.childNodes,
+                            //     function( table ) {
+                            //         if(table.className !== 'loading')
+                            //         {
+                            //             totalHeight += (table.clientHeight || table.offsetHeight);
+                            //         }
+                            //     }
+                            // );
+                            // _this.heightUpdate( totalHeight, blockIndex );
                         }
                     }
-
 
                     // Old implementation
                     // console.info('snow/showProteoform received:',
@@ -873,6 +945,18 @@ define(
                     // this.heightUpdate( totalHeight, block.blockIndex );
                 },
 
+                showRange: function(first, last, startBase, bpPerBlock, scale,
+                                    containerStart, containerEnd, finishCallback) {
+                    let _this = this;
+                    let _arguments = arguments;
+                    let currentRangeLeftBase = startBase;
+                    let currentRangeRightBase = startBase + (last - first + 1) * bpPerBlock;
+
+                    // _this.blocksJustFilled = [];
+                    _this._queryAnnotationDataFromBackend(undefined, _this.refSeq.name, currentRangeLeftBase, currentRangeRightBase);
+                    _this.inherited(_arguments);
+                },
+
                 fillBlock: function(args) {
                     let _this = this;
                     let blockIndex = args.blockIndex;
@@ -882,8 +966,8 @@ define(
                     let scale = args.scale;
                     let leftExtended = leftBase - 2;
                     let rightExtended = rightBase + 2;
-                    _this.blockObjectArray[blockIndex] = blockObject;
                     let renderAnnotationMarkDeferred = new dojoDeferred();
+                    // _this.blocksJustFilled.push(blockObject);
 
                     renderAnnotationMarkDeferred.then(
                         function () {
@@ -905,7 +989,7 @@ define(
                         blockObject.domNode
                     );
 
-                    this.heightUpdate( blur.offsetHeight+2*blur.offsetTop, blockIndex );
+                    this.heightUpdate(blur.offsetHeight + 2 * blur.offsetTop, blockIndex);
 
                     // if we are zoomed in far enough to draw bases, then draw them
                     if ( scale >= 1.3 )
@@ -932,7 +1016,7 @@ define(
                                     args.errorCallback(error);
                                 else {
                                     console.error(error);
-                                    args.finishCallback()
+                                    args.finishCallback();
                                 }
                             }
                         );
@@ -945,6 +1029,7 @@ define(
                 },
 
                 _fillSequenceBlock: function( block, blockIndex, scale, seq ) {
+                    let _this = this;
                     seq = seq.replace(/\s/g,this.nbsp);
                     let blockStart = block.startBase;
                     let blockEnd = block.endBase;
@@ -970,8 +1055,6 @@ define(
                     // Render forward strand translation
                     if( translationToShow[0] || translationToShow[1] || translationToShow[2] )
                     {
-                        //if( this.config.showForwardStrand && this.config.showTranslation ) {
-
                         let frameDiv = [];
                         // array.forEach(translationToShow,function(configItem, i){
                         //         if(!!configItem)
@@ -1017,54 +1100,26 @@ define(
                         }
                     }
 
-                    // Render forward strand sequence
-                    // if( false )
-                    // {
-                    //     // make a table to contain the sequences
-                    //     let charSize = this.getCharacterMeasurements('sequence');
-                    //     let bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
-                    //     let seqNode;
-                    //     if( this.config.showReverseStrand || this.config.showForwardStrand )
-                    //         seqNode = domConstruct.create(
-                    //             "table", {
-                    //                 className: "sequence" + (bigTiles ? ' big' : '') + (this.config.showColor ? '' : ' nocolor'),
-                    //                 style: { width: "100%" }
-                    //             }, block.domNode);
-                    //
-                    //     // add a table for the forward strand
-                    //     if( this.config.showForwardStrand )
-                    //         seqNode.appendChild( this._renderSeqTr( blockStart, blockEnd, blockSeq, scale ));
-                    // }
-                    // Do not render reverse strand sequence and translation
-                    if( true )
+                    // Render reverse strand translation
+                    if( translationToShow[3] || translationToShow[4] || translationToShow[5] )
                     {
-                        // // and one for the reverse strand
-                        // // if( this.config.showReverseStrand ) {
-                        // let comp = this._renderSeqTr( blockStart, blockEnd, Util.complement(blockSeq), scale );
-                        // comp.className = 'revcom';
-                        // seqNode.appendChild( comp );
-
-                        if( translationToShow[3] || translationToShow[4] || translationToShow[5] )
-                        {
-                            // if( this.config.showTranslation ) {
-                            let frameDiv = [];
-                            for(let i = 0; i < 3; i++) {
-                                let transStart = blockStart + 1 - i;
-                                let frame = (transStart % 3 + 3 + leftover) % 3;
-                                let translatedDiv = this._renderTranslation( extStartSeq, i, blockStart, blockEnd, blockLength, scale, true );
-                                frameDiv[frame] = translatedDiv;
-                                domClass.add( translatedDiv, "frame" + frame );
-                                domClass.add( translatedDiv, "Snow_translatedSequence_R" + (2 - frame) );
+                        let frameDiv = [];
+                        for(let i = 0; i < 3; i++) {
+                            let transStart = blockStart + 1 - i;
+                            let frame = (transStart % 3 + 3 + leftover) % 3;
+                            let translatedDiv = this._renderTranslation( extStartSeq, i, blockStart, blockEnd, blockLength, scale, true );
+                            frameDiv[frame] = translatedDiv;
+                            domClass.add( translatedDiv, "frame" + frame );
+                            domClass.add( translatedDiv, "Snow_translatedSequence_R" + (2 - frame) );
+                        }
+                        for( let i = 0; i < 3; i++ ) {
+                            if(translationToShow[ 3 + i ])
+                            {
+                                block.domNode.appendChild( frameDiv[i] );
                             }
-                            for( let i = 0; i < 3; i++ ) {
-                                if(translationToShow[ 3 + i ])
-                                {
-                                    block.domNode.appendChild( frameDiv[i] );
-                                }
-                                else
-                                {
-                                    domConstruct.destroy( frameDiv[i] );
-                                }
+                            else
+                            {
+                                domConstruct.destroy( frameDiv[i] );
                             }
                         }
                     }
@@ -1073,6 +1128,11 @@ define(
                     dojoArray.forEach( block.domNode.childNodes, function( table ) {
                         totalHeight += (table.clientHeight || table.offsetHeight);
                     });
+                    totalHeight +=
+                        window.BEYONDGBrowse.currentVisibleMsSpectraTrackNum * (
+                            block.domNode.lastChild.clientHeight ||
+                            block.domNode.lastChild.offsetHeight
+                        );
                     this.heightUpdate( totalHeight, blockIndex );
                 },
 
@@ -1383,6 +1443,17 @@ define(
                                 // modificationText = modificationText.replace(';', ';<br>');
                                 let modificationDivWidth = aminoAcidTableCellActualWidth / 2;
                                 let modificationDivHeight = aminoAcidTableCellActualWidth / 2;
+
+                                let modificationContainer = domConstruct.create('td',
+                                    {
+                                        className: 'Snow_aminoAcid_modification_container',
+                                        style: {
+                                            width: 0,
+                                            borderRight: 0
+                                        }
+                                    }
+                                );
+
                                 let modificationDivNode = domConstruct.create('div',
                                     {
                                         className: 'Snow_aminoAcid_modification_label',
@@ -1393,7 +1464,8 @@ define(
                                             // transform: 'translate( -' + modificationDivWidth/2 +
                                             //     'px, ' + modificationDivHeight/2 + 'px)'
                                         }
-                                    }
+                                    },
+                                    modificationContainer
                                 );
 
                                 let modificationTextSpanNode = domConstruct.create('span',
@@ -1431,7 +1503,7 @@ define(
                                     }
                                 );
 
-                                tr.appendChild(modificationDivNode);
+                                tr.appendChild(modificationContainer);
                             }
 
                             if(detailArrayOfProteoformInThisBlock[index].headOrTailFlag.includes('HEAD'))
@@ -1474,108 +1546,22 @@ define(
                     return container;
                 },
 
-                // Deprecated
-                _renderProteoformSequence_Old: function(
-                    proteoformSequence, offset,
-                    blockStart, blockEnd,
-                    blockLength, scale, modificationPositionArray
-                ){
-                    let charSize = this.getCharacterMeasurements("aminoAcid");
-                    let bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
-                    let charWidth = 100 / (blockLength / 3);
-
-                    let container = domConstruct.create(
-                        'div',
-                        {
-                            className: 'Snow_translatedSequence'
-                        }
-                    );
-
-                    let tableWidthPercent = (charWidth * proteoformSequence.length);
-                    tableWidthPercent = tableWidthPercent <= 100 ? tableWidthPercent : 100;
-                    let table  = domConstruct.create('table',
-                        {
-                            className: 'Snow_translatedSequence offset'+offset+(bigTiles ? ' big' : ''),
-                            style:
-                                {
-                                    // width: (charWidth * proteoformSequence.length) + "%"
-                                    width: tableWidthPercent + '%'
-                                }
-                        },
-                        container
-                    );
-                    let tr = domConstruct.create('tr', {}, table );
-                    table.style.left = (charWidth*offset/3) + "%";
-
-                    let blockWidth = blockLength * scale;
-                    // let tableWidthScale = 100 / (charWidth * proteoformSequence.length);
-                    // let tableActualWidth = blockWidth / tableWidthScale;
-                    // let spanActualWidth = (tableActualWidth - proteoformSequence.length) / proteoformSequence.length;
-                    let spanActualWidth = blockWidth * (tableWidthPercent * 0.01) / proteoformSequence.length;
-
-
-                    charWidth = 100 / proteoformSequence.length + "%";
-
-                    let drawChars = scale >= charSize.w;
-                    if( drawChars )
-                        table.className += ' big';
-
-                    for( let i=0; i<proteoformSequence.length; i++ ) {
-                        let aminoAcidSpan = document.createElement('td');
-                        aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_'+proteoformSequence.charAt(i).toLowerCase();
-
-                        if(this.config.drawCircle)
-                        {
-                            aminoAcidSpan.className += ' Snow_aminoAcid_circle';
-                        }
-                        if(this.config.animationEnabled)
-                        {
-                            aminoAcidSpan.className += ' Snow_aminoAcid_animation';
-                        }
-                        // Modification mark
-                        if(modificationPositionArray.indexOf(i) !== -1)
-                        {
-                            aminoAcidSpan.className += ' Snow_aminoAcid_mark_right_top';
-                        }
-
-                        aminoAcidSpan.style.width = charWidth;
-                        aminoAcidSpan.style.height = spanActualWidth + 'px';
-                        if( drawChars ) {
-                            aminoAcidSpan.innerHTML = proteoformSequence.charAt( i );
-                        }
-                        tr.appendChild(aminoAcidSpan);
-                    }
-                    return container;
-                },
-
                 _renderAnnotationMark: function (refName, blockObject, blockStart, blockEnd, isProteoformSequence) {
-                    SnowConsole.debug('_renderAnnotationMark', refName, blockObject, blockStart, blockEnd);
-
                     let _this = this;
-                    let renderAnnotationDeferred = new dojoDeferred();
-                    let blockDomNode;
                     let frameDomNode;
+
                     if(isProteoformSequence === true)
                     {
                         frameDomNode = blockObject;
                     }
                     else
                     {
-                        blockDomNode = blockObject.domNode;
+                        let blockDomNode = blockObject.domNode;
                         frameDomNode = blockDomNode.firstChild;
                     }
                     let allAminoAcidCell = dojoQuery(".Snow_aminoAcid", frameDomNode);
-                    let proteoformPositionArray = [];
-                    allAminoAcidCell.forEach(
-                        function (item) {
-                            proteoformPositionArray.push(
-                                domAttr.get(item, 'proteoformPosition')
-                            );
-                        }
-                    );
-                    // Add dblclick event handler on all AmioAcid table cell
                     allAminoAcidCell.on('dblclick', function (event) {
-                        SnowConsole.debug('dblclick on .Snow_aminoAcid:', arguments);
+                            SnowConsole.debug('dblclick on .Snow_aminoAcid:', arguments);
                             let finishCallback = function () {
                                 domClass.add(event.target, 'Snow_annotation_mark');
                             };
@@ -1590,14 +1576,6 @@ define(
                                 thisAminoAcidCellPosition = domAttr.get(event.target, 'snowseqposition');
                             }
 
-                            // dojoLang.hitch(
-                            //     _this,
-                            //     _this._loadSpecificAnnotationAndPopupModal,
-                            //     refName,
-                            //     thisAminoAcidCellPosition,
-                            //     finishCallback
-                            // );
-
                             _this._loadSpecificAnnotationAndPopupModal(
                                 refName,
                                 thisAminoAcidCellPosition,
@@ -1606,87 +1584,153 @@ define(
                         }
                     );
 
-                    let blockRegion = blockEnd - blockStart;
-                    let blockStartExtended = undefined;
-                    let blockEndExtended = undefined;
+                    // let proteoformPositionArray = [];
+                    // allAminoAcidCell.forEach(
+                    //     function (item) {
+                    //         proteoformPositionArray.push(
+                    //             domAttr.get(item, 'proteoformPosition')
+                    //         );
+                    //     }
+                    // );
+                    // Add dblclick event handler on all AmioAcid table cell
 
-                    if(isProteoformSequence === true)
+                    // let blockRegion = blockEnd - blockStart;
+                    // let blockStartExtended = undefined;
+                    // let blockEndExtended = undefined;
+                    //
+                    // if(isProteoformSequence === true)
+                    // {
+                    //     // Offset is included in the start and end
+                    //     blockStartExtended = blockStart;
+                    //     blockEndExtended = blockEnd;
+                    // }
+                    // else
+                    // {
+                    //     blockStartExtended = blockStart + blockRegion * frameDomNode.snowSequenceOffset * 0.01;
+                    //     blockEndExtended = blockStart + allAminoAcidCell.length * 3;
+                    // }
+                    //
+                    // let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
+                    //     + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + refName + '/'
+                    //     + (
+                    //         isProteoformSequence === true ?
+                    //             Math.min.apply(null, proteoformPositionArray) : blockStartExtended
+                    //     )
+                    //     + '..' + (
+                    //         isProteoformSequence === true ?
+                    //             Math.max.apply(null, proteoformPositionArray) : blockEndExtended
+                    //     );
+                    //
+                    // dojoRequest(
+                    //     requestUrl,
+                    //     {
+                    //         method: 'GET',
+                    //         headers: {
+                    //             'X-Requested-With': null
+                    //         },
+                    //         handleAs: 'json'
+                    //     }
+                    // ).then(
+                    //     function (annotationObjectArray) {
+                    //         SnowConsole.info('annotationObjectArray:', annotationObjectArray);
+                    //         renderAnnotationDeferred.resolve(annotationObjectArray);
+                    //     },
+                    //     function (errorReason) {
+                    //         console.error('Error', requestUrl, errorReason);
+                    //     }
+                    // );
+                    // let renderAnnotationDeferred = new dojoDeferred();
+
+                    // renderAnnotationDeferred.then(
+                    //     function (annotationObjectArray) {
+                    //         for(let i = 0; i < allAminoAcidCell.length; i++)
+                    //         {
+                    //             let thisCellPosition = domAttr.get(
+                    //                 allAminoAcidCell[i],
+                    //                 isProteoformSequence === true ? 'proteoformPosition' : 'snowseqposition'
+                    //             );
+                    //             for(let j = 0; j < annotationObjectArray.length; j++)
+                    //             {
+                    //                 if(typeof annotationObjectArray[j] != "object")
+                    //                 {
+                    //                     console.error(annotationObjectArray[j]);
+                    //                     break;
+                    //                 }
+                    //                 let thisAnnotationPosition = annotationObjectArray[j].position;
+                    //                 if(
+                    //                     (
+                    //                         (isProteoformSequence === true) &&
+                    //                         (thisCellPosition === thisAnnotationPosition)
+                    //                     ) || (
+                    //                         (isProteoformSequence !== true) &&
+                    //                         (Math.abs(thisCellPosition - thisAnnotationPosition) <= 2)
+                    //                     )
+                    //                 )
+                    //                 {
+                    //                     // Match! Add style
+                    //                     domClass.add(allAminoAcidCell[i], 'Snow_annotation_mark');
+                    //                 }
+                    //             }
+                    //         }
+                    //     },
+                    //     function (errorReason) {
+                    //     }
+                    // );
+
+                    if(isProteoformSequence === true && window.BEYONDGBrowse.annotationStore.hasOwnProperty(refName))
                     {
-                        // Offset is included in the start and end
-                        blockStartExtended = blockStart;
-                        blockEndExtended = blockEnd;
-                    }
-                    else
-                    {
-                        blockStartExtended = blockStart + blockRegion * frameDomNode.snowSequenceOffset * 0.01;
-                        blockEndExtended = blockStart + allAminoAcidCell.length * 3;
-                    }
-
-                    let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
-                        + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + refName + '/'
-                        + (
-                            isProteoformSequence === true ?
-                                Math.min.apply(null, proteoformPositionArray) : blockStartExtended
-                        )
-                        + '..' + (
-                            isProteoformSequence === true ?
-                                Math.max.apply(null, proteoformPositionArray) : blockEndExtended
-                        );
-
-                    dojoRequest(
-                        requestUrl,
-                        {
-                            method: 'GET',
-                            headers: {
-                                'X-Requested-With': null
-                            },
-                            handleAs: 'json'
-                        }
-                    ).then(
-                        function (annotationObjectArray) {
-                            SnowConsole.info('annotationObjectArray:', annotationObjectArray);
-                            renderAnnotationDeferred.resolve(annotationObjectArray);
-                        },
-                        function (errorReason) {
-                            console.error('Error', requestUrl, errorReason);
-                        }
-                    );
-
-                    renderAnnotationDeferred.then(
-                        function (annotationObjectArray) {
-                            for(let i=0; i<allAminoAcidCell.length; i++)
+                        window.BEYONDGBrowse.annotationStore[refName].forEach(
+                            function(annotationItem)
                             {
-                                let thisCellPosition = domAttr.get(
-                                    allAminoAcidCell[i],
-                                    isProteoformSequence === true ? 'proteoformPosition' : 'snowseqposition'
-                                );
-                                for(let j=0; j<annotationObjectArray.length; j++)
+                                for(let i = 0; i < allAminoAcidCell.length; i++)
                                 {
-                                    if(typeof annotationObjectArray[j] != "object")
+                                    let thisAminoPosition = domAttr.get(
+                                        allAminoAcidCell[i],
+                                        'proteoformPosition'
+                                    );
+                                    if(thisAminoPosition === annotationItem.position)
                                     {
-                                        console.error(annotationObjectArray[j]);
+                                        // Match! Add style
+                                        domClass.add(allAminoAcidCell[i], 'Snow_annotation_mark');
+                                    }
+                                    else if(thisAminoPosition > annotationItem.position)
+                                    {
                                         break;
                                     }
-                                    let thisAnnotationPosition = annotationObjectArray[j].position;
+                                }
+                            }
+                        );
+                    }
+                    else if(
+                        window.BEYONDGBrowse.annotationStore.hasOwnProperty('currentRangeRefSeq') &&
+                        typeof window.BEYONDGBrowse.annotationStore.currentRangeRefSeq.annotationData == "object"
+                    )
+                    {
+                        window.BEYONDGBrowse.annotationStore.currentRangeRefSeq.annotationData.forEach(
+                            function(annotationItem)
+                            {
+                                for(let i = 0; i < allAminoAcidCell.length; i++)
+                                {
+                                    let thisAminoPosition = domAttr.get(
+                                        allAminoAcidCell[i],
+                                        'snowseqposition'
+                                    );
                                     if(
-                                        (
-                                            (isProteoformSequence === true) &&
-                                            (thisCellPosition === thisAnnotationPosition)
-                                        ) || (
-                                            (isProteoformSequence !== true) &&
-                                            (Math.abs(thisCellPosition - thisAnnotationPosition) <= 2)
-                                        )
+                                        thisAminoPosition === annotationItem.position
+                                        // Math.abs(thisAminoPosition - annotationItem.position) <= 2
                                     )
                                     {
                                         // Match! Add style
                                         domClass.add(allAminoAcidCell[i], 'Snow_annotation_mark');
                                     }
+                                    else if(thisAminoPosition > annotationItem.position)
+                                    {
+                                        break;
+                                    }
                                 }
                             }
-                        },
-                        function (errorReason) {
-                        }
-                    )
+                        );
+                    }
 
                 },
 
@@ -1802,8 +1846,81 @@ define(
                             console.error(error);
                         }
                     )
-                }
+                },
 
+                // Deprecated
+                _renderProteoformSequence_Old: function(
+                    proteoformSequence, offset,
+                    blockStart, blockEnd,
+                    blockLength, scale, modificationPositionArray
+                ){
+                    let charSize = this.getCharacterMeasurements("aminoAcid");
+                    let bigTiles = scale > charSize.w + 4; // whether to add .big styles to the base tiles
+                    let charWidth = 100 / (blockLength / 3);
+
+                    let container = domConstruct.create(
+                        'div',
+                        {
+                            className: 'Snow_translatedSequence'
+                        }
+                    );
+
+                    let tableWidthPercent = (charWidth * proteoformSequence.length);
+                    tableWidthPercent = tableWidthPercent <= 100 ? tableWidthPercent : 100;
+                    let table  = domConstruct.create('table',
+                        {
+                            className: 'Snow_translatedSequence offset'+offset+(bigTiles ? ' big' : ''),
+                            style:
+                                {
+                                    // width: (charWidth * proteoformSequence.length) + "%"
+                                    width: tableWidthPercent + '%'
+                                }
+                        },
+                        container
+                    );
+                    let tr = domConstruct.create('tr', {}, table );
+                    table.style.left = (charWidth*offset/3) + "%";
+
+                    let blockWidth = blockLength * scale;
+                    // let tableWidthScale = 100 / (charWidth * proteoformSequence.length);
+                    // let tableActualWidth = blockWidth / tableWidthScale;
+                    // let spanActualWidth = (tableActualWidth - proteoformSequence.length) / proteoformSequence.length;
+                    let spanActualWidth = blockWidth * (tableWidthPercent * 0.01) / proteoformSequence.length;
+
+
+                    charWidth = 100 / proteoformSequence.length + "%";
+
+                    let drawChars = scale >= charSize.w;
+                    if( drawChars )
+                        table.className += ' big';
+
+                    for( let i=0; i<proteoformSequence.length; i++ ) {
+                        let aminoAcidSpan = document.createElement('td');
+                        aminoAcidSpan.className = 'Snow_aminoAcid Snow_aminoAcid_'+proteoformSequence.charAt(i).toLowerCase();
+
+                        if(this.config.drawCircle)
+                        {
+                            aminoAcidSpan.className += ' Snow_aminoAcid_circle';
+                        }
+                        if(this.config.animationEnabled)
+                        {
+                            aminoAcidSpan.className += ' Snow_aminoAcid_animation';
+                        }
+                        // Modification mark
+                        if(modificationPositionArray.indexOf(i) !== -1)
+                        {
+                            aminoAcidSpan.className += ' Snow_aminoAcid_mark_right_top';
+                        }
+
+                        aminoAcidSpan.style.width = charWidth;
+                        aminoAcidSpan.style.height = spanActualWidth + 'px';
+                        if( drawChars ) {
+                            aminoAcidSpan.innerHTML = proteoformSequence.charAt( i );
+                        }
+                        tr.appendChild(aminoAcidSpan);
+                    }
+                    return container;
+                }
             }
         );
     }

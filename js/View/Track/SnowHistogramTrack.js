@@ -53,10 +53,10 @@ define([
                     return newConfig;
                 },
 
-                fillBlock: function (renderArgs) {
-                    let _this = this;
-                    _this.fillHistograms( renderArgs );
-                },
+                // fillBlock: function (renderArgs) {
+                //     let _this = this;
+                //     _this.fillHistograms( renderArgs );
+                // },
 
                 fillHistograms: function (renderArgs, isAlignByIonPosition) {
                     let _this = this;
@@ -78,34 +78,19 @@ define([
                         // }
                     ];
 
-                    _this.mappingResultObjectArray = renderArgs.mappingResultObjectArray;
+                    _this.mappingResultObjectArray = renderArgs.massAndIntensityMappingResult;
                     _this._attachMouseOverEvents();
-
-                    function findMaxIntensity(mappingResultObjectArray) {
-                        let maxInstensity = 0;
-                        for(let index in mappingResultObjectArray)
-                        {
-                            if(mappingResultObjectArray.hasOwnProperty(index))
-                            {
-                                if(mappingResultObjectArray[index].value > maxInstensity)
-                                {
-                                    maxInstensity = mappingResultObjectArray[index].value;
-                                }
-                            }
-                        }
-                        return maxInstensity === 0 ? 100000.0 : maxInstensity;
-                    }
 
                     if(
                         isAlignByIonPosition === true &&
-                        renderArgs.hasOwnProperty('mappingResultObjectArray') &&
+                        renderArgs.hasOwnProperty('massAndIntensityMappingResult') &&
                         renderArgs.hasOwnProperty('proteoformStartPosition') &&
                         renderArgs.hasOwnProperty('scanId')
                     )
                     {
-                        _this.config.histograms.maxValue = findMaxIntensity(renderArgs.mappingResultObjectArray);
+                        _this.config.histograms.maxValue = renderArgs.maxIntensityValue;
                         _this._drawHistograms_v2(
-                            renderArgs, renderArgs.mappingResultObjectArray,
+                            renderArgs, renderArgs.massAndIntensityMappingResult,
                             renderArgs.proteoformStartPosition, renderArgs.scanId
                         );
                     }
@@ -123,7 +108,7 @@ define([
                 },
 
                 _drawHistograms_v2: function (
-                    viewArgs, mappingResultObjectArray, proteoformStartPosition, scanId
+                    viewArgs, massAndIntensityMappingResult, proteoformStartPosition, scanId
                 ) {
                     let _this = this;
                     let maxValue = _this.config.histograms.maxValue =
@@ -177,31 +162,29 @@ define([
 
                     // Filter mapping result array for this block
                     let filteredMSScanMassMappingResultArray = [];
-                    for(let index in mappingResultObjectArray)
+                    for(let index = 0; index < massAndIntensityMappingResult.length; index++)
                     {
                         if(
-                            mappingResultObjectArray.hasOwnProperty(index) &&
-                            typeof mappingResultObjectArray[index] == "object"
+                            massAndIntensityMappingResult[index].leftBaseInBp >= blockOffsetStartBase &&
+                            massAndIntensityMappingResult[index].leftBaseInBp < blockOffsetEndBase
                         )
                         {
-                            if(
-                                mappingResultObjectArray[index].leftBaseInBp >= blockOffsetStartBase &&
-                                mappingResultObjectArray[index].leftBaseInBp < blockOffsetEndBase
-                            )
-                            {
-                                let resultObjectInThisBlock = mappingResultObjectArray[index];
-                                // Because the bIon mark is on the top right corner, add offset by 3bp here
-                                resultObjectInThisBlock.leftBaseInBpWithOffset =
-                                    resultObjectInThisBlock.leftBaseInBp + 3;
-                                // Minus block left offset
-                                resultObjectInThisBlock.leftBaseInBpWithOffset -= (blockStartBase - blockOffsetStartBase);
-                                resultObjectInThisBlock.leftBaseInBpWithOffset -= (proteoformStartPosition % 3);
-                                resultObjectInThisBlock.context = context;
-                                resultObjectInThisBlock.viewArgs = viewArgs;
+                            let resultObjectInThisBlock = massAndIntensityMappingResult[index];
+                            // Because the bIon mark is on the top right corner, add offset by 3bp here
+                            resultObjectInThisBlock.leftBaseInBpWithOffset =
+                                resultObjectInThisBlock.leftBaseInBp + 3;
+                            // Minus block left offset
+                            resultObjectInThisBlock.leftBaseInBpWithOffset -= (blockStartBase - blockOffsetStartBase);
+                            resultObjectInThisBlock.leftBaseInBpWithOffset -= (proteoformStartPosition % 3);
+                            resultObjectInThisBlock.context = context;
+                            resultObjectInThisBlock.viewArgs = viewArgs;
 
-                                filteredMSScanMassMappingResultArray.push(resultObjectInThisBlock);
-                            }
+                            filteredMSScanMassMappingResultArray.push(resultObjectInThisBlock);
                         }
+                        // else if (massAndIntensityMappingResult[index].leftBaseInBp >= blockOffsetEndBase)
+                        // {
+                        //     break;
+                        // }
                     }
 
                     if(filteredMSScanMassMappingResultArray.length === 0)

@@ -32,7 +32,7 @@ define([
                     let _this = this;
                     _this.browser = browser;
                     browser.config.massSpectraTrackNum =
-                        browser.config.massSpectraTrackNum ? browser.config.massSpectraTrackNum : 0;
+                        browser.config.massSpectraTrackNum || 0;
                     browser.config.BEYONDGBrowseDatasetId =
                         browser.config.BEYONDGBrowseDatasetId || 1;
 
@@ -134,6 +134,22 @@ define([
                         }
                     );
 
+                    _this.browser.subscribe(
+                        '/jbrowse/v1/n/tracks/visibleChanged',
+                        function (currentVisibleTracksName) {
+                            let currentVisibleMsSpectraTracks = 0;
+                            _this.browser.view.tracks.forEach(
+                                function(item) {
+                                    if(item.config.BEYONDGBrowseMassTrack === true)
+                                    {
+                                        currentVisibleMsSpectraTracks++;
+                                    }
+                                }
+                            );
+                            window.BEYONDGBrowse.currentVisibleMsSpectraTrackNum = currentVisibleMsSpectraTracks;
+                        }
+                    );
+
                     function deleteAllMassSpectraTrack() {
                         let trackConfigsByName = _this.browser.trackConfigsByName;
                         let massSpectraTracksToDeleteArray = [];
@@ -199,9 +215,13 @@ define([
                     let browserTrackConfig = _this.browser.config.tracks;
                     window.BEYONDGBrowseProteinTrack = _this.BEYONDGBrowseProteinTrack = undefined;
                     window.BEYONDGBrowse = {
-                        mSScanMassResultArray: [],
-                        diffFromRefSequenceResult: [],
-                        requestedProteoformObjectArray: []
+                        msScanDataInfoStore: [],  // {lcsLengthArray, selectedRefSeqIndex, diffFromRefSequenceResult, massAndIntensityMappingResult, detailArrayOfProteoformSequence} of each ScanId
+                        annotationStore: [],
+                        currentVisibleMsSpectraTrackNum: 0
+                        // Following are deprecated
+                        // mSScanMassResultArray: [],
+                        // diffFromRefSequenceResult: [],
+                        // requestedProteoformObjectArray: []
                     };
 
                     for(let index in browserTrackConfig)
