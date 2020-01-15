@@ -8,7 +8,8 @@ define(
         'dijit/form/TextBox',
         'JBrowse/View/Dialog/WithActionBar',
         'dojo/on',
-        'dijit/form/Button',
+        'dojo/request',
+        'dijit/form/Button'
     ],
     function(
         declare,
@@ -18,7 +19,8 @@ define(
         focus,
         dijitTextBox,
         ActionBarDialog,
-        on,
+        dojoOn,
+        dojoRequest,
         Button
     ){
         return declare(
@@ -78,11 +80,50 @@ define(
                         }
                     );
 
+                    _this.proteinNameAutoCompleteBox = new dijitTextBox(
+                        {
+                            id: 'protein_name_autocomplete',
+                            value: '',
+                            style: {
+                                display: 'block'
+                            }
+                        }
+                    );
+
+                    dojoOn(_this.proteinNameInput, 'keyup',
+                        function (args) {
+                            let currentTextBoxValue = _this.proteinNameInput.get("value");
+                            if(!currentTextBoxValue || currentTextBoxValue === "")
+                            {
+                                return;
+                            }
+                            dojoRequest(
+                                'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1') + ':12080'
+                                + '/' + _this.browser.config.BEYONDGBrowseDatasetId + '/locate_autocomplete/' + currentTextBoxValue,
+                                {
+                                    method: 'GET',
+                                    headers: {
+                                        'X-Requested-With': null
+                                        //'User-Agent': 'SnowPlugin-FrontEnd'
+                                    },
+                                    handleAs: 'json'
+                                }
+                            ).then(
+                                function (proteinUniprotIdList) {
+                                    console.info(proteinUniprotIdList);
+                                    _this.proteinNameAutoCompleteBox.set('value', proteinUniprotIdList.join(','));
+                                    // SnowConsole.info(proteinUniprotIdList);
+                                }
+                            );
+                        }
+                    );
+
                     _this.set(
                         'content',
                         [
                             domConstruct.create('label', { "for": 'protein_name_string', innerHTML: 'Protein Name ' } ),
-                            this.proteinNameInput.domNode
+                            this.proteinNameInput.domNode,
+                            _this.proteinNameAutoCompleteBox.domNode
                         ]
                     );
 

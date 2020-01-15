@@ -298,8 +298,8 @@ define(
                             list.push(
                                 {
                                     OriginalIndex: i,
-                                    MSScanMz: arrMSScanMass[i],
-                                    MSScanMass: arrMSScanMass[i] * arrIonsNum[i],
+                                    MSScanMz: arrMSScanMass[i] / arrIonsNum[i],
+                                    MSScanMass: arrMSScanMass[i],
                                     MSScanPeakAundance: arrMSScanPeakAundance[i],
                                     IonsNum: arrIonsNum[i]
                                 }
