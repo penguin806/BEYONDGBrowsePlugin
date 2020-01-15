@@ -80,12 +80,22 @@ define(
                         }
                     );
 
-                    _this.proteinNameAutoCompleteBox = new dijitTextBox(
+                    _this.proteinNameAutoCompleteBox = domConstruct.create(
+                        'select',
                         {
-                            id: 'protein_name_autocomplete',
-                            value: '',
+                            size: 10,
                             style: {
-                                display: 'block'
+                                display: 'block',
+                                width: '70%',
+                                left: '30%',
+                                position: 'relative',
+                                margin: '3px 0'
+                            },
+                            onchange: function () {
+                                _this.proteinNameInput.set(
+                                    'value',
+                                    this.options[this.selectedIndex].innerHTML
+                                );
                             }
                         }
                     );
@@ -110,9 +120,15 @@ define(
                                 }
                             ).then(
                                 function (proteinUniprotIdList) {
-                                    console.info(proteinUniprotIdList);
-                                    _this.proteinNameAutoCompleteBox.set('value', proteinUniprotIdList.join(','));
-                                    // SnowConsole.info(proteinUniprotIdList);
+                                    SnowConsole.info(proteinUniprotIdList);
+                                    _this.proteinNameAutoCompleteBox.innerHTML = null;
+                                    proteinUniprotIdList.forEach(
+                                        function (item, index) {
+                                            let option = document.createElement('option');
+                                            option.innerText = item;
+                                            _this.proteinNameAutoCompleteBox.append(option);
+                                        }
+                                    );
                                 }
                             );
                         }
@@ -123,7 +139,7 @@ define(
                         [
                             domConstruct.create('label', { "for": 'protein_name_string', innerHTML: 'Protein Name ' } ),
                             this.proteinNameInput.domNode,
-                            _this.proteinNameAutoCompleteBox.domNode
+                            _this.proteinNameAutoCompleteBox
                         ]
                     );
 
