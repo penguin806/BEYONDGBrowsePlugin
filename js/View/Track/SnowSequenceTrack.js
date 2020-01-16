@@ -243,6 +243,7 @@ define(
                     newConfig.drawCircle = !!oldConfig.drawCircle || true;
                     newConfig.animationEnabled = !!oldConfig.animationEnabled || true;
                     newConfig.proteoformExtraOffset = oldConfig.proteoformExtraOffset || 0;
+                    newConfig.fillMismatchesWithCells = oldConfig.fillMismatchesWithCells || true;
 
                     // 0: Hydrophile
                     // 1: Hydrophobe
@@ -381,7 +382,7 @@ define(
                             type: 'dijit/MenuSeparator'
                         },
                         {
-                            label: 'Draw Spans with Circle-Style',
+                            label: 'Draw Cells with Circle-Style',
                             type: 'dijit/CheckedMenuItem',
                             checked: !!_this.config.drawCircle,
                             onClick: function (event) {
@@ -412,6 +413,22 @@ define(
                                 else {
                                     dojoQuery('.Snow_translatedSequence td.Snow_aminoAcid_animation')
                                         .removeClass('Snow_aminoAcid_animation');
+                                }
+                            }
+                        },
+                        {
+                            label: 'Fill Mismatches with Cells',
+                            type: 'dijit/CheckedMenuItem',
+                            checked: !!_this.config.fillMismatchesWithCells,
+                            onClick: function (event) {
+                                _this.config.fillMismatchesWithCells = this.checked;
+                                if(!!_this.config.fillMismatchesWithCells) {
+                                    dojoQuery('.Snow_translatedSequence td.Snow_aminoAcid.Snow_AminoAcid_Mismatch')
+                                        .style('visibility', 'visible');
+                                }
+                                else {
+                                    dojoQuery('.Snow_translatedSequence td.Snow_aminoAcid.Snow_AminoAcid_Mismatch')
+                                        .style('visibility', 'hidden');
                                 }
                             }
                         }
@@ -1354,6 +1371,15 @@ define(
                                 aminoAcidSpan.innerHTML = detailArrayOfProteoformInThisBlock[index].aminoAcidCharacter;
                             }
 
+                            if(detailArrayOfProteoformInThisBlock[index].aminoAcidCharacter === '-')
+                            {
+                                aminoAcidSpan.className += ' Snow_AminoAcid_Mismatch';
+                                if(!_this.config.fillMismatchesWithCells)
+                                {
+                                    aminoAcidSpan.style.visibility = 'hidden';
+                                }
+                            }
+
                             if(
                                 _this.config.mapAminoAcidHydrophilicity.hasOwnProperty(
                                     detailArrayOfProteoformInThisBlock[index].aminoAcidCharacter.toUpperCase()
@@ -1516,10 +1542,13 @@ define(
                                 let strandAndScanIdSpanAtHead = domConstruct.create('span',
                                     {
                                         className: 'Snow_aminoAcid_head_strand_scanId_label',
-                                        style: {},
+                                        style: {
+                                            visibility: 'visible'
+                                        },
                                         innerHTML: headSpanInnerHTML
                                     }
                                 );
+
                                 aminoAcidSpan.appendChild(strandAndScanIdSpanAtHead);
                             }
                             else if(detailArrayOfProteoformInThisBlock[index].headOrTailFlag.includes('TAIL'))
@@ -1532,7 +1561,9 @@ define(
                                 let strandAndScanIdSpanAtHead = domConstruct.create('span',
                                     {
                                         className: 'Snow_aminoAcid_tail_strand_scanId_label',
-                                        style: {},
+                                        style: {
+                                            visibility: 'visible'
+                                        },
                                         innerHTML: tailSpanInnerHTML
                                     }
                                 );
