@@ -12,7 +12,7 @@ define(
         'dojo/request',
         'dojo/on',
         'JBrowse/Util',
-        'JBrowse/View/Track/Alignments2'
+        'JBrowse/View/FeatureGlyph/Alignment'
     ],
     function(
         declare,
@@ -27,12 +27,12 @@ define(
         dojoRequest,
         dojoOn,
         Util,
-        Alignments2
+        AlignmentFeatureGlyph
     )
     {
         return declare(
             [
-                Alignments2
+                AlignmentFeatureGlyph
             ],
             {
                 constructor: function (args) {
@@ -106,6 +106,10 @@ define(
                     };
                 },
 
+                _drawMismatches: function () {
+                    //stub
+                },
+
                 _translateGenomeSequenceToProtein: function(refSequence, fullRangeLeftPos, fullRangeRightPos)
                 {
                     let blockSeq = refSequence.substring( 2, refSequence.length - 2 );
@@ -159,42 +163,83 @@ define(
                     return sixTranslatedSeqs;
                 },
 
-                _publishDrawBamSequenceEvent: function()
-                {
-                    dojoTopic.publish('BEYONDGBrowse/addSingleProteoformScan',
-                        ...arguments
-                    );
-                    console.info('BEYONDGBrowse/addSingleProteoformScan', arguments);
-                },
+                _wrapAminoAcidObjects: function(proteinSequence) {
+                    if(!proteinSequence || proteinSequence.length === 0)
+                    {
+                        return [];
+                    }
 
-                renderFeatures: function( args, fRects ) {
-                    let _this = this;
-                    _this.inherited(arguments);
-                    fRects.forEach(
-                        function (item, index) {
-                            let bamSeqStartPos = item.f.get('start');
-                            let bamSeqEndPos = item.f.get('end');
-                            let bamGenomeSeq = item.f._get_seq();
-                            let bamSeqName = item.f.get('name');
-                            let bamTrackId = index;
-                            let proteinSequenceOfBam = _this._translateGenomeSequenceToProtein(bamGenomeSeq, bamSeqStartPos);
-                            let diffFromRefSequenceResult = [
-                                {
-                                    value: proteinSequenceOfBam[0],
-                                    added: undefined,
-                                    removed: undefined
-                                }
-                            ];
-
-                            _this._publishDrawBamSequenceEvent(
-                                proteinSequenceOfBam, bamSeqStartPos, bamSeqEndPos,
-                                false, bamSeqName, {}, bamTrackId,
-                                0, diffFromRefSequenceResult
-                            );
+                    let aminoAcidObjects = [];
+                    proteinSequence.split('').forEach(
+                        function(item, index)
+                        {
+                            aminoAcidObjects[index] = {
+                                start: index * 3,
+                                base: item,
+                                length: 3,
+                                type: 'hydrophile'
+                            }
                         }
                     );
-                }
 
+                    return aminoAcidObjects;
+                },
+
+                _drawAminoAcids: function(context, fRect, f) {
+                    let _this = this;
+                    let feature = f || fRect.f;
+                    let block = fRect.viewInfo.block;
+                    let scale = block.scale;
+                    let charSize = _this.getCharacterMeasurements( context );
+
+                    let bamSeqStartPos = feature.get('start');
+                    let bamSeqEndPos = feature.get('end');
+                    let bamGenomeSeq = feature._get_seq();
+                    let translations = _this._translateGenomeSequenceToProtein(bamGenomeSeq, bamSeqStartPos);
+                    let aminoAcids = _this._wrapAminoAcidObjects(translations[0]);
+
+                    context.textBaseline = 'middle';
+                    aminoAcids.forEach(
+                        function(aminoAcidObject) {
+                            let start = feature.get('start') + aminoAcidObject.start;
+                            let end = start + aminoAcidObject.length;
+
+                            let mRect = {
+                                h: (fRect.rect||{}).h || fRect.h,
+                                l: block.bpToX( start ),
+                                t: fRect.rect.t
+                            };
+                            mRect.w = Math.max( block.bpToX( end ) - mRect.l, 1 );
+
+                            if( aminoAcidObject.type === 'hydrophile')
+                            {
+                                context.fillStyle = '#ffa500';
+                                context.fillRect( mRect.l, mRect.t, mRect.w, mRect.h );
+
+                                if( mRect.w >= charSize.w && mRect.h >= charSize.h-3 ) {
+                                    context.font = _this.config.style.mismatchFont;
+                                    context.fillStyle = 'white';
+                                    context.fillText( aminoAcidObject.base, mRect.l+(mRect.w-charSize.w)/2+1, mRect.t+mRect.h/2 );
+                                }
+                            }
+                        }
+                    );
+
+                    context.textBaseline = 'alphabetic';
+                },
+
+                renderFeature: function( context, fRect ) {
+                    let _this = this;
+                    _this.inherited(arguments);
+
+                    if(fRect.w > 2)
+                    {
+                        if( fRect.viewInfo.scale > 0.2 )
+                        {
+                            this._drawAminoAcids(context, fRect);
+                        }
+                    }
+                }
             }
         );
     }
