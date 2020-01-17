@@ -106,18 +106,47 @@ define(
                     };
                 },
 
+                _defaultConfig: function() {
+                    let config = this.inherited(arguments);
+                    config.mapAminoAcidHydrophilicity = config.mapAminoAcidHydrophilicity || {
+                        'G' : 0,
+                        'A' : 1,
+                        'V' : 1,
+                        'L' : 1,
+                        'I' : 1,
+                        'F' : 1,
+                        'W' : 1,
+                        'Y' : 0,
+                        'D' : 2,
+                        'N' : 0,
+                        'E' : 2,
+                        'K' : 3,
+                        'Q' : 0,
+                        'M' : 1,
+                        'S' : 0,
+                        'T' : 0,
+                        'C' : 0,
+                        'P' : 1,
+                        'H' : 3,
+                        'R' : 3
+                    };
+
+                    return config;
+                },
+
                 _drawMismatches: function () {
                     //stub
                 },
 
                 _translateGenomeSequenceToProtein: function(refSequence, fullRangeLeftPos, fullRangeRightPos)
                 {
-                    let blockSeq = refSequence.substring( 2, refSequence.length - 2 );
-                    let blockLength = blockSeq.length;
-
-                    let leftOver = (refSequence.length - 2) % 3;
-                    let extStartSeq = refSequence.substring( 0, refSequence.length - 2 );
-                    let extEndSeq = refSequence.substring( 2 );
+                    // let blockSeq = refSequence.substring( 2, refSequence.length - 2 );
+                    // let blockLength = blockSeq.length;
+                    //
+                    // let leftOver = (refSequence.length - 2) % 3;
+                    // let extStartSeq = refSequence.substring( 0, refSequence.length - 2 );
+                    // let extEndSeq = refSequence.substring( 2 );
+                    let extEndSeq = refSequence;
 
                     let sixTranslatedSeqs = [];
                     sixTranslatedSeqs[-1] = refSequence;
@@ -137,28 +166,28 @@ define(
                             translatedSeq += aminoAcid;
                         }
 
-                        sixTranslatedSeqs[frame] = translatedSeq;
+                        sixTranslatedSeqs[offset] = translatedSeq;
                     }
 
-                    for(let offset = 0; offset < 3; offset++)
-                    {
-                        let transStart = fullRangeLeftPos + 1 - offset;
-                        let frame = (transStart % 3 + 3 + leftOver) % 3;
-
-                        extStartSeq = Util.revcom(extStartSeq);
-                        let extraBases = (extStartSeq.length - offset) % 3;
-                        let slicedSequence = extStartSeq.slice(offset, refSequence.length - extraBases);
-                        let translatedSeq = "";
-                        for(let i=0; i < slicedSequence.length; i+=3)
-                        {
-                            let theCodon = slicedSequence.slice(i, i + 3);
-                            let aminoAcid = this._codonTable[theCodon] || ''  /*'#'*/;
-                            translatedSeq += aminoAcid;
-                        }
-
-                        translatedSeq = translatedSeq.split("").reverse().join("");
-                        sixTranslatedSeqs[3 + 2 - frame] = translatedSeq;
-                    }
+                    // for(let offset = 0; offset < 3; offset++)
+                    // {
+                    //     let transStart = fullRangeLeftPos + 1 - offset;
+                    //     let frame = (transStart % 3 + 3 + leftOver) % 3;
+                    //
+                    //     extStartSeq = Util.revcom(extStartSeq);
+                    //     let extraBases = (extStartSeq.length - offset) % 3;
+                    //     let slicedSequence = extStartSeq.slice(offset, refSequence.length - extraBases);
+                    //     let translatedSeq = "";
+                    //     for(let i=0; i < slicedSequence.length; i+=3)
+                    //     {
+                    //         let theCodon = slicedSequence.slice(i, i + 3);
+                    //         let aminoAcid = this._codonTable[theCodon] || ''  /*'#'*/;
+                    //         translatedSeq += aminoAcid;
+                    //     }
+                    //
+                    //     translatedSeq = translatedSeq.split("").reverse().join("");
+                    //     sixTranslatedSeqs[3 + 2 - offset] = translatedSeq;
+                    // }
 
                     return sixTranslatedSeqs;
                 },
@@ -177,12 +206,33 @@ define(
                                 start: index * 3,
                                 base: item,
                                 length: 3,
-                                type: 'hydrophile'
+                                type: 'normal'
                             }
                         }
                     );
 
                     return aminoAcidObjects;
+                },
+
+                _getColorForAminoAcid: function(aminoAcidCharacter) {
+                    let _this = this;
+                    switch(
+                        _this.config.mapAminoAcidHydrophilicity[
+                            aminoAcidCharacter.toUpperCase()
+                        ]
+                    )
+                    {
+                        case 0:
+                            return '#81ecece6';
+                        case 1:
+                            return '#a29bfee6';
+                        case 2:
+                            return '#ff7675e6';
+                        case 3:
+                            return '#ffeaa7e6';
+                        default:
+                            return '#b2bec3e6';
+                    }
                 },
 
                 _drawAminoAcids: function(context, fRect, f) {
@@ -211,14 +261,14 @@ define(
                             };
                             mRect.w = Math.max( block.bpToX( end ) - mRect.l, 1 );
 
-                            if( aminoAcidObject.type === 'hydrophile')
+                            if( aminoAcidObject.type === 'normal')
                             {
-                                context.fillStyle = '#ffa500';
+                                context.fillStyle = _this._getColorForAminoAcid(aminoAcidObject.base);
                                 context.fillRect( mRect.l, mRect.t, mRect.w, mRect.h );
 
                                 if( mRect.w >= charSize.w && mRect.h >= charSize.h-3 ) {
                                     context.font = _this.config.style.mismatchFont;
-                                    context.fillStyle = 'white';
+                                    context.fillStyle = 'black';
                                     context.fillText( aminoAcidObject.base, mRect.l+(mRect.w-charSize.w)/2+1, mRect.t+mRect.h/2 );
                                 }
                             }
