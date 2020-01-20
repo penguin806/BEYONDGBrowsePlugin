@@ -612,18 +612,18 @@ define(
 
 
                     intCurrentPos = 0;
-
                     iCurrentReverseSeqPositionWithoutPTM=0;
+                    dCurrentMassSUM = dyIons;// y ions initial value
 
                     for (let i = strSenquence.length-1; i > 0; i--) {
                         //reservse POSITION FOR Y IONS
 
-                        let dYCurrentMass=mapACIDMass.get(strSenquence[i]);
+                        let dYCurrentMass = mapACIDMass.get(strSenquence[i]);
                         //console.log(i,dCurrentMass)
 
                         if(dYCurrentMass!==undefined && boolPTM===false)
                         {
-                            if (i===strSenquence.length-1) dCurrentMassSUM = dyIons;// y ions initial value
+                            // if (i===strSenquence.length-1) dCurrentMassSUM = dyIons;// y ions initial value
 
                             dCurrentMassSUM += dYCurrentMass;
                             iCurrentReverseSeqPositionWithoutPTM++;
