@@ -297,7 +297,7 @@ define(
                         {
                             list.push(
                                 {
-                                    OriginalIndex: i,
+                                    // OriginalIndex: i,
                                     MSScanMz: arrMSScanMass[i] / arrIonsNum[i],
                                     MSScanMass: arrMSScanMass[i],
                                     MSScanPeakAundance: arrMSScanPeakAundance[i],
@@ -452,7 +452,7 @@ define(
 
                     let boolPTM=false;
                     let strPTM="";
-                    let dSpanThreshold=10.0;
+                    let dSpanThreshold=5.0;
 
 
 
@@ -612,18 +612,18 @@ define(
 
 
                     intCurrentPos = 0;
-
                     iCurrentReverseSeqPositionWithoutPTM=0;
+                    dCurrentMassSUM = dyIons;// y ions initial value
 
                     for (let i = strSenquence.length-1; i > 0; i--) {
                         //reservse POSITION FOR Y IONS
 
-                        let dYCurrentMass=mapACIDMass.get(strSenquence[i]);
+                        let dYCurrentMass = mapACIDMass.get(strSenquence[i]);
                         //console.log(i,dCurrentMass)
 
                         if(dYCurrentMass!==undefined && boolPTM===false)
                         {
-                            if (i===strSenquence.length-1) dCurrentMassSUM = dyIons;// y ions initial value
+                            // if (i===strSenquence.length-1) dCurrentMassSUM = dyIons;// y ions initial value
 
                             dCurrentMassSUM += dYCurrentMass;
                             iCurrentReverseSeqPositionWithoutPTM++;
@@ -637,7 +637,7 @@ define(
                             if (strSenquence[i]==="(") continue;//filter out special char
                             if (strSenquence[i]===")") continue;//filter out special char
 
-                            if (strSenquence[i]==="]")//PTM is begining
+                            if (strSenquence[i]==="]")//PTM is beginning
                             {
                                 boolPTM=true;
                                 continue;
@@ -645,14 +645,14 @@ define(
                             else if(strSenquence[i]==="[")//add last PTM mass
                             {
                                 boolPTM=false;
-                                strPTM = reverseString(strPTM); //reservse the string
+                                strPTM = reverseString(strPTM); //reverse the string
 
                                 let dCurrentMass=mapACIDMass.get(strPTM);
                                 //console.log("]",strPTM,dCurrentMass)
 
                                 if(!isNaN(dCurrentMass))
                                     dCurrentMassSUM += dCurrentMass;
-                                //                               console.log(strPTM,dCurrentMass," sum:",dCurrentMassSUM);
+                                // console.log(strPTM,dCurrentMass," sum:",dCurrentMassSUM);
                                 RecongnazieTheBIonPosition(false,iCurrentReverseSeqPositionWithoutPTM);
 
                                 strPTM="";//set PTM is nothing
