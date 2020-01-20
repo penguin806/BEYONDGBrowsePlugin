@@ -297,7 +297,7 @@ define(
                         {
                             list.push(
                                 {
-                                    OriginalIndex: i,
+                                    // OriginalIndex: i,
                                     MSScanMz: arrMSScanMass[i] / arrIonsNum[i],
                                     MSScanMass: arrMSScanMass[i],
                                     MSScanPeakAundance: arrMSScanPeakAundance[i],
@@ -452,7 +452,7 @@ define(
 
                     let boolPTM=false;
                     let strPTM="";
-                    let dSpanThreshold=10.0;
+                    let dSpanThreshold=5.0;
 
 
 
@@ -637,7 +637,7 @@ define(
                             if (strSenquence[i]==="(") continue;//filter out special char
                             if (strSenquence[i]===")") continue;//filter out special char
 
-                            if (strSenquence[i]==="]")//PTM is begining
+                            if (strSenquence[i]==="]")//PTM is beginning
                             {
                                 boolPTM=true;
                                 continue;
@@ -645,14 +645,14 @@ define(
                             else if(strSenquence[i]==="[")//add last PTM mass
                             {
                                 boolPTM=false;
-                                strPTM = reverseString(strPTM); //reservse the string
+                                strPTM = reverseString(strPTM); //reverse the string
 
                                 let dCurrentMass=mapACIDMass.get(strPTM);
                                 //console.log("]",strPTM,dCurrentMass)
 
                                 if(!isNaN(dCurrentMass))
                                     dCurrentMassSUM += dCurrentMass;
-                                //                               console.log(strPTM,dCurrentMass," sum:",dCurrentMassSUM);
+                                // console.log(strPTM,dCurrentMass," sum:",dCurrentMassSUM);
                                 RecongnazieTheBIonPosition(false,iCurrentReverseSeqPositionWithoutPTM);
 
                                 strPTM="";//set PTM is nothing
