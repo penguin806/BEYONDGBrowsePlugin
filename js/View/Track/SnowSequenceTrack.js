@@ -1789,7 +1789,7 @@ define(
                                     annotationObjectArray: annotationObjectArray,
                                     browser: _this.browser,
                                     style: {
-                                        width: '360px'
+                                        width: '600px'
                                     },
                                     setCallback: function () {
                                         // Make sure the annotation is successfully inserted

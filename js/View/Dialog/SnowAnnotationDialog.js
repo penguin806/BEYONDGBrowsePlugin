@@ -11,6 +11,7 @@ define(
         'JBrowse/View/Dialog/WithActionBar',
         'dojo/on',
         'dijit/form/Button',
+        '../../Util/quill/quill'
     ],
     function(
         declare,
@@ -23,7 +24,8 @@ define(
         dijitTextArea,
         ActionBarDialog,
         on,
-        Button
+        Button,
+        QuillEditor
     ){
         return declare(
             [
@@ -59,7 +61,7 @@ define(
                     );
                     cancelButton.placeAt( actionBar );
 
-                    let findButton = new Button(
+                    let saveButton = new Button(
                         {
                             iconClass: 'dijitIconSave',
                             label: 'Save',
@@ -71,43 +73,68 @@ define(
                             }
                         }
                     );
-                    findButton.placeAt( actionBar );
+                    saveButton.placeAt( actionBar );
                 },
 
                 show: function( callback ) {
                     let _this = this;
-                    domClass.add( this.domNode, 'annotationDialog' );
+                    domClass.add( _this.domNode, 'annotationDialog' );
 
-                    _this.annotationTimeInput = new dijitTextBox(
+                    _this.editorContainer = domConstruct.create(
+                        'div',
                         {
-                            id: 'annotation_version_string',
-                            value: this.annotationExistAtThisPosition ?
-                                _this.annotationObjectArray[0].time
-                                    .replace(/^(\d{4}-\d{2}-\d{2})(T)(\d{2}:\d{2}:\d{2}).*/, '$1 $3') : '',
-                            placeHolder: '',
-                            style: 'width: 99.7%',
-                            readOnly: 'readOnly'
-                        }
-                    );
-
-                    _this.annotationContentInput = new dijitTextArea(
-                        {
-                            id: 'annotation_content_string',
-                            value: this.annotationExistAtThisPosition ? _this.annotationObjectArray[0].contents : '',
-                            placeHolder: '',
+                            id: 'editorContainer',
                             style: {
                                 width: '100%',
-                                height: '100px'
+                                height: '250px'
                             }
                         }
                     );
 
+                    _this.annotationVersionSelector = domConstruct.create(
+                        'select',
+                        {
+                            id: 'annotation_version_selector',
+                            style: {
+                                display: 'block',
+                                width: '100%',
+                                border: '1px solid #ccc',
+                                marginTop: '5px'
+                            }
+                        }
+                    );
+
+                    if(_this.annotationExistAtThisPosition)
+                    {
+                        _this.annotationObjectArray.forEach(
+                            function (item, index) {
+                                let timeFormated = item.time.replace(/^(\d{4}-\d{2}-\d{2})(T)(\d{2}:\d{2}:\d{2}).*/, '$1 $3');
+                                domConstruct.create(
+                                    'option',
+                                    {
+                                        innerHTML: timeFormated,
+                                        value: timeFormated
+                                    },
+                                    _this.annotationVersionSelector
+                                )
+                            }
+                        );
+                    }
+
                     _this.set(
                         'content',
                         [
-                            _this.annotationContentInput.domNode,
-                            _this.annotationTimeInput.domNode
+                            _this.editorContainer,
+                            _this.annotationVersionSelector
                         ]
+                    );
+
+                    _this.annotationEditor = new QuillEditor(
+                        _this.editorContainer,
+                        {
+                            theme: 'snow',
+                            placeholder: 'Enter annotation here...'
+                        }
                     );
 
                     _this.inherited(arguments);
