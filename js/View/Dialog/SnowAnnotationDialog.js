@@ -105,7 +105,7 @@ define(
                             },
                             onchange: function(event){
                                 if(
-                                    event.target.selectedIndex > 1 && event.target.selectedIndex < _this.annotationObjectArray.length + 1 &&
+                                    event.target.selectedIndex > 0 && event.target.selectedIndex < _this.annotationObjectArray.length + 1 &&
                                     _this.annotationExistAtThisPosition && _this.annotationObjectArray[event.target.selectedIndex - 1].contents
                                 )
                                 {
