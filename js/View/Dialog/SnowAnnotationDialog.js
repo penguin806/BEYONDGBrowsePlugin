@@ -220,6 +220,10 @@ define(
                     ).then(
                         function (statusObj) {
                             SnowConsole.info(statusObj);
+                            if(statusObj.status !== "SUCCESS")
+                            {
+                                alert('Upload annotation failed!');
+                            }
                         }
                     );
                 },
