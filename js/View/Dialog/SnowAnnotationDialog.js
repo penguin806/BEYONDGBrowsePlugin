@@ -129,12 +129,15 @@ define(
                     {
                         _this.annotationObjectArray.forEach(
                             function (item, index) {
+                                let recordId = item.id;
                                 let timeFormated = item.time.replace(/^(\d{4}-\d{2}-\d{2})(T)(\d{2}:\d{2}:\d{2}).*/, '$1 $3');
+                                let author = item.author;
+                                let ipaddress = item.ipaddress;
                                 domConstruct.create(
                                     'option',
                                     {
-                                        innerHTML: timeFormated,
-                                        value: timeFormated
+                                        value: timeFormated,
+                                        innerHTML: '[' + recordId + '] ' + timeFormated + '&nbsp;&nbsp;&nbsp;&nbsp;(' + author + '/' + ipaddress +')'
                                     },
                                     _this.annotationVersionSelector
                                 )
