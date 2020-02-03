@@ -95,11 +95,32 @@ define(
                         'select',
                         {
                             id: 'annotation_version_selector',
+                            innerHTML: '<option value="nenVersion" style="display:none">Changelog</option>',
                             style: {
                                 display: 'block',
                                 width: '100%',
+                                height: '25px',
                                 border: '1px solid #ccc',
                                 marginTop: '5px'
+                            },
+                            onchange: function(event){
+                                if(
+                                    event.target.selectedIndex > 1 && event.target.selectedIndex < _this.annotationObjectArray.length + 1 &&
+                                    _this.annotationExistAtThisPosition && _this.annotationObjectArray[event.target.selectedIndex - 1].contents
+                                )
+                                {
+                                    let contentObj;
+                                    try {
+                                        contentObj = JSON.parse(_this.annotationObjectArray[event.target.selectedIndex - 1].contents);
+                                        _this.annotationEditor.setContents(contentObj);
+                                    } catch (error) {
+                                        _this.annotationEditor.setText(error.message);
+                                    }
+                                }
+                                else
+                                {
+                                    _this.annotationEditor.setText('ANNOTATION_LOAD_ERROR');
+                                }
                             }
                         }
                     );
@@ -137,46 +158,65 @@ define(
                         }
                     );
 
+                    if(
+                        _this.annotationExistAtThisPosition && _this.annotationObjectArray[0].contents
+                    )
+                    {
+                        let contentObj;
+                        try {
+                            contentObj = JSON.parse(_this.annotationObjectArray[0].contents);
+                            _this.annotationEditor.setContents(contentObj);
+                        } catch (error) {
+                            _this.annotationEditor.setText(error.message);
+                        }
+                    }
+                    else if(_this.annotationObjectArray.length > 0)
+                    {
+                        _this.annotationEditor.setText('ANNOTATION_LOAD_ERROR');
+                    }
+
                     _this.inherited(arguments);
                 },
 
                 insertSpecificAnnotation: function() {
                     let _this = this;
-                    let annotationTime = _this.annotationTimeInput.get('value');
-                    let annotationContent = _this.annotationContentInput.get('value');
-                    let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
-                        + ':12080/';
-                    let URIParam =  _this.browser.config.BEYONDGBrowseDatasetId + '/annotation/insert/' + this.refName + '/' + this.position + '/';
-                    let currentDateTimeInMysqlFormat = _this._getCurrentTimeInMysqlFormat();
-                    if(
-                        this.annotationExistAtThisPosition
-                        && typeof _this.annotationObjectArray[0] === "object"
-                        && annotationContent === _this.annotationObjectArray[0].contents
-                    )
+                    if(_this.annotationEditor.getLength() <= 0)
                     {
-                        // Content not changed
-                        URIParam += annotationTime + '/' + annotationContent;
-                    }
-                    else
-                    {
-                        URIParam += currentDateTimeInMysqlFormat + '/' + annotationContent;
+                        return;
                     }
 
+                    let annotationTime = _this.annotationVersionSelector.options[
+                            _this.annotationVersionSelector.selectedIndex
+                        ].value;
+                    let annotationContent = JSON.stringify(
+                        _this.annotationEditor.getContents()
+                    );
+                    let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
+                        + ':12080/annotation/insert';
+                    let currentDateTimeInMysqlFormat = _this._getCurrentTimeInMysqlFormat();
+                    let isUpdateOldRecord = _this.annotationExistAtThisPosition && annotationTime !== "newVersion";
+
                     dojoRequest(
-                        requestUrl + encodeURIComponent(URIParam),
+                        // requestUrl + encodeURIComponent(URIParam),
+                        requestUrl,
                         {
-                            method: 'GET',
+                            method: 'POST',
                             query: {
+                                datasetId: _this.browser.config.BEYONDGBrowseDatasetId,
+                                refName: _this.refName,
+                                position: _this.position,
+                                time: currentDateTimeInMysqlFormat,
                                 author: _this.browser.config.BEYONDGBrowseUsername || 'Anonymous'
                             },
+                            data: annotationContent,
                             headers: {
                                 'X-Requested-With': null
                             },
-                            handleAs: 'text'
+                            handleAs: 'json'
                         }
                     ).then(
-                        function (isInsertSuccess) {
-                            SnowConsole.info(isInsertSuccess);
+                        function (statusObj) {
+                            SnowConsole.info(statusObj);
                         }
                     );
                 },
