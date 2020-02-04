@@ -8,7 +8,9 @@ define([
         'JBrowse/Plugin',
         './View/Dialog/SnowLocateDialog',
         './View/Dialog/SnowMassTrackSettingDialog',
-        './View/Dialog/SnowDatasetSelectDialog'
+        './View/Dialog/SnowDatasetSelectDialog',
+        './View/Dialog/SnowAnnotationSearchDialog',
+        './View/Dialog/SnowAnnotationDialog'
     ],
     function(
         declare,
@@ -20,7 +22,9 @@ define([
         JBrowsePlugin,
         SnowLocateDialog,
         SnowMassTrackSettingDialog,
-        SnowDatasetSelectDialog
+        SnowDatasetSelectDialog,
+        SnowAnnotationSearchDialog,
+        SnowAnnotationDialog
     ){
         return declare( JBrowsePlugin,
             {
@@ -52,7 +56,7 @@ define([
                         }
                     };
 
-                    let locateButtonDomNode = this._generateLocateButton();
+                    let locateButtonDomNode = _this._generateLocateButton();
                     _this._loadBeyondProteinTrackFromConfig();
                     _this._subscribeShowMassSpectraTrackEvent();
 
@@ -99,6 +103,19 @@ define([
                                     }
                                 )
                             );
+
+                        browser.addGlobalMenuItem(
+                            'file',
+                            new dijitMenuItem(
+                                {
+                                    label: 'Search annotation',
+                                    iconClass: '',
+                                    onClick: function () {
+                                        _this._displayAnnotationSearchDialog(_this.browser);
+                                    }
+                                }
+                            )
+                        );
                         }
                     );
 
@@ -385,6 +402,30 @@ define([
                             console.error('Error', requestUrl, errorReason);
                         }
                     );
+                },
+
+                _displayAnnotationSearchDialog: function(browserObject)
+                {
+                    let _this = this;
+
+                    let annotationSearchDialog = new SnowAnnotationSearchDialog(
+                        {
+                            browser: browserObject,
+                            style: {
+                                width: '600px'
+                            },
+                            setCallback: function (name, position) {
+                                window.BEYONDGBrowse._loadSpecificAnnotationAndPopupModal &&
+                                    window.BEYONDGBrowse._loadSpecificAnnotationAndPopupModal(
+                                        name, position, function finishCallback() {
+                                            // Draw annotation amino acid mark
+                                        }
+                                    );
+                            }
+                        }
+                    );
+
+                    annotationSearchDialog.show();
                 },
 
                 _queryProteinRegion: function (proteinName, finishCallback)

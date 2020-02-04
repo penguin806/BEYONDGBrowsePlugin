@@ -44,8 +44,11 @@ define(
                 constructor: function (args) {
                     let _this = this;
                     window.BEYONDGBrowseProteinTrack = _this;
-                    window.BEYONDGBrowse_DebugPrintReferenceGenomeSequence = function (refName, startPos, endPos) {
+                    window.BEYONDGBrowse.DebugPrintReferenceGenomeSequence = function (refName, startPos, endPos) {
                         _this._printRefSeqAndConceptualTranslation(_this, refName, startPos, endPos)
+                    };
+                    window.BEYONDGBrowse._loadSpecificAnnotationAndPopupModal = function (name, position, finishCallback) {
+                        _this._loadSpecificAnnotationAndPopupModal(name, position, finishCallback);
                     };
 
                     _this._codonTable = {
