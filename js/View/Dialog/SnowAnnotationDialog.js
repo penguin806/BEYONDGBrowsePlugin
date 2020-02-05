@@ -11,6 +11,7 @@ define(
         'JBrowse/View/Dialog/WithActionBar',
         'dojo/on',
         'dijit/form/Button',
+        '../../Util/quill/quill'
     ],
     function(
         declare,
@@ -23,7 +24,8 @@ define(
         dijitTextArea,
         ActionBarDialog,
         on,
-        Button
+        Button,
+        QuillEditor
     ){
         return declare(
             [
@@ -59,7 +61,7 @@ define(
                     );
                     cancelButton.placeAt( actionBar );
 
-                    let findButton = new Button(
+                    let saveButton = new Button(
                         {
                             iconClass: 'dijitIconSave',
                             label: 'Save',
@@ -71,85 +73,157 @@ define(
                             }
                         }
                     );
-                    findButton.placeAt( actionBar );
+                    saveButton.placeAt( actionBar );
                 },
 
                 show: function( callback ) {
                     let _this = this;
-                    domClass.add( this.domNode, 'annotationDialog' );
+                    domClass.add( _this.domNode, 'annotationDialog' );
 
-                    _this.annotationTimeInput = new dijitTextBox(
+                    _this.editorContainer = domConstruct.create(
+                        'div',
                         {
-                            id: 'annotation_version_string',
-                            value: this.annotationExistAtThisPosition ?
-                                _this.annotationObjectArray[0].time
-                                    .replace(/^(\d{4}-\d{2}-\d{2})(T)(\d{2}:\d{2}:\d{2}).*/, '$1 $3') : '',
-                            placeHolder: '',
-                            style: 'width: 99.7%',
-                            readOnly: 'readOnly'
-                        }
-                    );
-
-                    _this.annotationContentInput = new dijitTextArea(
-                        {
-                            id: 'annotation_content_string',
-                            value: this.annotationExistAtThisPosition ? _this.annotationObjectArray[0].contents : '',
-                            placeHolder: '',
+                            id: 'editorContainer',
                             style: {
                                 width: '100%',
-                                height: '100px'
+                                height: '250px'
                             }
                         }
                     );
 
+                    _this.annotationVersionSelector = domConstruct.create(
+                        'select',
+                        {
+                            id: 'annotation_version_selector',
+                            innerHTML: '<option value="nenVersion" style="display:none">Changelog</option>',
+                            style: {
+                                display: 'block',
+                                width: '100%',
+                                height: '25px',
+                                border: '1px solid #ccc',
+                                marginTop: '5px'
+                            },
+                            onchange: function(event){
+                                if(
+                                    event.target.selectedIndex > 0 && event.target.selectedIndex < _this.annotationObjectArray.length + 1 &&
+                                    _this.annotationExistAtThisPosition && _this.annotationObjectArray[event.target.selectedIndex - 1].contents
+                                )
+                                {
+                                    let contentObj;
+                                    try {
+                                        contentObj = JSON.parse(_this.annotationObjectArray[event.target.selectedIndex - 1].contents);
+                                        _this.annotationEditor.setContents(contentObj);
+                                    } catch (error) {
+                                        _this.annotationEditor.setText(error.message);
+                                    }
+                                }
+                                else
+                                {
+                                    _this.annotationEditor.setText('ANNOTATION_LOAD_ERROR');
+                                }
+                            }
+                        }
+                    );
+
+                    if(_this.annotationExistAtThisPosition)
+                    {
+                        _this.annotationObjectArray.forEach(
+                            function (item, index) {
+                                let recordId = item.id;
+                                let timeFormated = item.time.replace(/^(\d{4}-\d{2}-\d{2})(T)(\d{2}:\d{2}:\d{2}).*/, '$1 $3');
+                                let author = item.author;
+                                let ipaddress = item.ipaddress;
+                                domConstruct.create(
+                                    'option',
+                                    {
+                                        value: timeFormated,
+                                        innerHTML: '[' + recordId + '] ' + timeFormated + '&nbsp;&nbsp;&nbsp;&nbsp;(' + author + '/' + ipaddress +')'
+                                    },
+                                    _this.annotationVersionSelector
+                                )
+                            }
+                        );
+                    }
+
                     _this.set(
                         'content',
                         [
-                            _this.annotationContentInput.domNode,
-                            _this.annotationTimeInput.domNode
+                            _this.editorContainer,
+                            _this.annotationVersionSelector
                         ]
                     );
+
+                    _this.annotationEditor = new QuillEditor(
+                        _this.editorContainer,
+                        {
+                            theme: 'snow',
+                            placeholder: 'Enter annotation here...'
+                        }
+                    );
+
+                    if(
+                        _this.annotationExistAtThisPosition && _this.annotationObjectArray[0].contents
+                    )
+                    {
+                        let contentObj;
+                        try {
+                            contentObj = JSON.parse(_this.annotationObjectArray[0].contents);
+                            _this.annotationEditor.setContents(contentObj);
+                        } catch (error) {
+                            _this.annotationEditor.setText(error.message);
+                        }
+                    }
+                    else if(_this.annotationObjectArray.length > 0)
+                    {
+                        _this.annotationEditor.setText('ANNOTATION_LOAD_ERROR');
+                    }
 
                     _this.inherited(arguments);
                 },
 
                 insertSpecificAnnotation: function() {
                     let _this = this;
-                    let annotationTime = _this.annotationTimeInput.get('value');
-                    let annotationContent = _this.annotationContentInput.get('value');
-                    let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
-                        + ':12080/';
-                    let URIParam =  _this.browser.config.BEYONDGBrowseDatasetId + '/annotation/insert/' + this.refName + '/' + this.position + '/';
-                    let currentDateTimeInMysqlFormat = _this._getCurrentTimeInMysqlFormat();
-                    if(
-                        this.annotationExistAtThisPosition
-                        && typeof _this.annotationObjectArray[0] === "object"
-                        && annotationContent === _this.annotationObjectArray[0].contents
-                    )
+                    if(_this.annotationEditor.getLength() <= 0)
                     {
-                        // Content not changed
-                        URIParam += annotationTime + '/' + annotationContent;
-                    }
-                    else
-                    {
-                        URIParam += currentDateTimeInMysqlFormat + '/' + annotationContent;
+                        return;
                     }
 
+                    let annotationTime = _this.annotationVersionSelector.options[
+                            _this.annotationVersionSelector.selectedIndex
+                        ].value;
+                    let annotationContent = JSON.stringify(
+                        _this.annotationEditor.getContents()
+                    );
+                    let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
+                        + ':12080/annotation/insert';
+                    let currentDateTimeInMysqlFormat = _this._getCurrentTimeInMysqlFormat();
+                    let isUpdateOldRecord = _this.annotationExistAtThisPosition && annotationTime !== "newVersion";
+
                     dojoRequest(
-                        requestUrl + encodeURIComponent(URIParam),
+                        // requestUrl + encodeURIComponent(URIParam),
+                        requestUrl,
                         {
-                            method: 'GET',
+                            method: 'POST',
                             query: {
+                                datasetId: _this.browser.config.BEYONDGBrowseDatasetId,
+                                refName: _this.refName,
+                                position: _this.position,
+                                time: currentDateTimeInMysqlFormat,
                                 author: _this.browser.config.BEYONDGBrowseUsername || 'Anonymous'
                             },
+                            data: annotationContent,
                             headers: {
                                 'X-Requested-With': null
                             },
-                            handleAs: 'text'
+                            handleAs: 'json'
                         }
                     ).then(
-                        function (isInsertSuccess) {
-                            SnowConsole.info(isInsertSuccess);
+                        function (statusObj) {
+                            SnowConsole.info(statusObj);
+                            if(statusObj.status !== "SUCCESS")
+                            {
+                                alert('Upload annotation failed!');
+                            }
                         }
                     );
                 },

@@ -44,8 +44,11 @@ define(
                 constructor: function (args) {
                     let _this = this;
                     window.BEYONDGBrowseProteinTrack = _this;
-                    window.BEYONDGBrowse_DebugPrintReferenceGenomeSequence = function (refName, startPos, endPos) {
+                    window.BEYONDGBrowse.DebugPrintReferenceGenomeSequence = function (refName, startPos, endPos) {
                         _this._printRefSeqAndConceptualTranslation(_this, refName, startPos, endPos)
+                    };
+                    window.BEYONDGBrowse._loadSpecificAnnotationAndPopupModal = function (name, position, finishCallback) {
+                        _this._loadSpecificAnnotationAndPopupModal(name, position, finishCallback);
                     };
 
                     _this._codonTable = {
@@ -1591,25 +1594,26 @@ define(
                         frameDomNode = blockDomNode.firstChild;
                     }
                     let allAminoAcidCell = dojoQuery(".Snow_aminoAcid", frameDomNode);
-                    allAminoAcidCell.on('dblclick', function (event) {
+                    allAminoAcidCell.on(
+                        'dblclick',
+                        function (event) {
                             SnowConsole.debug('dblclick on .Snow_aminoAcid:', arguments);
                             let finishCallback = function () {
                                 domClass.add(event.target, 'Snow_annotation_mark');
                             };
-                            let thisAminoAcidCellPosition;
+                            let positionOfThisAminoAcidCell;
                             if(isProteoformSequence === true)
                             {
-                                // the proteoform position is its property <id>
-                                thisAminoAcidCellPosition = domAttr.get(event.target, 'proteoformPosition');
+                                positionOfThisAminoAcidCell = domAttr.get(event.target, 'proteoformPosition');
                             }
                             else
                             {
-                                thisAminoAcidCellPosition = domAttr.get(event.target, 'snowseqposition');
+                                positionOfThisAminoAcidCell = domAttr.get(event.target, 'snowseqposition');
                             }
 
                             _this._loadSpecificAnnotationAndPopupModal(
                                 refName,
-                                thisAminoAcidCellPosition,
+                                positionOfThisAminoAcidCell,
                                 finishCallback
                             );
                         }
@@ -1789,7 +1793,7 @@ define(
                                     annotationObjectArray: annotationObjectArray,
                                     browser: _this.browser,
                                     style: {
-                                        width: '360px'
+                                        width: '600px'
                                     },
                                     setCallback: function () {
                                         // Make sure the annotation is successfully inserted
