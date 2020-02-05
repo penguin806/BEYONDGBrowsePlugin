@@ -82,7 +82,7 @@ define([
                                 'file',
                                 new dijitMenuItem(
                                     {
-                                        label: 'Set mass spectra track number',
+                                        label: 'Set mass spectrum track number',
                                         iconClass: 'dijitIconConfigure',
                                         onClick: function () {
                                             _this._displayMassTrackSettingDialog(_this.browser);
@@ -211,8 +211,8 @@ define([
                             {
                                 let newMassSpectraTrackConfig = {
                                     type: 'BEYONDGBrowse/View/Track/SnowCanvasFeatures',
-                                    label: '质谱轨道' + (index + 1),
-                                    key: '质谱轨道' + (index + 1),
+                                    label: 'mass_spectrum_track' + (index + 1),
+                                    key: 'mass_spectrum_track' + (index + 1),
                                     store: _this.BEYONDGBrowseProteinTrack.store,
                                     storeClass: _this.BEYONDGBrowseProteinTrack.storeClass,
                                     urlTemplate: _this.BEYONDGBrowseProteinTrack.urlTemplate,
