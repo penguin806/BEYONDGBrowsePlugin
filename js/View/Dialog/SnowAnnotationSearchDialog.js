@@ -54,7 +54,7 @@ define(
 
                     let findButton = new Button(
                         {
-                            iconClass: 'dijitIconOpen',
+                            iconClass: 'dijitIconNewTask',
                             label: 'Open',
                             onClick:function() {
                                 _this.setCallback && _this.setCallback(
@@ -93,6 +93,7 @@ define(
                                 display: 'block',
                                 width: '100%',
                                 height: '25px',
+                                margin: '1px',
                                 border: '1px solid #ccc'
                             }
                         },
@@ -103,6 +104,13 @@ define(
                         'input',
                         {
                             type: 'text',
+                            style: {
+                                width: '100%',
+                                border: '1px solid #ccc',
+                                margin: '1px',
+                                display: 'block',
+                                boxSizing: 'border-box'
+                            },
                             onkeyup: function(event) {
                                 let searchValue = event.target.value;
                                 if(!searchValue || searchValue === "")
@@ -164,7 +172,8 @@ define(
                             style: {
                                 display: 'block',
                                 width: '100%',
-                                border: '1px solid #ccc'
+                                border: '1px solid #ccc',
+                                margin: '1px'
                             }
                         },
                         container
