@@ -57,10 +57,24 @@ define(
                             iconClass: 'dijitIconNewTask',
                             label: 'Open',
                             onClick:function() {
-                                _this.setCallback && _this.setCallback(
-                                    //param1: name
-                                    //param2: position
-                                );
+                                if(
+                                    _this.searchResultBox.selectedIndex !== -1 &&
+                                    _this.annotationObjectArray && _this.annotationObjectArray.length > 0
+                                )
+                                {
+                                    let selectedAnnotationItemObj = _this.annotationObjectArray[_this.searchResultBox.selectedIndex];
+                                    _this.setCallback && _this.setCallback(
+                                        //param1: name
+                                        selectedAnnotationItemObj.name,
+                                        //param2: position
+                                        selectedAnnotationItemObj.position
+                                    );
+                                }
+                                else
+                                {
+                                    alert('Annotation item not selected!');
+                                    return;
+                                }
                                 _this.hide();
                             }
                         }
@@ -149,12 +163,13 @@ define(
                                     }
                                 ).then(
                                     function (annotationObjectArray) {
-                                        SnowConsole.info(annotationObjectArray);
+                                        _this.annotationObjectArray = annotationObjectArray;
                                         _this.searchResultBox.innerHTML = null;
                                         annotationObjectArray.forEach(
                                             function (itemObj, index) {
                                                 let option = document.createElement('option');
-                                                option.innerText = itemObj.time;
+                                                let timeFormated = itemObj.time.replace(/^(\d{4}-\d{2}-\d{2})(T)(\d{2}:\d{2}:\d{2}).*/, '$1 $3');
+                                                option.innerText = '[' + itemObj.id + '] ' + itemObj.name + '-' + itemObj.position + ' ' + timeFormated + ' ' + itemObj.author;
                                                 _this.searchResultBox.append(option);
                                             }
                                         );

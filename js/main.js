@@ -109,7 +109,7 @@ define([
                             new dijitMenuItem(
                                 {
                                     label: 'Search annotation',
-                                    iconClass: 'dijitIconSearch',
+                                    iconClass: 'dijitLeaf',
                                     onClick: function () {
                                         _this._displayAnnotationSearchDialog(_this.browser);
                                     }
