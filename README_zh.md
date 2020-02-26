@@ -120,7 +120,7 @@ BEYONDGBrowse是一个基于jBrowse基因组浏览器的多组学序列数据可
 
       # Nginx、Apache等其他Web服务器
       sudo chown -R `whoami` <jBrowse目录>
-      sudo mv <jBrowse目录> <Web服务器根目录，例如>
+      sudo mv <jBrowse目录> <Web服务器根目录，例如/var/www>
 
 
 ## 参考文档
