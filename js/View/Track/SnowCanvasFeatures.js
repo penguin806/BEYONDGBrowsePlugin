@@ -1379,6 +1379,40 @@ define(
                                             );
 
                                             window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].diffFromRefSequenceResult = diffFromRefSequenceResult;
+                                            let diffAdded = 0;
+                                            let diffRemoved = 0;
+                                            let diffPTM = 0;
+                                            diffFromRefSequenceResult.forEach(
+                                                function(item) {
+                                                    let diffText = item.value;
+
+                                                    if(/\[.*]/.test(diffText))
+                                                    {
+                                                        /\[.*]/.exec(diffText).forEach(
+                                                            function(matched)
+                                                            {
+                                                                diffPTM++;
+                                                            }
+                                                        );
+
+                                                        diffText = diffText.replace(/\[.*]/, '');
+                                                    }
+
+                                                    if(item.added)
+                                                    {
+                                                        diffAdded += diffText.length;
+                                                    }
+                                                    else if(item.removed)
+                                                    {
+                                                        diffRemoved += diffText.length;
+                                                    }
+                                                }
+                                            );
+                                            window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].diffFromRefSequenceCount = {
+                                                added: diffAdded,
+                                                removed: diffRemoved,
+                                                ptm: diffPTM
+                                            };
                                         }
 
                                         let massAndIntensityMappingResult = undefined;
