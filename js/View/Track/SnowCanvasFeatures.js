@@ -1107,6 +1107,12 @@ define(
                     let currentRangeLeftBase = startBase;
                     let currentRangeRightBase = startBase + (last - first + 1) * bpPerBlock;
 
+                    if(scale < 1)
+                    {
+                        console.error('SnowCanvasFeatures.js: scale < 1');
+                        return;
+                    }
+
                     if(
                         _this.msScanDataCache._start && _this.msScanDataCache.end &&
                         typeof _this.msScanDataCache.data == "object" &&

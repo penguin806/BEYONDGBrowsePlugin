@@ -374,6 +374,10 @@ define([
 
                     function drawLeftAndRightDiff(isHighLightState)
                     {
+                        if(_this.genomeView.pxPerBp <= 5)
+                        {
+                            return;
+                        }
                         context.save();
                         context.shadowColor = 'rgba(0, 0, 0, 0)';
                         context.shadowBlur = 0;
@@ -528,7 +532,7 @@ define([
                     );
                     context.restore();
 
-                    if(item.label !== undefined && item.label != null)
+                    if(_this.genomeView.pxPerBp > 5 && item.label !== undefined && item.label != null)
                     {
                         // Draw arrow above the histogram column
                         _this._drawArrow(

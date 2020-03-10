@@ -1230,7 +1230,7 @@ define(
                     // console.log('tableActualWidth: ' + tableActualWidth);
                     // console.log('spanActualWidth: ' + spanActualWidth);
 
-                    charWidth = 100/ translated.length + "%";
+                    charWidth = 100 / translated.length + "%";
 
                     let drawChars = scale >= charSize.w;
                     if( drawChars )
@@ -1438,7 +1438,8 @@ define(
 
                                     let bIonLabelNode = domConstruct.create('span',
                                         {
-                                            className: 'Snow_aminoAcid_head_strand_bIon_label',
+                                            className: 'Snow_aminoAcid_bIon_label' +
+                                                (_this.genomeView.pxPerBp > _this.getCharacterMeasurements("aminoAcid").w ? ' big': ''),
                                             style: {},
                                             innerHTML: detailArrayOfProteoformInThisBlock[index].bIonFlag
                                         }
@@ -1457,7 +1458,8 @@ define(
 
                                     let yIonLabelNode = domConstruct.create('span',
                                         {
-                                            className: 'Snow_aminoAcid_head_strand_yIon_label',
+                                            className: 'Snow_aminoAcid_yIon_label' +
+                                                (_this.genomeView.pxPerBp > _this.getCharacterMeasurements("aminoAcid").w ? ' big': ''),
                                             style: {},
                                             innerHTML: detailArrayOfProteoformInThisBlock[index].yIonFlag
                                         }
@@ -1470,8 +1472,10 @@ define(
                             {
                                 let modificationText = detailArrayOfProteoformInThisBlock[index].modification;
                                 // modificationText = modificationText.replace(';', ';<br>');
-                                let modificationDivWidth = aminoAcidTableCellActualWidth / 2;
-                                let modificationDivHeight = aminoAcidTableCellActualWidth / 2;
+                                let modificationDivWidth = _this.genomeView.pxPerBp > _this.getCharacterMeasurements("aminoAcid").w ?
+                                    aminoAcidTableCellActualWidth / 2 : aminoAcidTableCellActualWidth;
+                                let modificationDivHeight = _this.genomeView.pxPerBp > _this.getCharacterMeasurements("aminoAcid").w ?
+                                    aminoAcidTableCellActualWidth / 2 : aminoAcidTableCellActualWidth;
 
                                 let modificationContainer = domConstruct.create('td',
                                     {
