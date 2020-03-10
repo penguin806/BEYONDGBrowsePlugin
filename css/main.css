@@ -190,6 +190,20 @@
     /*word-break: break-all;*/
 }
 
+.Snow_translatedSequence div.Snow_aminoAcid_modification_label.low_scale {
+    top: 300%;
+    overflow: visible;
+}
+
+.Snow_translatedSequence div.Snow_aminoAcid_modification_label.low_scale::after {
+    content: "";
+    position: absolute;
+    left: 49%;
+    top: -150%;
+    border-right: 0.15em solid black;
+    height: 150%;
+}
+
 .Snow_translatedSequence td span.Snow_aminoAcid_bIon_label {
     color: #d63031;
     text-align: center;
@@ -222,6 +236,25 @@
 
 span.locate-button {
     line-height: 18px;
+}
+
+.Snow_translatedSequence td.Snow_AminoAcid_Mismatch span.Snow_AminoAcid_Mismatch_span.low_scale {
+    position: absolute;
+    top: 300%;
+    left: 25%;
+    width: 50%;
+    height: 50%;
+    line-height: 100%;
+    background: #b2bec3e6;
+}
+
+.Snow_translatedSequence td.Snow_AminoAcid_Mismatch span.Snow_AminoAcid_Mismatch_span.low_scale::after {
+    content: "";
+    position: absolute;
+    left: 47%;
+    top: -400%;
+    border-right: 0.1em solid black;
+    height: 400%;
 }
 
 /*.Snow_translatedSequence td.Snow_aminoAcid_mark_left_top::after {*/

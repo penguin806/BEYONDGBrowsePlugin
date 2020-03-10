@@ -1153,6 +1153,7 @@ define(
                             block.domNode.lastChild.clientHeight ||
                             block.domNode.lastChild.offsetHeight
                         );
+                    totalHeight += 50; //Add offset 2020-03-10
                     this.heightUpdate( totalHeight, blockIndex );
                 },
 
@@ -1377,6 +1378,15 @@ define(
                             if(detailArrayOfProteoformInThisBlock[index].aminoAcidCharacter === '-')
                             {
                                 aminoAcidSpan.className += ' Snow_AminoAcid_Mismatch';
+                                aminoAcidSpan.innerHTML = '';
+                                domConstruct.create(
+                                    'span',
+                                    {
+                                        className: 'Snow_AminoAcid_Mismatch_span' + (_this.genomeView.pxPerBp < 5.5 ? ' low_scale' : ''),
+                                        innerHTML: drawChars ? detailArrayOfProteoformInThisBlock[index].aminoAcidCharacter : ''
+                                    },
+                                    aminoAcidSpan
+                                );
                                 if(!_this.config.fillMismatchesWithCells)
                                 {
                                     aminoAcidSpan.style.visibility = 'hidden';
@@ -1489,7 +1499,7 @@ define(
 
                                 let modificationDivNode = domConstruct.create('div',
                                     {
-                                        className: 'Snow_aminoAcid_modification_label',
+                                        className: 'Snow_aminoAcid_modification_label' + (_this.genomeView.pxPerBp < 5.5 ? ' low_scale' : ''),
                                         style: {
                                             backgroundColor: detailArrayOfProteoformInThisBlock[index].modificationColor,
                                             width: modificationDivWidth + 'px',
