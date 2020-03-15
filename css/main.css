@@ -205,21 +205,27 @@
 }
 
 .Snow_translatedSequence td span.Snow_aminoAcid_bIon_label {
+    visibility: hidden;
+}
+.Snow_translatedSequence td span.Snow_aminoAcid_bIon_label.big {
+    font-size: small;
     color: #d63031;
     text-align: center;
     position: absolute;
     right: 2%;
     font-family: monospace;
     font-weight: normal;
-    font-size: 0.6em;
+    /*font-size: 0.6em;*/
     line-height: 0.6em;
     bottom: 0;
-}
-.Snow_translatedSequence td span.Snow_aminoAcid_bIon_label.big {
-    font-size: small;
+    visibility: visible;
 }
 
 .Snow_translatedSequence td span.Snow_aminoAcid_yIon_label {
+    visibility: hidden;
+}
+.Snow_translatedSequence td span.Snow_aminoAcid_yIon_label.big {
+    font-size: small;
     color: #2ecc71;
     text-align: center;
     position: absolute;
@@ -227,11 +233,8 @@
     left: 2%;
     font-family: monospace;
     font-weight: normal;
-    font-size: 0.6em;
     line-height: 0.6em;
-}
-.Snow_translatedSequence td span.Snow_aminoAcid_yIon_label.big {
-    font-size: small;
+    visibility: visible;
 }
 
 span.locate-button {

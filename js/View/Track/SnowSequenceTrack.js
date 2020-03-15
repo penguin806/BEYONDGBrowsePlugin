@@ -1444,7 +1444,10 @@ define(
                                     detailArrayOfProteoformInThisBlock[index].bIonFlag;
                                 if(detailArrayOfProteoformInThisBlock[index].bIonFlagTag !== undefined)
                                 {
-                                    aminoAcidSpan.className += ' Snow_aminoAcid_mark_right_top';
+                                    if(_this.genomeView.pxPerBp > 5.5)
+                                    {
+                                        aminoAcidSpan.className += ' Snow_aminoAcid_mark_right_top';
+                                    }
 
                                     let bIonLabelNode = domConstruct.create('span',
                                         {
@@ -1464,7 +1467,10 @@ define(
                                     detailArrayOfProteoformInThisBlock[index].yIonFlag;
                                 if(detailArrayOfProteoformInThisBlock[index].yIonFlagTag !== undefined)
                                 {
-                                    aminoAcidSpan.className += ' Snow_aminoAcid_mark_left_bottom';
+                                    if(_this.genomeView.pxPerBp > 5.5)
+                                    {
+                                        aminoAcidSpan.className += ' Snow_aminoAcid_mark_left_bottom';
+                                    }
 
                                     let yIonLabelNode = domConstruct.create('span',
                                         {
