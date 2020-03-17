@@ -199,15 +199,13 @@
     content: "";
     position: absolute;
     left: 49%;
-    top: -150%;
+    top: -450%;
     border-right: 0.15em solid black;
-    height: 150%;
+    height: 450%;
 }
 
 .Snow_translatedSequence td span.Snow_aminoAcid_bIon_label {
     visibility: hidden;
-}
-.Snow_translatedSequence td span.Snow_aminoAcid_bIon_label.big {
     font-size: small;
     color: #d63031;
     text-align: center;
@@ -218,13 +216,13 @@
     /*font-size: 0.6em;*/
     line-height: 0.6em;
     bottom: 0;
+}
+.Snow_translatedSequence td span.Snow_aminoAcid_bIon_label.big {
     visibility: visible;
 }
 
 .Snow_translatedSequence td span.Snow_aminoAcid_yIon_label {
     visibility: hidden;
-}
-.Snow_translatedSequence td span.Snow_aminoAcid_yIon_label.big {
     font-size: small;
     color: #2ecc71;
     text-align: center;
@@ -234,6 +232,8 @@
     font-family: monospace;
     font-weight: normal;
     line-height: 0.6em;
+}
+.Snow_translatedSequence td span.Snow_aminoAcid_yIon_label.big {
     visibility: visible;
 }
 
