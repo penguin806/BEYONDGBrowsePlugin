@@ -95,6 +95,10 @@
     height: 98%;
 }
 
+.Snow_translatedSequence td.Snow_aminoAcid_mark_left_bottom.low_scale::before {
+    visibility: hidden;
+}
+
 .Snow_translatedSequence td.Snow_aminoAcid_mark_right_top::after {
     content: "";
     position: absolute;
@@ -104,6 +108,9 @@
     border-top: 0.18em solid #d63031;
     width: 18%;
     height: 98%;
+}
+.Snow_translatedSequence td.Snow_aminoAcid_mark_right_top.low_scale::after {
+    visibility: hidden;
 }
 
 .Snow_translatedSequence td.Snow_annotation_mark::before {
@@ -199,9 +206,9 @@
     content: "";
     position: absolute;
     left: 49%;
-    top: -450%;
+    top: -180%;
     border-right: 0.15em solid black;
-    height: 450%;
+    height: 180%;
 }
 
 .Snow_translatedSequence td span.Snow_aminoAcid_bIon_label {
