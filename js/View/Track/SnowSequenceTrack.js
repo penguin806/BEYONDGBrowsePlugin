@@ -1549,22 +1549,38 @@ define(
                                 tr.appendChild(modificationContainer);
                             }
 
-                            if(detailArrayOfProteoformInThisBlock[index].headOrTailFlag.includes('HEAD'))
+                            function generateSpanNode(scanId, strand, ptmCount, diffAdded, diffRemoved)
                             {
                                 let headSpanInnerHTML = 'Scan: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
-                                headSpanInnerHTML +=  detailArrayOfProteoformInThisBlock[index].scan + '</span>';
+                                headSpanInnerHTML += scanId + '</span>';
+                                if(_this.genomeView.pxPerBp < 5.5)
+                                {
+                                    return headSpanInnerHTML;
+                                }
 
                                 headSpanInnerHTML += '<br>Strand: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
-                                headSpanInnerHTML += detailArrayOfProteoformInThisBlock[index].isReverse ? '-' : '+';
+                                headSpanInnerHTML += strand;
                                 headSpanInnerHTML += '</span>';
 
                                 headSpanInnerHTML += '<br>PTM: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
-                                headSpanInnerHTML +=  window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.ptm + '</span>';
+                                headSpanInnerHTML +=  ptmCount + '</span>';
 
                                 headSpanInnerHTML += '<br>Diff: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
-                                headSpanInnerHTML +=  window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.added
-                                    + '+ ' + window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.removed + '-</span>';
+                                headSpanInnerHTML +=  diffAdded
+                                    + '+ ' + diffRemoved + '-</span>';
 
+                                return headSpanInnerHTML;
+                            }
+
+                            if(detailArrayOfProteoformInThisBlock[index].headOrTailFlag.includes('HEAD'))
+                            {
+                                let headSpanInnerHTML = generateSpanNode(
+                                    detailArrayOfProteoformInThisBlock[index].scan,
+                                    detailArrayOfProteoformInThisBlock[index].isReverse ? '-' : '+',
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.ptm,
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.added,
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.removed
+                                );
                                 let strandAndScanIdSpanAtHead = domConstruct.create('span',
                                     {
                                         className: 'Snow_aminoAcid_head_strand_scanId_label',
@@ -1579,19 +1595,13 @@ define(
                             }
                             else if(detailArrayOfProteoformInThisBlock[index].headOrTailFlag.includes('TAIL'))
                             {
-                                let tailSpanInnerHTML = 'Scan: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
-                                tailSpanInnerHTML +=  detailArrayOfProteoformInThisBlock[index].scan + '</span>';
-
-                                tailSpanInnerHTML += '<br>Strand: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
-                                tailSpanInnerHTML += detailArrayOfProteoformInThisBlock[index].isReverse ? '-' : '+';
-                                tailSpanInnerHTML += '</span>';
-
-                                tailSpanInnerHTML += '<br>PTM: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
-                                tailSpanInnerHTML +=  window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.ptm + '</span>';
-
-                                tailSpanInnerHTML += '<br>Diff: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
-                                tailSpanInnerHTML +=  window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.added
-                                    + '+ ' + window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.removed + '-</span>';
+                                let tailSpanInnerHTML = generateSpanNode(
+                                    detailArrayOfProteoformInThisBlock[index].scan,
+                                    detailArrayOfProteoformInThisBlock[index].isReverse ? '-' : '+',
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.ptm,
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.added,
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.removed
+                                );
 
                                 let strandAndScanIdSpanAtHead = domConstruct.create('span',
                                     {
