@@ -182,8 +182,15 @@ define(
                         }
                     );
 
-                    // Draw proteoform
                     function drawProteoform() {
+                        setTimeout(
+                            _drawProteoform,
+                            300
+                        );
+                    }
+
+                    // Draw proteoform
+                    function _drawProteoform() {
                         // _this.proteoformTrackToDrawArray.sort(
                         //     (itemA, itemB) => {
                         //         return itemA.msScanMassTrackId - itemB.msScanMassTrackId;
