@@ -385,7 +385,7 @@ define(
                             type: 'dijit/MenuSeparator'
                         },
                         {
-                            label: 'Draw Cells with Circle-Style',
+                            label: 'Draw AminoAcid with Circle-Style',
                             type: 'dijit/CheckedMenuItem',
                             checked: !!_this.config.drawCircle,
                             onClick: function (event) {
@@ -1429,7 +1429,7 @@ define(
 
 
 
-                            if(_this.config.drawCircle)
+                            if(_this.config.drawCircle && _this.genomeView.pxPerBp >= 5.5)
                             {
                                 aminoAcidSpan.className += ' Snow_aminoAcid_circle';
                             }
