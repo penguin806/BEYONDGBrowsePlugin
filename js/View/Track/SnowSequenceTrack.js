@@ -618,10 +618,10 @@ define(
 
                     if(scanIdLabel !== undefined)
                     {
-                        if(
-                            !window.BEYONDGBrowse.annotationStore.hasOwnProperty(scanIdLabel)
-                            && typeof window.BEYONDGBrowse.annotationStore[scanIdLabel] != "object"
-                        )
+                        // if(
+                        //     !window.BEYONDGBrowse.annotationStore.hasOwnProperty(scanIdLabel)
+                        //     && typeof window.BEYONDGBrowse.annotationStore[scanIdLabel] != "object"
+                        // )
                         {
                             let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
                                 + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + scanIdLabel + '/'
@@ -647,10 +647,10 @@ define(
                                 }
                             );
                         }
-                        else
-                        {
-                            annotationFinishLoadCallback && annotationFinishLoadCallback();
-                        }
+                        // else
+                        // {
+                        //     annotationFinishLoadCallback && annotationFinishLoadCallback();
+                        // }
                     }
 
                     if(refName && currentRangeStartPosition && currentRangeEndPosition)
