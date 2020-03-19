@@ -1274,6 +1274,7 @@ define(
                                                 msScanData[i].lcsLengthArray;
                                             window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].selectedRefSeqIndex =
                                                 msScanData[i].selectedRefSeqIndex;
+                                            window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].uniprot_id = msScanData[i].uniprot_id;
                                         }
                                     }
 

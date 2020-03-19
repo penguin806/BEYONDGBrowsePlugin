@@ -1576,17 +1576,17 @@ define(
                                 tr.appendChild(modificationContainer);
                             }
 
-                            function generateSpanNode(scanId, strand, ptmCount, diffAdded, diffRemoved)
+                            function generateSpanNode(scanId, uniprot_id, strand, ptmCount, diffAdded, diffRemoved)
                             {
                                 let headSpanInnerHTML = 'Scan: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
-                                headSpanInnerHTML += scanId + '</span>';
+                                headSpanInnerHTML += scanId + '(' + strand + ')</span>';
                                 // if(_this.genomeView.pxPerBp < 5.5)
                                 // {
                                 //     return headSpanInnerHTML;
                                 // }
 
-                                headSpanInnerHTML += '<br>Strand: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
-                                headSpanInnerHTML += strand;
+                                headSpanInnerHTML += '<br>ID: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
+                                headSpanInnerHTML += uniprot_id;
                                 headSpanInnerHTML += '</span>';
 
                                 headSpanInnerHTML += '<br>PTM: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
@@ -1603,6 +1603,7 @@ define(
                             {
                                 let headSpanInnerHTML = generateSpanNode(
                                     detailArrayOfProteoformInThisBlock[index].scan,
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].uniprot_id,
                                     detailArrayOfProteoformInThisBlock[index].isReverse ? '-' : '+',
                                     window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.ptm,
                                     window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.added,
@@ -1624,6 +1625,7 @@ define(
                             {
                                 let tailSpanInnerHTML = generateSpanNode(
                                     detailArrayOfProteoformInThisBlock[index].scan,
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].uniprot_id,
                                     detailArrayOfProteoformInThisBlock[index].isReverse ? '-' : '+',
                                     window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.ptm,
                                     window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.added,
