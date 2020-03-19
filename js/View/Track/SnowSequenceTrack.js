@@ -618,10 +618,10 @@ define(
 
                     if(scanIdLabel !== undefined)
                     {
-                        // if(
-                        //     !window.BEYONDGBrowse.annotationStore.hasOwnProperty(scanIdLabel)
-                        //     && typeof window.BEYONDGBrowse.annotationStore[scanIdLabel] != "object"
-                        // )
+                        if(
+                            !window.BEYONDGBrowse.annotationStore.hasOwnProperty(scanIdLabel)
+                            && typeof window.BEYONDGBrowse.annotationStore[scanIdLabel] != "object"
+                        )
                         {
                             let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
                                 + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + scanIdLabel + '/'
@@ -647,10 +647,10 @@ define(
                                 }
                             );
                         }
-                        // else
-                        // {
-                        //     annotationFinishLoadCallback && annotationFinishLoadCallback();
-                        // }
+                        else
+                        {
+                            annotationFinishLoadCallback && annotationFinishLoadCallback();
+                        }
                     }
 
                     if(refName && currentRangeStartPosition && currentRangeEndPosition)
@@ -1580,10 +1580,10 @@ define(
                             {
                                 let headSpanInnerHTML = 'Scan: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
                                 headSpanInnerHTML += scanId + '</span>';
-                                if(_this.genomeView.pxPerBp < 5.5)
-                                {
-                                    return headSpanInnerHTML;
-                                }
+                                // if(_this.genomeView.pxPerBp < 5.5)
+                                // {
+                                //     return headSpanInnerHTML;
+                                // }
 
                                 headSpanInnerHTML += '<br>Strand: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
                                 headSpanInnerHTML += strand;
@@ -1678,7 +1678,15 @@ define(
                         function (event) {
                             SnowConsole.debug('dblclick on .Snow_aminoAcid:', arguments);
                             let finishCallback = function () {
-                                domClass.add(event.target, 'Snow_annotation_mark');
+                                // _this._queryAnnotationDataFromBackend(
+                                //     isProteoformSequence ? refName : undefined,
+                                //     isProteoformSequence ? undefined : refName,
+                                //     isProteoformSequence ? undefined : blockStart,
+                                //     isProteoformSequence ? undefined : blockEnd,
+                                //     function () {
+                                        domClass.add(event.target, 'Snow_annotation_mark');
+                                //     }
+                                // );
                             };
                             let positionOfThisAminoAcidCell;
                             if(isProteoformSequence === true)
