@@ -374,7 +374,7 @@ define([
 
                     function drawLeftAndRightDiff(isHighLightState)
                     {
-                        if(_this.genomeView.pxPerBp <= 5)
+                        if(_this.genomeView.pxPerBp <= 5.5)
                         {
                             return;
                         }

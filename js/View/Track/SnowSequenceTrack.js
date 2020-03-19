@@ -152,8 +152,13 @@ define(
                                 selectedRefSeqIndex
                             };
 
-                            _this._queryAnnotationDataFromBackend('Scan' + scanId, undefined, undefined, undefined);
-                            drawProteoform();
+                            _this._queryAnnotationDataFromBackend(
+                                'Scan' + scanId,
+                                undefined,
+                                undefined,
+                                undefined,
+                                drawProteoform
+                            );
                         }
                     );
 
@@ -608,7 +613,7 @@ define(
                     return detailArrayOfProteoformSequence;
                 },
 
-                _queryAnnotationDataFromBackend: function(scanIdLabel, refName, currentRangeStartPosition, currentRangeEndPosition) {
+                _queryAnnotationDataFromBackend: function(scanIdLabel, refName, currentRangeStartPosition, currentRangeEndPosition, annotationFinishLoadCallback) {
                     let _this = this;
 
                     if(scanIdLabel !== undefined)
@@ -635,11 +640,16 @@ define(
                                 function (proteoformAnnotationData) {
                                     SnowConsole.info('proteoformAnnotation:', proteoformAnnotationData);
                                     window.BEYONDGBrowse.annotationStore[scanIdLabel] = proteoformAnnotationData;
+                                    annotationFinishLoadCallback && annotationFinishLoadCallback();
                                 },
                                 function (errorReason) {
                                     console.error('Query proteoformAnnotation error', requestUrl, errorReason);
                                 }
                             );
+                        }
+                        else
+                        {
+                            annotationFinishLoadCallback && annotationFinishLoadCallback();
                         }
                     }
 
@@ -667,6 +677,7 @@ define(
                                     endPos: currentRangeEndPosition,
                                     annotationData: currentRangeAnnotationData
                                 };
+                                annotationFinishLoadCallback && annotationFinishLoadCallback();
                             },
                             function (errorReason) {
                                 console.error('Query currentRangeAnnotation error', requestUrl, errorReason);
@@ -980,8 +991,17 @@ define(
                     let currentRangeRightBase = startBase + (last - first + 1) * bpPerBlock;
 
                     // _this.blocksJustFilled = [];
-                    _this._queryAnnotationDataFromBackend(undefined, _this.refSeq.name, currentRangeLeftBase, currentRangeRightBase);
-                    _this.inherited(_arguments);
+                    let annotationFinishLoadCallback = function() {
+                        _this.inherited(_arguments);
+                    };
+
+                    _this._queryAnnotationDataFromBackend(
+                        undefined,
+                        _this.refSeq.name,
+                        currentRangeLeftBase,
+                        currentRangeRightBase,
+                        annotationFinishLoadCallback
+                    );
                 },
 
                 fillBlock: function(args) {
