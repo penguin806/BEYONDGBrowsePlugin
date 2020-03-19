@@ -1590,9 +1590,9 @@ define(
                                 );
                                 let strandAndScanIdSpanAtHead = domConstruct.create('span',
                                     {
-                                        className: 'Snow_aminoAcid_head_strand_scanId_label',
+                                        className: 'Snow_aminoAcid_head_strand_scanId_label' + (_this.genomeView.pxPerBp < 5.5 ? ' low_scale' : ''),
                                         style: {
-                                            visibility: 'visible'
+                                            // visibility: 'visible'
                                         },
                                         innerHTML: headSpanInnerHTML
                                     }
@@ -1612,9 +1612,9 @@ define(
 
                                 let strandAndScanIdSpanAtHead = domConstruct.create('span',
                                     {
-                                        className: 'Snow_aminoAcid_tail_strand_scanId_label',
+                                        className: 'Snow_aminoAcid_tail_strand_scanId_label' + (_this.genomeView.pxPerBp < 5.5 ? ' low_scale' : ''),
                                         style: {
-                                            visibility: 'visible'
+                                            // visibility: 'visible'
                                         },
                                         innerHTML: tailSpanInnerHTML
                                     }
@@ -1625,6 +1625,16 @@ define(
                         }
 
                         tr.appendChild(aminoAcidSpan);
+                        tr.onmouseover = function() {
+                            domClass.add(tr, 'hoverState');
+                            // dojoQuery(
+                            //     'td span.Snow_aminoAcid_head_strand_scanId_label', tr
+                            // ).addClass('hoverState');
+                        };
+
+                        tr.onmouseout = function() {
+                            domClass.remove(tr, 'hoverState');
+                        };
                     }
                     return container;
                 },

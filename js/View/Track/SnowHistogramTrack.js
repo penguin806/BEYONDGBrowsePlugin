@@ -532,7 +532,7 @@ define([
                     );
                     context.restore();
 
-                    if(_this.genomeView.pxPerBp > 5 && item.label !== undefined && item.label != null)
+                    if(_this.genomeView.pxPerBp >= 5.5 && item.label !== undefined && item.label != null)
                     {
                         // Draw arrow above the histogram column
                         _this._drawArrow(
