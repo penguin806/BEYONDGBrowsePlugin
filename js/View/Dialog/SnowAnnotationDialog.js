@@ -212,9 +212,6 @@ define(
                                 author: _this.browser.config.BEYONDGBrowseUsername || 'Anonymous'
                             },
                             data: annotationContent,
-                            headers: {
-                                'X-Requested-With': null
-                            },
                             handleAs: 'json'
                         }
                     ).then(

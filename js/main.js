@@ -352,7 +352,6 @@ define([
                         {
                             method: 'GET',
                             headers: {
-                                'X-Requested-With': null
                             },
                             handleAs: 'json'
                         }
@@ -437,7 +436,6 @@ define([
                         {
                             method: 'GET',
                             headers: {
-                                'X-Requested-With': null
                                 //'User-Agent': 'SnowPlugin-FrontEnd'
                             },
                             handleAs: 'json'

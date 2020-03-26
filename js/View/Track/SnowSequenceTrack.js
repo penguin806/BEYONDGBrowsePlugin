@@ -627,13 +627,12 @@ define(
                                 + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + scanIdLabel + '/'
                                 + '1..9999';
 
-                            dojoRequest(
+                            dojoRequest.get(
                                 requestUrl,
                                 {
-                                    method: 'GET',
-                                    headers: {
-                                        'X-Requested-With': null
-                                    },
+                                    // headers: {
+                                    //     'X-Requested-With': null
+                                    // },
                                     handleAs: 'json'
                                 }
                             ).then(
@@ -659,13 +658,12 @@ define(
                             + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + refName + '/'
                             + currentRangeStartPosition + '..' + currentRangeEndPosition;
 
-                        dojoRequest(
+                        dojoRequest.get(
                             requestUrl,
                             {
-                                method: 'GET',
-                                headers: {
-                                    'X-Requested-With': null
-                                },
+                                // headers: {
+                                //     'X-Requested-With': null
+                                // },
                                 handleAs: 'json'
                             }
                         ).then(
@@ -1867,9 +1865,6 @@ define(
                         requestUrl,
                         {
                             method: 'GET',
-                            headers: {
-                                'X-Requested-With': null
-                            },
                             handleAs: 'json'
                         }
                     ).then(
@@ -1890,9 +1885,6 @@ define(
                                             requestUrl,
                                             {
                                                 method: 'GET',
-                                                headers: {
-                                                    'X-Requested-With': null
-                                                },
                                                 handleAs: 'json'
                                             }
                                         ).then(
