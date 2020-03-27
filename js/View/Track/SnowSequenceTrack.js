@@ -1677,17 +1677,6 @@ define(
                         'dblclick',
                         function (event) {
                             SnowConsole.debug('dblclick on .Snow_aminoAcid:', arguments);
-                            let finishCallback = function () {
-                                // _this._queryAnnotationDataFromBackend(
-                                //     isProteoformSequence ? refName : undefined,
-                                //     isProteoformSequence ? undefined : refName,
-                                //     isProteoformSequence ? undefined : blockStart,
-                                //     isProteoformSequence ? undefined : blockEnd,
-                                //     function () {
-                                        domClass.add(event.target, 'Snow_annotation_mark');
-                                //     }
-                                // );
-                            };
                             let positionOfThisAminoAcidCell;
                             if(isProteoformSequence === true)
                             {
@@ -1697,6 +1686,31 @@ define(
                             {
                                 positionOfThisAminoAcidCell = domAttr.get(event.target, 'snowseqposition');
                             }
+
+                            let finishCallback = function () {
+                                domClass.add(event.target, 'Snow_annotation_mark');
+                                if(isProteoformSequence === true)
+                                {
+                                    let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
+                                        + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + refName + '/'
+                                        + '1..9999';
+
+                                    dojoRequest.get(
+                                        requestUrl,
+                                        {
+                                            handleAs: 'json'
+                                        }
+                                    ).then(
+                                        function (proteoformAnnotationData) {
+                                            SnowConsole.info('proteoformAnnotation:', proteoformAnnotationData);
+                                            window.BEYONDGBrowse.annotationStore[refName] = proteoformAnnotationData;
+                                        },
+                                        function (errorReason) {
+                                            console.error('Query proteoformAnnotation error', requestUrl, errorReason);
+                                        }
+                                    );
+                                }
+                            };
 
                             _this._loadSpecificAnnotationAndPopupModal(
                                 refName,
