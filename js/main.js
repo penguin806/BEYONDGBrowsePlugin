@@ -61,7 +61,7 @@ define([
                     _this._subscribeShowMassSpectraTrackEvent();
                     let annotationTableContainer = _this._generateAnnotationTable();
                     window.BEYONDGBrowse.annotationTable =
-                        _this.annotationTable = annotationTableContainer.firstChild;
+                        _this.annotationTable = annotationTableContainer.lastChild;
                     window.BEYONDGBrowse._fillAnnotationTable = _this._fillAnnotationTable;
 
 
@@ -83,6 +83,14 @@ define([
                             let menuBar = browser.menuBar;
                             menuBar.appendChild(locateButtonDomNode);
                             let trackListContainer = browser.trackListView.containerNode;
+                            domConstruct.create(
+                                'h2',
+                                {
+                                    class: 'title',
+                                    innerHTML: 'Annotation Statistics'
+                                },
+                                trackListContainer
+                            );
                             trackListContainer.appendChild(annotationTableContainer);
 
                             browser.addGlobalMenuItem(
@@ -289,11 +297,11 @@ define([
                             class: 'uncategorized',
                             style: {
                                 display: 'block',
-                                marginTop: '5px',
-                                background: 'gray'
+                                marginTop: '5px'
                             }
                         }
                     );
+
                     let annotationTable = domConstruct.create(
                         'table', {
                             id: 'annotation_table',
@@ -317,18 +325,25 @@ define([
 
                     let headerRow = domConstruct.create('tr', {});
                     domConstruct.create('th', {innerHTML: 'ID'}, headerRow);
-                    domConstruct.create('th', {innerHTML: 'Annotation Count'}, headerRow);
+                    domConstruct.create('th', {innerHTML: 'Quantity'}, headerRow);
 
                     if(!annotationStore || !annotationStore.hasOwnProperty('currentRangeRefSeq'))
                     {
                         annotationTable.appendChild(headerRow);
                         return;
                     }
-
                     annotationTable.appendChild(headerRow);
+
+
+
                     for(let key in annotationStore)
                     {
-                        let newRow = domConstruct.create('tr', {});
+                        let newRow = domConstruct.create(
+                            'tr',
+                            {
+                                class: 'datarow'
+                            }
+                        );
                         if(key === 'currentRangeRefSeq')
                         {
                             domConstruct.create('td', {innerHTML: 'RefSeq'}, newRow);
@@ -343,7 +358,14 @@ define([
                         }
                         else
                         {
-
+                            domConstruct.create('td', {innerHTML: key}, newRow);
+                            domConstruct.create(
+                                'td',
+                                {
+                                    innerHTML: annotationStore[key].length
+                                },
+                                newRow
+                            );
                         }
 
                         annotationTable.appendChild(newRow);

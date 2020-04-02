@@ -285,8 +285,12 @@ span.locate-button {
 
 #annotation_table th, td {
     padding: 8px;
-    text-align: left;
+    text-align: center;
     border-bottom: 1px solid #ddd;
+}
+
+#annotation_table .datarow {
+    line-height: 1.4em;
 }
 
 #annotation_table tr:hover {
