@@ -59,6 +59,11 @@ define([
                     let locateButtonDomNode = _this._generateLocateButton();
                     _this._loadBeyondProteinTrackFromConfig();
                     _this._subscribeShowMassSpectraTrackEvent();
+                    let annotationTableContainer = _this._generateAnnotationTable();
+                    window.BEYONDGBrowse.annotationTable =
+                        _this.annotationTable = annotationTableContainer.firstChild;
+                    window.BEYONDGBrowse._fillAnnotationTable = _this._fillAnnotationTable;
+
 
                     browser.afterMilestone(
                         'loadConfig',
@@ -77,6 +82,8 @@ define([
                     browser.afterMilestone('initView', function() {
                             let menuBar = browser.menuBar;
                             menuBar.appendChild(locateButtonDomNode);
+                            let trackListContainer = browser.trackListView.containerNode;
+                            trackListContainer.appendChild(annotationTableContainer);
 
                             browser.addGlobalMenuItem(
                                 'file',
@@ -271,6 +278,76 @@ define([
                         }
                     );
                     return locateButton.domNode;
+                },
+
+                _generateAnnotationTable: function ()
+                {
+                    let _this = this;
+                    let tableContainer = domConstruct.create(
+                        'div',
+                        {
+                            class: 'uncategorized',
+                            style: {
+                                display: 'block',
+                                marginTop: '5px',
+                                background: 'gray'
+                            }
+                        }
+                    );
+                    let annotationTable = domConstruct.create(
+                        'table', {
+                            id: 'annotation_table',
+                            style: {
+                                borderCollapse: 'collapse',
+                                width: '100%'
+                            }
+                        },
+                        tableContainer
+                    );
+
+                    return tableContainer;
+                },
+
+                _fillAnnotationTable : function ()
+                {
+                    let _this = this;
+                    let annotationTable = _this.annotationTable || window.BEYONDGBrowse.annotationTable;
+                    let annotationStore = window.BEYONDGBrowse.annotationStore;
+                    annotationTable.innerHTML = '';
+
+                    let headerRow = domConstruct.create('tr', {});
+                    domConstruct.create('th', {innerHTML: 'ID'}, headerRow);
+                    domConstruct.create('th', {innerHTML: 'Annotation Count'}, headerRow);
+
+                    if(!annotationStore || !annotationStore.hasOwnProperty('currentRangeRefSeq'))
+                    {
+                        annotationTable.appendChild(headerRow);
+                        return;
+                    }
+
+                    annotationTable.appendChild(headerRow);
+                    for(let key in annotationStore)
+                    {
+                        let newRow = domConstruct.create('tr', {});
+                        if(key === 'currentRangeRefSeq')
+                        {
+                            domConstruct.create('td', {innerHTML: 'RefSeq'}, newRow);
+                            domConstruct.create(
+                                'td',
+                                {
+                                    innerHTML: annotationStore.currentRangeRefSeq.annotationData &&
+                                        annotationStore.currentRangeRefSeq.annotationData.length
+                                },
+                                newRow
+                            );
+                        }
+                        else
+                        {
+
+                        }
+
+                        annotationTable.appendChild(newRow);
+                    }
                 },
 
                 _displayLocateDialog: function (browserObject)

@@ -640,6 +640,7 @@ define(
                                     SnowConsole.info('proteoformAnnotation:', proteoformAnnotationData);
                                     window.BEYONDGBrowse.annotationStore[scanIdLabel] = proteoformAnnotationData;
                                     annotationFinishLoadCallback && annotationFinishLoadCallback();
+                                    window.BEYONDGBrowse._fillAnnotationTable();
                                 },
                                 function (errorReason) {
                                     console.error('Query proteoformAnnotation error', requestUrl, errorReason);
@@ -676,6 +677,7 @@ define(
                                     annotationData: currentRangeAnnotationData
                                 };
                                 annotationFinishLoadCallback && annotationFinishLoadCallback();
+                                window.BEYONDGBrowse._fillAnnotationTable();
                             },
                             function (errorReason) {
                                 console.error('Query currentRangeAnnotation error', requestUrl, errorReason);
