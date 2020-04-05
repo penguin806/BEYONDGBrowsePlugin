@@ -334,7 +334,71 @@ define([
                     }
                     annotationTable.appendChild(headerRow);
 
+                    function rowClickedHandler(annotationArray) {
+                        dojoQuery('.annotation_detail', annotationTable.parentNode).remove();
 
+                        let annotationDetailTable = domConstruct.create(
+                            'table', {
+                                class: 'annotation_detail',
+                                style: {
+                                    marginTop: '5px',
+                                    borderCollapse: 'collapse',
+                                    width: '100%'
+                                }
+                            },
+                            annotationTable.parentNode
+                        );
+
+                        function parseContents(jsonString) {
+                            let contentObj = JSON.parse(jsonString);
+                            if(contentObj.ops && typeof contentObj.ops[0] == "object" && contentObj.ops[0].insert)
+                            {
+                                if(contentObj.ops[0].insert.length > 5)
+                                {
+                                    return contentObj.ops[0].insert.slice(0, 5) + '...';
+                                }
+                                else
+                                {
+                                    return contentObj.ops[0].insert;
+                                }
+                            }
+                            else
+                            {
+                                return undefined;
+                            }
+                        }
+
+                        let detailHeader = domConstruct.create('tr', {});
+                        domConstruct.create('th', {innerHTML: 'Name'}, detailHeader);
+                        domConstruct.create('th', {innerHTML: 'Position'}, detailHeader);
+                        domConstruct.create('th', {innerHTML: 'Author'}, detailHeader);
+                        domConstruct.create('th', {innerHTML: 'Preview'}, detailHeader);
+                        annotationDetailTable.appendChild(detailHeader);
+
+                        annotationArray && annotationArray.forEach(
+                            function(item, index) {
+                                let newRow = domConstruct.create(
+                                    'tr',
+                                    {
+                                        class: 'datarow'
+                                    }
+                                );
+
+                                domConstruct.create('td', {innerHTML: item.name}, newRow);
+                                domConstruct.create('td', {innerHTML: item.position}, newRow);
+                                domConstruct.create('td', {innerHTML: item.author}, newRow);
+                                domConstruct.create(
+                                    'td',
+                                    {
+                                        innerHTML: parseContents(item.contents)
+                                    },
+                                    newRow
+                                );
+
+                                annotationDetailTable.appendChild(newRow);
+                            }
+                        );
+                    }
 
                     for(let key in annotationStore)
                     {
@@ -355,6 +419,9 @@ define([
                                 },
                                 newRow
                             );
+                            newRow.onclick = function() {
+                                rowClickedHandler(annotationStore.currentRangeRefSeq.annotationData)
+                            };
                         }
                         else
                         {
@@ -366,6 +433,9 @@ define([
                                 },
                                 newRow
                             );
+                            newRow.onclick = function() {
+                                rowClickedHandler(annotationStore[key])
+                            };
                         }
 
                         annotationTable.appendChild(newRow);
