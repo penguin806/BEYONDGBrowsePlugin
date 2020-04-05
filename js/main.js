@@ -380,7 +380,15 @@ define([
                                 let newRow = domConstruct.create(
                                     'tr',
                                     {
-                                        class: 'datarow'
+                                        class: 'datarow',
+                                        ondblclick: function () {
+                                            window.BEYONDGBrowse._loadSpecificAnnotationAndPopupModal &&
+                                            window.BEYONDGBrowse._loadSpecificAnnotationAndPopupModal(
+                                                item.name, item.position, function finishCallback() {
+                                                    // Goto corresponding location
+                                                }
+                                            );
+                                        }
                                     }
                                 );
 
