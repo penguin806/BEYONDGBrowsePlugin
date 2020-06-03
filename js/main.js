@@ -538,8 +538,8 @@ define([
                                 function (item, index, arrDatasets) {
                                     arrDatasets[index].value = arrDatasets[index].id;
                                     arrDatasets[index].label =
-                                        '(' + arrDatasets[index].id + ') ' +
-                                        arrDatasets[index].dataset_name + ' - ' + arrDatasets[index].source;
+                                        '(' + arrDatasets[index].id + ') ' + arrDatasets[index].dataset_name
+                                        //  + ' - ' + arrDatasets[index].source;
                                     if(parseInt(arrDatasets[index].id) === _this.browser.config.BEYONDGBrowseDatasetId)
                                     {
                                         arrDatasets[index].selected = true;
@@ -551,11 +551,15 @@ define([
                             let datasetSelectDialog = new SnowDatasetSelectDialog(
                                 {
                                     browser: browserObject,
+                                    style: {
+                                        width: '400px'
+                                    },
                                     datasetListInDatabase: datasetsList,
                                     setCallback: function (selectedDatasetId) {
                                         SnowConsole.info('selectedDatasetId:', selectedDatasetId);
                                         if(isNaN(selectedDatasetId) || selectedDatasetId < 1 || selectedDatasetId > 100)
                                         {
+                                            alert('DatasetID Error');
                                             return;
                                         }
                                         _this.browser.config.BEYONDGBrowseDatasetId = selectedDatasetId;
