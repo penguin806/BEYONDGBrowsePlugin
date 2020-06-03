@@ -539,7 +539,7 @@ define([
                                     arrDatasets[index].value = arrDatasets[index].id;
                                     arrDatasets[index].label =
                                         '(' + arrDatasets[index].id + ') ' +
-                                        arrDatasets[index].dataset_name;
+                                        arrDatasets[index].dataset_name + ' - ' + arrDatasets[index].source;
                                     if(parseInt(arrDatasets[index].id) === _this.browser.config.BEYONDGBrowseDatasetId)
                                     {
                                         arrDatasets[index].selected = true;

@@ -67,7 +67,6 @@ define(
 
                 show: function( callback ) {
                     let _this = this;
-                    let massTrackNumber = _this.browser.config.massSpectraTrackNum ? _this.browser.config.massSpectraTrackNum : 0;
                     domClass.add( this.domNode, 'datasetSelectDialog' );
 
                     _this.datasetSelectControl = new dijitFormSelect(
