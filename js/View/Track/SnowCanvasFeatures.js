@@ -1006,8 +1006,11 @@ define(
                     proteoformSequence, isReverse
                 )
                 {
+                    // let proteoformSequenceWithoutPrefixAndSuffix =
+                    //     proteoformSequence.replace(/(.*\.)(.*)(\..*)/, '$2');
+                    // Above is deprecated
                     let proteoformSequenceWithoutPrefixAndSuffix =
-                        proteoformSequence.replace(/(.*\.)(.*)(\..*)/, '$2');
+                        proteoformSequence.replace(/^\w\.|\.\w?$/, '');
                     let proteoformSequenceWithoutParentheses =
                         proteoformSequenceWithoutPrefixAndSuffix.replace(/\(|\)/g, '');
                     // Example:
