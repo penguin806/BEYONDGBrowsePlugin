@@ -484,6 +484,7 @@ define(
                     let aminoAcidCharacterCount = 0;
                     let aminoAcidWithRemovedCharacterCount = 0;
 
+                    let pendingInsertAtHead = undefined;
                     diffFromRefSequenceResult.forEach(
                         function(item, index) {
                             if(typeof item === 'object' && item.value !== undefined)
@@ -499,6 +500,16 @@ define(
                                             index === diffFromRefSequenceResult.length - 1 &&
                                             i === item.value.length - 1
                                         ) ? 'TAIL' : '';
+                                        if(0 === i && pendingInsertAtHead)
+                                        {
+                                            newNode.headOrTailFlag = 'HEAD';
+                                            newNode.modification = pendingInsertAtHead.value;
+                                            if(pendingInsertAtHead.modification !== undefined)
+                                            {
+                                                newNode.modificationColor = pendingInsertAtHead.modification.color;
+                                            }
+                                            pendingInsertAtHead = undefined;
+                                        }
                                         newNode.leftPosition =
                                             proteoformStartPosition + 3 * aminoAcidWithRemovedCharacterCount;
                                         newNode.aminoAcidCharacter = item.value.charAt(i);
@@ -528,6 +539,7 @@ define(
                                 {
                                     if(detailArrayOfProteoformSequence.length <= 0 || typeof detailArrayOfProteoformSequence[0] !== 'object')
                                     {
+                                        pendingInsertAtHead = item;
                                         return false;
                                     }
                                     let prevNode = detailArrayOfProteoformSequence[detailArrayOfProteoformSequence.length - 1];
