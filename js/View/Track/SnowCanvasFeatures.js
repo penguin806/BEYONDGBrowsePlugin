@@ -66,7 +66,7 @@ define(
 
                 },
 
-                _defaultConfig: function(){
+                _defaultConfig: function() {
                     let oldConfig = this.inherited(arguments);
                     let newConfig = dojoLang.mixin(
                         oldConfig,{
@@ -749,7 +749,7 @@ define(
                 },
 
                 // Deprecated
-                _calcMSScanMass: function(strSenquence, arrMSScanMass, arrMSScanPeakAundance)
+                /*_calcMSScanMass: function(strSenquence, arrMSScanMass, arrMSScanPeakAundance)
                 {
                     this._sortArrMSScanMassAndArrMSScanPeakAundance(arrMSScanMass, arrMSScanPeakAundance);
 
@@ -938,7 +938,7 @@ define(
                     }
 
                     return calculate();
-                },
+                },*/
 
                 _filterMSScanMassMappingResultForCurrentBlock: function(
                     blockLeftBase, blockRightBase, mappingResultObjectArray, proteoformStartPosition
@@ -1565,9 +1565,10 @@ define(
                         );
                         _this.fillHistograms(renderArgs, false);
                     }
-                },
+                }
 
-                fillBlock_Old: function(renderArgs)
+                // Deprecated
+                /*fillBlock_Old: function(renderArgs)
                 {
                     let _this = this;
                     let blockIndex = renderArgs.blockIndex;
@@ -1835,7 +1836,7 @@ define(
                                     window.BEYONDGBrowse.diffFromRefSequenceResult[thisProteoformObject.scanId] =
                                         diffFromRefSequenceResult = JsDiff.diffChars(
                                             translatedRefSequenceForDiffCompare,
-                                            thisProteoformSequence /*.replace(/\[.*?\]|\(|\)|\./g,'')*/
+                                            thisProteoformSequence /!*.replace(/\[.*?\]|\(|\)|\./g,'')*!/
                                         );
 
                                     // Filter the PTM (modification)
@@ -2043,7 +2044,7 @@ define(
                     }
 
                 }
-
+                */
             }
         );
 
