@@ -192,18 +192,18 @@ define(
                     // let proteoformSequenceWithoutPrefixAndSuffix =
                     //     proteoformSequence.replace(/(.*\.)(.*)(\..*)/, '$2');
                     // Above is deprecated
-                    let proteoformSequenceWithoutPrefixAndSuffix =
-                        proteoformSequence.replace(/^\w\.|\.\w?$/, '');
-                    let proteoformSequenceWithoutParentheses =
-                        proteoformSequenceWithoutPrefixAndSuffix.replace(/\(|\)/g, '');
+                    // let proteoformSequenceWithoutPrefixAndSuffix =
+                    //     proteoformSequence.replace(/^\w\.|\.\w?$/, '');
+                    let proteoformRemovedParenthesesAndPrefixSuffix =
+                        proteoformSequence.replace(/^\w?\.|\.\w?$|[()]/g, '');
                     // Example:
                     // A.TKAARKSAPATGGVKKPHRYRPGTVALREIRRYQKST(ELLIRKLPFQRLVREIAQDFKTDLRFQSSAV)[Acetyl]MALQEASEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA.
                     // -> TKAARKSAPATGGVKKPHRYRPGTVALREIRRYQKSTELLIRKLPFQRLVREIAQDFKTDLRFQSSAV[Acetyl]MALQEASEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA
 
                     if(isReverse)
                     {
-                        return proteoformSequenceWithoutParentheses.replace(
-                            /\[.*?\]/g,
+                        return proteoformRemovedParenthesesAndPrefixSuffix.replace(
+                            /\[.*?]/g,
                             function(modification)
                             {
                                 return modification.split('').reverse().join('')
@@ -213,7 +213,7 @@ define(
                     }
                     else
                     {
-                        return proteoformSequenceWithoutParentheses;
+                        return proteoformRemovedParenthesesAndPrefixSuffix;
                     }
 
                 },
