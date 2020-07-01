@@ -512,7 +512,7 @@ define(
                                         }
                                         newNode.leftPosition =
                                             proteoformStartPosition + 3 * aminoAcidWithRemovedCharacterCount;
-                                        newNode.aminoAcidCharacter = item.value.charAt(i);
+                                        newNode.aminoAcidCharacter = item.value.charAt(i) === '!' ? '-' : item.value.charAt(i);
 
                                         for(let i = 0; i < mSScanMassMappingResultArray.length; i++)
                                         {
@@ -778,15 +778,15 @@ define(
                     //
                     // }
                     // 2019-11-12 New implementation (Analyze the diffFromRefSequenceResult Object Array)
+                    // let firstAttachedBlockIndex = _this.firstAttached;
+                    // let lastAttachedBlockIndex = _this.lastAttached;
+                    // let snowSequenceTrackBlocks = _this.blocksJustFilled || _this.blocks;
 
                     let detailArrayOfProteoformSequence = _this._generateDetailArrayOfProteoformSequence(
                         proteoformStartPosition, proteoformEndPosition, isReverseStrand,
                         scanId, diffFromRefSequenceResult, mSScanMassMappingResultArray
                     );
 
-                    // let firstAttachedBlockIndex = _this.firstAttached;
-                    // let lastAttachedBlockIndex = _this.lastAttached;
-                    // let snowSequenceTrackBlocks = _this.blocksJustFilled || _this.blocks;
                     let snowSequenceTrackBlocks = _this.blocks;
                     for(let blockIndex in snowSequenceTrackBlocks)
                     {

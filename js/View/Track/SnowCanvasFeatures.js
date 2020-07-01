@@ -155,33 +155,163 @@ define(
                     return newTrackMenuOptions;
                 },
 
-                _getLongestCommonSubSequenceMatrix: function(str1, str2)
+                // Deprecated:
+                // _getLongestCommonSubSequenceMatrix: function(str1, str2)
+                // {
+                //     let result = [];
+                //     for (let i = -1; i < str1.length; i = i + 1)
+                //     {
+                //         result[i] = [];
+                //         for (let j = -1; j < str2.length; j = j + 1)
+                //         {
+                //             if (i === -1 || j === -1)
+                //             {
+                //                 result[i][j] = 0;
+                //             } else if (str1[i] === str2[j]) {
+                //                 result[i][j] = result[i - 1][j - 1] + 1;
+                //             } else {
+                //                 result[i][j] = Math.max(result[i - 1][j], result[i][j - 1]);
+                //             }
+                //         }
+                //     }
+                //     return result;
+                // },
+                //
+                // _getLcsMatrixLength: function(str1, str2, matrix)
+                // {
+                //     const str1Length = str1.length;
+                //     const str2Length = str2.length;
+                //
+                //     return matrix[str1Length - 1][str2Length - 1];
+                // },
+
+                _fillNeedlemanMatrix: function (strA, strB)
                 {
+                    const matchScore = 1;
+                    const mismatchPenalty = -1;
+                    const gapPenalty = -1;
+                    const skewPenalty = -0.5;
                     let result = [];
-                    for (let i = -1; i < str1.length; i = i + 1)
+
+                    for (let i = -1; i < strA.length; i++)
                     {
                         result[i] = [];
-                        for (let j = -1; j < str2.length; j = j + 1)
+                        for (let j = -1; j < strB.length; j++)
                         {
-                            if (i === -1 || j === -1)
+                            if (i === -1)
                             {
-                                result[i][j] = 0;
-                            } else if (str1[i] === str2[j]) {
-                                result[i][j] = result[i - 1][j - 1] + 1;
-                            } else {
-                                result[i][j] = Math.max(result[i - 1][j], result[i][j - 1]);
+                                result[-1][j] = (1 + j) * skewPenalty;
+                            }
+                            else if (j === -1)
+                            {
+                                result[i][-1] = (1 + i) * skewPenalty;
+                            }
+                            else
+                            {
+                                let matchOrMismatch = result[i - 1][j - 1] + (strA[i] === strB[j] ? matchScore : mismatchPenalty);
+                                let _delete = result[i - 1][j] + (j === strB.length - 1 ? skewPenalty : gapPenalty);
+                                let _insert = result[i][j - 1] + (i === strA.length - 1 ? skewPenalty : gapPenalty);
+                                result[i][j] = Math.max(matchOrMismatch, _delete, _insert);
                             }
                         }
                     }
                     return result;
                 },
 
-                _getLcsMatrixLength: function(str1, str2, matrix)
+                _getAlignmentScore: function(matrix)
                 {
-                    const str1Length = str1.length;
-                    const str2Length = str2.length;
+                    return matrix[matrix.length - 1][matrix[-1].length - 1];
+                },
 
-                    return matrix[str1Length - 1][str2Length - 1];
+                _computeAlignmentDiffResult: function (strA, strB, matrix)
+                {
+                    const matchScore = 1;
+                    const mismatchPenalty = -1;
+                    const gapPenalty = -1;
+                    const skewPenalty = -0.5;
+
+                    let alignmentA = "";
+                    let alignmentB = "";
+                    let i = strA.length - 1;
+                    let j = strB.length - 1;
+                    while(i >= 0 || j >= 0)
+                    {
+                        let diagonal;
+                        let left;
+                        let up;
+                        diagonal = left = up = -Infinity;
+
+                        if(i >= 0 && j >= 0)
+                        {
+                            diagonal = (strA[i] === strB[j] ? matrix[i - 1][j - 1] + matchScore : matrix[i - 1][j - 1] + mismatchPenalty);
+                        }
+                        if(i >= 0 /* && matrix[i][j] === matrix[i - 1][j] + gapPenalty */)
+                        {
+                            up = matrix[i - 1][j] + (j === strB.length - 1 ? skewPenalty : gapPenalty);
+                        }
+                        if(j >= 0 /* && matrix[i][j] === matrix[i][j - 1] + gapPenalty */)
+                        {
+                            left = matrix[i][j - 1] + (i === strA.length - 1 ? skewPenalty : gapPenalty);
+                        }
+
+
+                        if(diagonal >= left && diagonal >= up)
+                        {
+                            alignmentA = strA[i] + alignmentA;
+                            alignmentB = strB[j] + alignmentB;
+                            i--;
+                            j--;
+                        }
+                        else if(up > left)
+                        {
+                            alignmentA = strA[i] + alignmentA;
+                            alignmentB = '!' + alignmentB;
+                            i--;
+                        }
+                        else
+                        {
+                            alignmentA = '!' + alignmentA;
+                            alignmentB = strB[j] + alignmentB;
+                            j--;
+                        }
+
+                    }
+
+                    function _generateDiffObjectArray()
+                    {
+                        let diffArray = [];
+
+                        for(let i = 0; i < alignmentA.length; )
+                        {
+                            let template = {
+                                value: ""
+                            };
+
+                            if(alignmentA[i] === '!')
+                            {
+                                template.added = true;
+                                while(i < alignmentA.length && alignmentA[i] === '!')
+                                {
+                                    template.value += alignmentB[i];
+                                    i++;
+                                }
+                            }
+                            else
+                            {
+                                while(i < alignmentA.length && alignmentA[i] !== '!')
+                                {
+                                    template.value += alignmentB[i];
+                                    i++;
+                                }
+                            }
+                            template.count = template.value.length;
+                            diffArray.push(template);
+                        }
+
+                        return diffArray;
+                    }
+
+                    return _generateDiffObjectArray();
                 },
 
                 _translateGenomeSequenceToProtein: function(refSequence, fullRangeLeftPos, fullRangeRightPos)
@@ -1215,16 +1345,17 @@ define(
                                             )
                                         )
                                         {
-                                            msScanData[i].lcsLengthArray = window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].lcsLengthArray;
+                                            msScanData[i].alignmentScoreArray = window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].alignmentScoreArray;
                                             msScanData[i].selectedRefSeqIndex = window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].selectedRefSeqIndex;
                                         }
                                         else
                                         {
-                                            const proteoformWithoutModificationToCompare =
+                                            // const proteoformWithoutModificationToCompare =
+                                            const proteoformToCompare =
                                                 _this._formatProteoformSequenceString(
                                                     msScanData[i].sequence,
                                                     msScanData[i].strand === '-'
-                                                ).replace(/\[.*?]|\(|\)|\./g, '');
+                                                )/*.replace(/\[.*?]|\(|\)|\./g, '')*/;
 
                                             if(msScanData[i].strand === '-')
                                             {
@@ -1233,38 +1364,35 @@ define(
                                                 msScanData[i].arrIonsNum = msScanData[i].arrIonsNum.reverse();
                                             }
 
-                                            let lcsMatrix = [];
-                                            msScanData[i].lcsLengthArray = [];
+                                            msScanData[i].needlemanMatrixArray = [];
+                                            msScanData[i].alignmentScoreArray = [];
+                                            msScanData[i].proteoformToCompare = proteoformToCompare;
                                             for(let indexJ = 0; indexJ < 3; indexJ++)
                                             {
                                                 let translatedRefSeqForProteoformToCompare = msScanData[i].strand === '-' ?
                                                     translatedRefSeqsArrayForProteoform[3 + indexJ] :
                                                     translatedRefSeqsArrayForProteoform[indexJ];
 
-
-                                                lcsMatrix.push(
-                                                    _this._getLongestCommonSubSequenceMatrix(
+                                                msScanData[i].needlemanMatrixArray.push(
+                                                    _this._fillNeedlemanMatrix(
                                                         translatedRefSeqForProteoformToCompare,
-                                                        proteoformWithoutModificationToCompare
+                                                        proteoformToCompare
                                                     )
                                                 );
 
-                                                msScanData[i].lcsLengthArray.push(
-                                                    _this._getLcsMatrixLength(
-                                                        translatedRefSeqForProteoformToCompare,
-                                                        proteoformWithoutModificationToCompare,
-                                                        lcsMatrix[indexJ]
+                                                msScanData[i].alignmentScoreArray.push(
+                                                    _this._getAlignmentScore(
+                                                        msScanData[i].needlemanMatrixArray[indexJ]
                                                     )
                                                 );
                                             }
 
                                             msScanData[i].selectedRefSeqIndex = 0;
-                                            for(let indexK = 1; indexK < msScanData[i].lcsLengthArray.length; indexK++)
+                                            for(let indexK = 1; indexK < msScanData[i].alignmentScoreArray.length; indexK++)
                                             {
                                                 if(
-                                                    msScanData[i].lcsLengthArray[indexK] > msScanData[i].lcsLengthArray[
-                                                        msScanData[i].selectedRefSeqIndex
-                                                    ]
+                                                    msScanData[i].alignmentScoreArray[indexK] >
+                                                    msScanData[i].alignmentScoreArray[msScanData[i].selectedRefSeqIndex]
                                                 )
                                                 {
                                                     msScanData[i].selectedRefSeqIndex = indexK;
@@ -1273,8 +1401,8 @@ define(
 
                                             window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId] =
                                                 window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId] || { };
-                                            window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].lcsLengthArray =
-                                                msScanData[i].lcsLengthArray;
+                                            window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].alignmentScoreArray =
+                                                msScanData[i].alignmentScoreArray;
                                             window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].selectedRefSeqIndex =
                                                 msScanData[i].selectedRefSeqIndex;
                                             window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].uniprot_id = msScanData[i].uniprot_id;
@@ -1283,8 +1411,8 @@ define(
 
                                     msScanData.sort(
                                         (itemA, itemB) =>
-                                            itemB.lcsLengthArray[itemB.selectedRefSeqIndex] -
-                                            itemA.lcsLengthArray[itemA.selectedRefSeqIndex]
+                                            itemB.alignmentScoreArray[itemB.selectedRefSeqIndex] -
+                                            itemA.alignmentScoreArray[itemA.selectedRefSeqIndex]
                                     );
                                     _this.msScanDataCache.refName = _this.refSeq.name;
                                     _this.msScanDataCache._start = msScanData[0]._start;
@@ -1349,12 +1477,18 @@ define(
                                                     3 + thisProteoformObject.selectedRefSeqIndex
                                                 ] : translatedRefSeqsArrayForProteoform[thisProteoformObject.selectedRefSeqIndex];
 
-                                            diffFromRefSequenceResult = JsDiff.diffChars(
+                                            // diffFromRefSequenceResult = JsDiff.diffChars(
+                                            //     translatedRefSequenceForDiffCompare,
+                                            //     _this._formatProteoformSequenceString(
+                                            //         thisProteoformObject.sequence,
+                                            //         thisProteoformObject.strand === '-'
+                                            //     ) /*.replace(/\[.*?\]|\(|\)|\./g,'')*/
+                                            // );
+
+                                            diffFromRefSequenceResult = _this._computeAlignmentDiffResult(
                                                 translatedRefSequenceForDiffCompare,
-                                                _this._formatProteoformSequenceString(
-                                                    thisProteoformObject.sequence,
-                                                    thisProteoformObject.strand === '-'
-                                                ) /*.replace(/\[.*?\]|\(|\)|\./g,'')*/
+                                                thisProteoformObject.proteoformToCompare,
+                                                thisProteoformObject.needlemanMatrixArray[thisProteoformObject.selectedRefSeqIndex]
                                             );
 
                                             // Filter the PTM (modification)
