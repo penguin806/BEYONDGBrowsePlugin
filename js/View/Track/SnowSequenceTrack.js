@@ -152,8 +152,13 @@ define(
                                 selectedRefSeqIndex
                             };
 
-                            _this._queryAnnotationDataFromBackend('Scan' + scanId, undefined, undefined, undefined);
-                            drawProteoform();
+                            _this._queryAnnotationDataFromBackend(
+                                'Scan' + scanId,
+                                undefined,
+                                undefined,
+                                undefined,
+                                drawProteoform
+                            );
                         }
                     );
 
@@ -182,8 +187,15 @@ define(
                         }
                     );
 
-                    // Draw proteoform
                     function drawProteoform() {
+                        setTimeout(
+                            _drawProteoform,
+                            300
+                        );
+                    }
+
+                    // Draw proteoform
+                    function _drawProteoform() {
                         // _this.proteoformTrackToDrawArray.sort(
                         //     (itemA, itemB) => {
                         //         return itemA.msScanMassTrackId - itemB.msScanMassTrackId;
@@ -385,7 +397,7 @@ define(
                             type: 'dijit/MenuSeparator'
                         },
                         {
-                            label: 'Draw Cells with Circle-Style',
+                            label: 'Draw AminoAcid with Circle-Style',
                             type: 'dijit/CheckedMenuItem',
                             checked: !!_this.config.drawCircle,
                             onClick: function (event) {
@@ -472,6 +484,7 @@ define(
                     let aminoAcidCharacterCount = 0;
                     let aminoAcidWithRemovedCharacterCount = 0;
 
+                    let pendingInsertAtHead = undefined;
                     diffFromRefSequenceResult.forEach(
                         function(item, index) {
                             if(typeof item === 'object' && item.value !== undefined)
@@ -487,9 +500,19 @@ define(
                                             index === diffFromRefSequenceResult.length - 1 &&
                                             i === item.value.length - 1
                                         ) ? 'TAIL' : '';
+                                        if(0 === i && pendingInsertAtHead)
+                                        {
+                                            newNode.headOrTailFlag = 'HEAD';
+                                            newNode.modification = pendingInsertAtHead.value;
+                                            if(pendingInsertAtHead.modification !== undefined)
+                                            {
+                                                newNode.modificationColor = pendingInsertAtHead.modification.color;
+                                            }
+                                            pendingInsertAtHead = undefined;
+                                        }
                                         newNode.leftPosition =
                                             proteoformStartPosition + 3 * aminoAcidWithRemovedCharacterCount;
-                                        newNode.aminoAcidCharacter = item.value.charAt(i);
+                                        newNode.aminoAcidCharacter = item.value.charAt(i) === '!' ? '-' : item.value.charAt(i);
 
                                         for(let i = 0; i < mSScanMassMappingResultArray.length; i++)
                                         {
@@ -516,6 +539,7 @@ define(
                                 {
                                     if(detailArrayOfProteoformSequence.length <= 0 || typeof detailArrayOfProteoformSequence[0] !== 'object')
                                     {
+                                        pendingInsertAtHead = item;
                                         return false;
                                     }
                                     let prevNode = detailArrayOfProteoformSequence[detailArrayOfProteoformSequence.length - 1];
@@ -601,7 +625,7 @@ define(
                     return detailArrayOfProteoformSequence;
                 },
 
-                _queryAnnotationDataFromBackend: function(scanIdLabel, refName, currentRangeStartPosition, currentRangeEndPosition) {
+                _queryAnnotationDataFromBackend: function(scanIdLabel, refName, currentRangeStartPosition, currentRangeEndPosition, annotationFinishLoadCallback) {
                     let _this = this;
 
                     if(scanIdLabel !== undefined)
@@ -615,24 +639,29 @@ define(
                                 + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + scanIdLabel + '/'
                                 + '1..9999';
 
-                            dojoRequest(
+                            dojoRequest.get(
                                 requestUrl,
                                 {
-                                    method: 'GET',
-                                    headers: {
-                                        'X-Requested-With': null
-                                    },
+                                    // headers: {
+                                    //     'X-Requested-With': null
+                                    // },
                                     handleAs: 'json'
                                 }
                             ).then(
                                 function (proteoformAnnotationData) {
                                     SnowConsole.info('proteoformAnnotation:', proteoformAnnotationData);
                                     window.BEYONDGBrowse.annotationStore[scanIdLabel] = proteoformAnnotationData;
+                                    annotationFinishLoadCallback && annotationFinishLoadCallback();
+                                    window.BEYONDGBrowse._fillAnnotationTable();
                                 },
                                 function (errorReason) {
                                     console.error('Query proteoformAnnotation error', requestUrl, errorReason);
                                 }
                             );
+                        }
+                        else
+                        {
+                            annotationFinishLoadCallback && annotationFinishLoadCallback();
                         }
                     }
 
@@ -642,13 +671,12 @@ define(
                             + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + refName + '/'
                             + currentRangeStartPosition + '..' + currentRangeEndPosition;
 
-                        dojoRequest(
+                        dojoRequest.get(
                             requestUrl,
                             {
-                                method: 'GET',
-                                headers: {
-                                    'X-Requested-With': null
-                                },
+                                // headers: {
+                                //     'X-Requested-With': null
+                                // },
                                 handleAs: 'json'
                             }
                         ).then(
@@ -660,6 +688,8 @@ define(
                                     endPos: currentRangeEndPosition,
                                     annotationData: currentRangeAnnotationData
                                 };
+                                annotationFinishLoadCallback && annotationFinishLoadCallback();
+                                window.BEYONDGBrowse._fillAnnotationTable();
                             },
                             function (errorReason) {
                                 console.error('Query currentRangeAnnotation error', requestUrl, errorReason);
@@ -748,15 +778,15 @@ define(
                     //
                     // }
                     // 2019-11-12 New implementation (Analyze the diffFromRefSequenceResult Object Array)
+                    // let firstAttachedBlockIndex = _this.firstAttached;
+                    // let lastAttachedBlockIndex = _this.lastAttached;
+                    // let snowSequenceTrackBlocks = _this.blocksJustFilled || _this.blocks;
 
                     let detailArrayOfProteoformSequence = _this._generateDetailArrayOfProteoformSequence(
                         proteoformStartPosition, proteoformEndPosition, isReverseStrand,
                         scanId, diffFromRefSequenceResult, mSScanMassMappingResultArray
                     );
 
-                    // let firstAttachedBlockIndex = _this.firstAttached;
-                    // let lastAttachedBlockIndex = _this.lastAttached;
-                    // let snowSequenceTrackBlocks = _this.blocksJustFilled || _this.blocks;
                     let snowSequenceTrackBlocks = _this.blocks;
                     for(let blockIndex in snowSequenceTrackBlocks)
                     {
@@ -973,8 +1003,17 @@ define(
                     let currentRangeRightBase = startBase + (last - first + 1) * bpPerBlock;
 
                     // _this.blocksJustFilled = [];
-                    _this._queryAnnotationDataFromBackend(undefined, _this.refSeq.name, currentRangeLeftBase, currentRangeRightBase);
-                    _this.inherited(_arguments);
+                    let annotationFinishLoadCallback = function() {
+                        _this.inherited(_arguments);
+                    };
+
+                    _this._queryAnnotationDataFromBackend(
+                        undefined,
+                        _this.refSeq.name,
+                        currentRangeLeftBase,
+                        currentRangeRightBase,
+                        annotationFinishLoadCallback
+                    );
                 },
 
                 fillBlock: function(args) {
@@ -1153,6 +1192,7 @@ define(
                             block.domNode.lastChild.clientHeight ||
                             block.domNode.lastChild.offsetHeight
                         );
+                    totalHeight += 50; //Add offset 2020-03-10
                     this.heightUpdate( totalHeight, blockIndex );
                 },
 
@@ -1230,7 +1270,7 @@ define(
                     // console.log('tableActualWidth: ' + tableActualWidth);
                     // console.log('spanActualWidth: ' + spanActualWidth);
 
-                    charWidth = 100/ translated.length + "%";
+                    charWidth = 100 / translated.length + "%";
 
                     let drawChars = scale >= charSize.w;
                     if( drawChars )
@@ -1377,6 +1417,15 @@ define(
                             if(detailArrayOfProteoformInThisBlock[index].aminoAcidCharacter === '-')
                             {
                                 aminoAcidSpan.className += ' Snow_AminoAcid_Mismatch';
+                                aminoAcidSpan.innerHTML = '';
+                                domConstruct.create(
+                                    'span',
+                                    {
+                                        className: 'Snow_AminoAcid_Mismatch_span' + (_this.genomeView.pxPerBp < 5.5 ? ' low_scale' : ''),
+                                        innerHTML: drawChars ? detailArrayOfProteoformInThisBlock[index].aminoAcidCharacter : ''
+                                    },
+                                    aminoAcidSpan
+                                );
                                 if(!_this.config.fillMismatchesWithCells)
                                 {
                                     aminoAcidSpan.style.visibility = 'hidden';
@@ -1419,7 +1468,7 @@ define(
 
 
 
-                            if(_this.config.drawCircle)
+                            if(_this.config.drawCircle && _this.genomeView.pxPerBp >= 5.5)
                             {
                                 aminoAcidSpan.className += ' Snow_aminoAcid_circle';
                             }
@@ -1434,11 +1483,12 @@ define(
                                     detailArrayOfProteoformInThisBlock[index].bIonFlag;
                                 if(detailArrayOfProteoformInThisBlock[index].bIonFlagTag !== undefined)
                                 {
-                                    aminoAcidSpan.className += ' Snow_aminoAcid_mark_right_top';
+                                    aminoAcidSpan.className += ' Snow_aminoAcid_mark_right_top' + (_this.genomeView.pxPerBp < 5.5 ? ' low_scale' : '');
 
                                     let bIonLabelNode = domConstruct.create('span',
                                         {
-                                            className: 'Snow_aminoAcid_head_strand_bIon_label',
+                                            className: 'Snow_aminoAcid_bIon_label' +
+                                                (_this.genomeView.pxPerBp > _this.getCharacterMeasurements("aminoAcid").w ? ' big': ''),
                                             style: {},
                                             innerHTML: detailArrayOfProteoformInThisBlock[index].bIonFlag
                                         }
@@ -1453,11 +1503,12 @@ define(
                                     detailArrayOfProteoformInThisBlock[index].yIonFlag;
                                 if(detailArrayOfProteoformInThisBlock[index].yIonFlagTag !== undefined)
                                 {
-                                    aminoAcidSpan.className += ' Snow_aminoAcid_mark_left_bottom';
+                                    aminoAcidSpan.className += ' Snow_aminoAcid_mark_left_bottom' + (_this.genomeView.pxPerBp < 5.5 ? ' low_scale' : '');
 
                                     let yIonLabelNode = domConstruct.create('span',
                                         {
-                                            className: 'Snow_aminoAcid_head_strand_yIon_label',
+                                            className: 'Snow_aminoAcid_yIon_label' +
+                                                (_this.genomeView.pxPerBp > _this.getCharacterMeasurements("aminoAcid").w ? ' big': ''),
                                             style: {},
                                             innerHTML: detailArrayOfProteoformInThisBlock[index].yIonFlag
                                         }
@@ -1470,8 +1521,10 @@ define(
                             {
                                 let modificationText = detailArrayOfProteoformInThisBlock[index].modification;
                                 // modificationText = modificationText.replace(';', ';<br>');
-                                let modificationDivWidth = aminoAcidTableCellActualWidth / 2;
-                                let modificationDivHeight = aminoAcidTableCellActualWidth / 2;
+                                let modificationDivWidth = _this.genomeView.pxPerBp > _this.getCharacterMeasurements("aminoAcid").w ?
+                                    aminoAcidTableCellActualWidth / 2 : aminoAcidTableCellActualWidth;
+                                let modificationDivHeight = _this.genomeView.pxPerBp > _this.getCharacterMeasurements("aminoAcid").w ?
+                                    aminoAcidTableCellActualWidth / 2 : aminoAcidTableCellActualWidth;
 
                                 let modificationContainer = domConstruct.create('td',
                                     {
@@ -1485,7 +1538,7 @@ define(
 
                                 let modificationDivNode = domConstruct.create('div',
                                     {
-                                        className: 'Snow_aminoAcid_modification_label',
+                                        className: 'Snow_aminoAcid_modification_label' + (_this.genomeView.pxPerBp < 5.5 ? ' low_scale' : ''),
                                         style: {
                                             backgroundColor: detailArrayOfProteoformInThisBlock[index].modificationColor,
                                             width: modificationDivWidth + 'px',
@@ -1535,18 +1588,44 @@ define(
                                 tr.appendChild(modificationContainer);
                             }
 
+                            function generateSpanNode(scanId, uniprot_id, strand, ptmCount, diffAdded, diffRemoved)
+                            {
+                                let headSpanInnerHTML = 'Scan: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
+                                headSpanInnerHTML += scanId + '(' + strand + ')</span>';
+                                // if(_this.genomeView.pxPerBp < 5.5)
+                                // {
+                                //     return headSpanInnerHTML;
+                                // }
+
+                                headSpanInnerHTML += '<br>ID: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
+                                headSpanInnerHTML += uniprot_id;
+                                headSpanInnerHTML += '</span>';
+
+                                headSpanInnerHTML += '<br>PTM: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
+                                headSpanInnerHTML +=  ptmCount + '</span>';
+
+                                headSpanInnerHTML += '<br>Diff: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
+                                headSpanInnerHTML +=  diffAdded
+                                    + '+ ' + diffRemoved + '-</span>';
+
+                                return headSpanInnerHTML;
+                            }
+
                             if(detailArrayOfProteoformInThisBlock[index].headOrTailFlag.includes('HEAD'))
                             {
-                                let headSpanInnerHTML = 'Strand: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
-                                headSpanInnerHTML += detailArrayOfProteoformInThisBlock[index].isReverse ? '-' : '+';
-                                headSpanInnerHTML += '</span>';
-                                headSpanInnerHTML += '<br>Scan: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
-                                headSpanInnerHTML +=  detailArrayOfProteoformInThisBlock[index].scan + '</span>';
+                                let headSpanInnerHTML = generateSpanNode(
+                                    detailArrayOfProteoformInThisBlock[index].scan,
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].uniprot_id,
+                                    detailArrayOfProteoformInThisBlock[index].isReverse ? '-' : '+',
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.ptm,
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.added,
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.removed
+                                );
                                 let strandAndScanIdSpanAtHead = domConstruct.create('span',
                                     {
-                                        className: 'Snow_aminoAcid_head_strand_scanId_label',
+                                        className: 'Snow_aminoAcid_head_strand_scanId_label' + (_this.genomeView.pxPerBp < 5.5 ? ' low_scale' : ''),
                                         style: {
-                                            visibility: 'visible'
+                                            // visibility: 'visible'
                                         },
                                         innerHTML: headSpanInnerHTML
                                     }
@@ -1556,16 +1635,20 @@ define(
                             }
                             else if(detailArrayOfProteoformInThisBlock[index].headOrTailFlag.includes('TAIL'))
                             {
-                                let tailSpanInnerHTML = 'Strand: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
-                                tailSpanInnerHTML += detailArrayOfProteoformInThisBlock[index].isReverse ? '-' : '+';
-                                tailSpanInnerHTML += '</span>';
-                                tailSpanInnerHTML += '<br>Scan: ' + '<span style="color: red; font-weight: bold; text-shadow:none">';
-                                tailSpanInnerHTML +=  detailArrayOfProteoformInThisBlock[index].scan + '</span>';
+                                let tailSpanInnerHTML = generateSpanNode(
+                                    detailArrayOfProteoformInThisBlock[index].scan,
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].uniprot_id,
+                                    detailArrayOfProteoformInThisBlock[index].isReverse ? '-' : '+',
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.ptm,
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.added,
+                                    window.BEYONDGBrowse.msScanDataInfoStore[detailArrayOfProteoformInThisBlock[index].scan].diffFromRefSequenceCount.removed
+                                );
+
                                 let strandAndScanIdSpanAtHead = domConstruct.create('span',
                                     {
-                                        className: 'Snow_aminoAcid_tail_strand_scanId_label',
+                                        className: 'Snow_aminoAcid_tail_strand_scanId_label' + (_this.genomeView.pxPerBp < 5.5 ? ' low_scale' : ''),
                                         style: {
-                                            visibility: 'visible'
+                                            // visibility: 'visible'
                                         },
                                         innerHTML: tailSpanInnerHTML
                                     }
@@ -1576,6 +1659,16 @@ define(
                         }
 
                         tr.appendChild(aminoAcidSpan);
+                        tr.onmouseover = function() {
+                            domClass.add(tr, 'hoverState');
+                            // dojoQuery(
+                            //     'td span.Snow_aminoAcid_head_strand_scanId_label', tr
+                            // ).addClass('hoverState');
+                        };
+
+                        tr.onmouseout = function() {
+                            domClass.remove(tr, 'hoverState');
+                        };
                     }
                     return container;
                 },
@@ -1598,9 +1691,6 @@ define(
                         'dblclick',
                         function (event) {
                             SnowConsole.debug('dblclick on .Snow_aminoAcid:', arguments);
-                            let finishCallback = function () {
-                                domClass.add(event.target, 'Snow_annotation_mark');
-                            };
                             let positionOfThisAminoAcidCell;
                             if(isProteoformSequence === true)
                             {
@@ -1610,6 +1700,31 @@ define(
                             {
                                 positionOfThisAminoAcidCell = domAttr.get(event.target, 'snowseqposition');
                             }
+
+                            let finishCallback = function () {
+                                domClass.add(event.target, 'Snow_annotation_mark');
+                                if(isProteoformSequence === true)
+                                {
+                                    let requestUrl = 'http://' + (window.JBrowse.config.BEYONDGBrowseBackendAddr || '127.0.0.1')
+                                        + ':12080/' + _this.browser.config.BEYONDGBrowseDatasetId  + '/annotation/query/' + refName + '/'
+                                        + '1..9999';
+
+                                    dojoRequest.get(
+                                        requestUrl,
+                                        {
+                                            handleAs: 'json'
+                                        }
+                                    ).then(
+                                        function (proteoformAnnotationData) {
+                                            SnowConsole.info('proteoformAnnotation:', proteoformAnnotationData);
+                                            window.BEYONDGBrowse.annotationStore[refName] = proteoformAnnotationData;
+                                        },
+                                        function (errorReason) {
+                                            console.error('Query proteoformAnnotation error', requestUrl, errorReason);
+                                        }
+                                    );
+                                }
+                            };
 
                             _this._loadSpecificAnnotationAndPopupModal(
                                 refName,
@@ -1778,9 +1893,6 @@ define(
                         requestUrl,
                         {
                             method: 'GET',
-                            headers: {
-                                'X-Requested-With': null
-                            },
                             handleAs: 'json'
                         }
                     ).then(
@@ -1801,9 +1913,6 @@ define(
                                             requestUrl,
                                             {
                                                 method: 'GET',
-                                                headers: {
-                                                    'X-Requested-With': null
-                                                },
                                                 handleAs: 'json'
                                             }
                                         ).then(

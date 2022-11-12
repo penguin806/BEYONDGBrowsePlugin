@@ -155,10 +155,6 @@ define(
                                         method: 'POST',
                                         query: queryObject,
                                         data: searchData,
-                                        headers: {
-                                            'X-Requested-With': null
-                                            //'User-Agent': 'SnowPlugin-FrontEnd'
-                                        },
                                         handleAs: 'json'
                                     }
                                 ).then(

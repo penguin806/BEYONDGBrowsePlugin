@@ -66,10 +66,11 @@ define(
                             iconClass: 'dijitIconSave',
                             label: 'Save',
                             onClick:function() {
-                                // dojoLang.hitch(_this, 'insertSpecificAnnotation');
-                                _this.insertSpecificAnnotation();
-                                _this.setCallback && _this.setCallback();
-                                _this.hide();
+                                let insertFinished = function () {
+                                    _this.setCallback && _this.setCallback();
+                                    _this.hide();
+                                };
+                                _this.insertSpecificAnnotation(insertFinished);
                             }
                         }
                     );
@@ -181,7 +182,7 @@ define(
                     _this.inherited(arguments);
                 },
 
-                insertSpecificAnnotation: function() {
+                insertSpecificAnnotation: function(finishedCallback) {
                     let _this = this;
                     if(_this.annotationEditor.getLength() <= 0)
                     {
@@ -212,9 +213,6 @@ define(
                                 author: _this.browser.config.BEYONDGBrowseUsername || 'Anonymous'
                             },
                             data: annotationContent,
-                            headers: {
-                                'X-Requested-With': null
-                            },
                             handleAs: 'json'
                         }
                     ).then(
@@ -223,6 +221,10 @@ define(
                             if(statusObj.status !== "SUCCESS")
                             {
                                 alert('Upload annotation failed!');
+                            }
+                            else
+                            {
+                                finishedCallback && finishedCallback();
                             }
                         }
                     );

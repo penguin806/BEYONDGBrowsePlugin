@@ -66,7 +66,7 @@ define(
 
                 },
 
-                _defaultConfig: function(){
+                _defaultConfig: function() {
                     let oldConfig = this.inherited(arguments);
                     let newConfig = dojoLang.mixin(
                         oldConfig,{
@@ -155,33 +155,271 @@ define(
                     return newTrackMenuOptions;
                 },
 
-                _getLongestCommonSubSequenceMatrix: function(str1, str2)
+                // Deprecated:
+                // _getLongestCommonSubSequenceMatrix: function(str1, str2)
+                // {
+                //     let result = [];
+                //     for (let i = -1; i < str1.length; i = i + 1)
+                //     {
+                //         result[i] = [];
+                //         for (let j = -1; j < str2.length; j = j + 1)
+                //         {
+                //             if (i === -1 || j === -1)
+                //             {
+                //                 result[i][j] = 0;
+                //             } else if (str1[i] === str2[j]) {
+                //                 result[i][j] = result[i - 1][j - 1] + 1;
+                //             } else {
+                //                 result[i][j] = Math.max(result[i - 1][j], result[i][j - 1]);
+                //             }
+                //         }
+                //     }
+                //     return result;
+                // },
+                //
+                // _getLcsMatrixLength: function(str1, str2, matrix)
+                // {
+                //     const str1Length = str1.length;
+                //     const str2Length = str2.length;
+                //
+                //     return matrix[str1Length - 1][str2Length - 1];
+                // },
+
+                _formatProteoformSequenceString: function(
+                    proteoformSequence, isReverse
+                )
                 {
+                    // let proteoformSequenceWithoutPrefixAndSuffix =
+                    //     proteoformSequence.replace(/(.*\.)(.*)(\..*)/, '$2');
+                    // Above is deprecated
+                    // let proteoformSequenceWithoutPrefixAndSuffix =
+                    //     proteoformSequence.replace(/^\w\.|\.\w?$/, '');
+                    let proteoformRemovedParenthesesAndPrefixSuffix =
+                        proteoformSequence.replace(/^\w?\.|\.\w?$|[()]/g, '');
+                    // Example:
+                    // A.TKAARKSAPATGGVKKPHRYRPGTVALREIRRYQKST(ELLIRKLPFQRLVREIAQDFKTDLRFQSSAV)[Acetyl]MALQEASEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA.
+                    // -> TKAARKSAPATGGVKKPHRYRPGTVALREIRRYQKSTELLIRKLPFQRLVREIAQDFKTDLRFQSSAV[Acetyl]MALQEASEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA
+
+                    if(isReverse)
+                    {
+                        return proteoformRemovedParenthesesAndPrefixSuffix.replace(
+                            /\[.*?]/g,
+                            function(modification)
+                            {
+                                return modification.split('').reverse().join('')
+                            }
+                        ).split('').reverse().join('');
+                        // -> AREGRIRRALQIDKPMITVRKAHIACLNTDEFLGVLYAESAEQLAM[Acetyl]VASSQFRLDTKFDQAIERVLRQFPLKRILLETSKQYRRIERLAVTGPRYRHPKKVGGTAPASKRAAKT
+                    }
+                    else
+                    {
+                        return proteoformRemovedParenthesesAndPrefixSuffix;
+                    }
+
+                },
+
+                _detachPtmFromProteoform: function (proteoform)
+                {
+                    let newProteoform = "";
+                    let ptmList = [];
+
+                    for(let i = 0; i < proteoform.length; )
+                    {
+                        if(proteoform[i] === '[')
+                        {
+                            let ptm = {
+                                str: "",
+                                position: newProteoform.length
+                            };
+                            while(i < proteoform.length)
+                            {
+                                ptm.str += proteoform[i];
+                                if(proteoform[i++] === ']')
+                                {
+                                    break;
+                                }
+                            }
+                            ptmList.push(ptm);
+                        }
+                        else
+                        {
+                            newProteoform += proteoform[i];
+                            i++;
+                        }
+                    }
+
+                    return {
+                        newProteoform,
+                        ptmList
+                    };
+                },
+
+                _fillNeedlemanMatrix: function (strA, strB)
+                {
+                    const matchScore = 1;
+                    const mismatchPenalty = -1;
+                    const gapPenalty = -1;
+                    const skewPenalty = -0.5;
                     let result = [];
-                    for (let i = -1; i < str1.length; i = i + 1)
+
+                    for (let i = -1; i < strA.length; i++)
                     {
                         result[i] = [];
-                        for (let j = -1; j < str2.length; j = j + 1)
+                        for (let j = -1; j < strB.length; j++)
                         {
-                            if (i === -1 || j === -1)
+                            if (i === -1)
                             {
-                                result[i][j] = 0;
-                            } else if (str1[i] === str2[j]) {
-                                result[i][j] = result[i - 1][j - 1] + 1;
-                            } else {
-                                result[i][j] = Math.max(result[i - 1][j], result[i][j - 1]);
+                                result[-1][j] = (1 + j) * skewPenalty;
+                            }
+                            else if (j === -1)
+                            {
+                                result[i][-1] = (1 + i) * skewPenalty;
+                            }
+                            else
+                            {
+                                let matchOrMismatch = result[i - 1][j - 1] + (strA[i] === strB[j] ? matchScore : mismatchPenalty);
+                                let _delete = result[i - 1][j] + (j === strB.length - 1 ? skewPenalty : gapPenalty);
+                                let _insert = result[i][j - 1] + (i === strA.length - 1 ? skewPenalty : gapPenalty);
+                                result[i][j] = Math.max(matchOrMismatch, _delete, _insert);
                             }
                         }
                     }
                     return result;
                 },
 
-                _getLcsMatrixLength: function(str1, str2, matrix)
+                _getAlignmentScore: function(matrix)
                 {
-                    const str1Length = str1.length;
-                    const str2Length = str2.length;
+                    return matrix[matrix.length - 1][matrix[-1].length - 1];
+                },
 
-                    return matrix[str1Length - 1][str2Length - 1];
+                _computeAlignmentDiffResult: function (strA, strB, matrix, ptmList)
+                {
+                    const matchScore = 1;
+                    const mismatchPenalty = -1;
+                    const gapPenalty = -1;
+                    const skewPenalty = -0.5;
+
+                    let _this = this;
+                    let alignmentA = "";
+                    let alignmentB = "";
+                    let i = strA.length - 1;
+                    let j = strB.length - 1;
+                    while(i >= 0 || j >= 0)
+                    {
+                        let diagonal;
+                        let left;
+                        let up;
+                        diagonal = left = up = -Infinity;
+
+                        if(i >= 0 && j >= 0)
+                        {
+                            diagonal = (strA[i] === strB[j] ? matrix[i - 1][j - 1] + matchScore : matrix[i - 1][j - 1] + mismatchPenalty);
+                        }
+                        if(i >= 0 /* && matrix[i][j] === matrix[i - 1][j] + gapPenalty */)
+                        {
+                            up = matrix[i - 1][j] + (j === strB.length - 1 ? skewPenalty : gapPenalty);
+                        }
+                        if(j >= 0 /* && matrix[i][j] === matrix[i][j - 1] + gapPenalty */)
+                        {
+                            left = matrix[i][j - 1] + (i === strA.length - 1 ? skewPenalty : gapPenalty);
+                        }
+
+
+                        if(diagonal >= left && diagonal >= up)
+                        {
+                            alignmentA = strA[i] + alignmentA;
+                            alignmentB = strB[j] + alignmentB;
+                            i--;
+                            j--;
+                        }
+                        else if(up > left)
+                        {
+                            alignmentA = strA[i] + alignmentA;
+                            alignmentB = '!' + alignmentB;
+                            i--;
+                        }
+                        else
+                        {
+                            alignmentA = '!' + alignmentA;
+                            alignmentB = strB[j] + alignmentB;
+                            j--;
+                        }
+
+                    }
+
+                    console.info(alignmentA);
+                    console.info(alignmentB);
+
+                    function _generateDiffObjectArray()
+                    {
+                        let diffArray = [];
+                        let currentPtmIndex = 0;
+                        let nonGapCount = 0;
+
+                        for(let i = 0; i < alignmentA.length; )
+                        {
+                            let template = {
+                                value: ""
+                            };
+
+                            if(alignmentA[i] === '!')
+                            {
+                                template.added = true;
+                                while(i < alignmentA.length && alignmentA[i] === '!')
+                                {
+                                    template.value += alignmentB[i];
+                                    // nonGapCount++;
+                                    i++;
+                                }
+                            }
+                            else if(alignmentB[i] === '!')
+                            {
+                                template.removed = true;
+                                while(i < alignmentA.length && alignmentA[i] !== '!' && alignmentB[i] === '!')
+                                {
+                                    template.value += alignmentB[i];
+                                    i++;
+                                }
+                            }
+                            else
+                            {
+                                while(i < alignmentA.length && alignmentA[i] !== '!' && alignmentB[i] !== '!')
+                                {
+                                    let currentPTM = ptmList[currentPtmIndex] || {str: undefined, position: undefined};
+                                    if(nonGapCount++ === currentPTM.position)
+                                    {
+                                        diffArray.push(
+                                            {
+                                                added: true,
+                                                value: currentPTM.str,
+                                                count: currentPTM.str.length,
+                                                modification: {
+                                                    length: currentPTM.str.length,
+                                                    content: currentPTM.str,
+                                                    color: _this.config.PTMColor[currentPTM.str.split(';')[0]] || _this.config.PTMColor['default']
+                                                }
+                                            }
+                                        );
+                                        currentPtmIndex++;
+                                    }
+
+                                    template.value += alignmentB[i];
+                                    i++;
+                                }
+                            }
+
+                            template.count = template.value.length;
+                            diffArray.push(template);
+                        }
+
+                        return diffArray;
+                    }
+
+                    return {
+                        diffObjectArray: _generateDiffObjectArray(),
+                        alignmentA: alignmentA,
+                        alignmentB: alignmentB
+                    };
                 },
 
                 _translateGenomeSequenceToProtein: function(refSequence, fullRangeLeftPos, fullRangeRightPos)
@@ -749,7 +987,7 @@ define(
                 },
 
                 // Deprecated
-                _calcMSScanMass: function(strSenquence, arrMSScanMass, arrMSScanPeakAundance)
+                /*_calcMSScanMass: function(strSenquence, arrMSScanMass, arrMSScanPeakAundance)
                 {
                     this._sortArrMSScanMassAndArrMSScanPeakAundance(arrMSScanMass, arrMSScanPeakAundance);
 
@@ -938,7 +1176,7 @@ define(
                     }
 
                     return calculate();
-                },
+                },*/
 
                 _filterMSScanMassMappingResultForCurrentBlock: function(
                     blockLeftBase, blockRightBase, mappingResultObjectArray, proteoformStartPosition
@@ -1002,35 +1240,6 @@ define(
                 //         ]
                 //     );
                 // },
-                _formatProteoformSequenceString: function(
-                    proteoformSequence, isReverse
-                )
-                {
-                    let proteoformSequenceWithoutPrefixAndSuffix =
-                        proteoformSequence.replace(/(.*\.)(.*)(\..*)/, '$2');
-                    let proteoformSequenceWithoutParentheses =
-                        proteoformSequenceWithoutPrefixAndSuffix.replace(/\(|\)/g, '');
-                    // Example:
-                    // A.TKAARKSAPATGGVKKPHRYRPGTVALREIRRYQKST(ELLIRKLPFQRLVREIAQDFKTDLRFQSSAV)[Acetyl]MALQEASEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA.
-                    // -> TKAARKSAPATGGVKKPHRYRPGTVALREIRRYQKSTELLIRKLPFQRLVREIAQDFKTDLRFQSSAV[Acetyl]MALQEASEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA
-
-                    if(isReverse)
-                    {
-                        return proteoformSequenceWithoutParentheses.replace(
-                            /\[.*?\]/g,
-                            function(modification)
-                            {
-                                return modification.split('').reverse().join('')
-                            }
-                        ).split('').reverse().join('');
-                        // -> AREGRIRRALQIDKPMITVRKAHIACLNTDEFLGVLYAESAEQLAM[Acetyl]VASSQFRLDTKFDQAIERVLRQFPLKRILLETSKQYRRIERLAVTGPRYRHPKKVGGTAPASKRAAKT
-                    }
-                    else
-                    {
-                        return proteoformSequenceWithoutParentheses;
-                    }
-
-                },
 
                 _parseRequestedObject: function(recordObjectArray)
                 {
@@ -1106,6 +1315,12 @@ define(
                     let _arguments = arguments;
                     let currentRangeLeftBase = startBase;
                     let currentRangeRightBase = startBase + (last - first + 1) * bpPerBlock;
+
+                    if(scale < 1)
+                    {
+                        console.error('SnowCanvasFeatures.js: scale < 1');
+                        return;
+                    }
 
                     if(
                         _this.msScanDataCache._start && _this.msScanDataCache.end &&
@@ -1206,16 +1421,19 @@ define(
                                             )
                                         )
                                         {
-                                            msScanData[i].lcsLengthArray = window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].lcsLengthArray;
+                                            msScanData[i].needlemanMatrixArray = window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].needlemanMatrixArray;
+                                            msScanData[i].alignmentScoreArray = window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].alignmentScoreArray;
                                             msScanData[i].selectedRefSeqIndex = window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].selectedRefSeqIndex;
+                                            msScanData[i].proteoformObject = window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].proteoformObject;
                                         }
                                         else
                                         {
-                                            const proteoformWithoutModificationToCompare =
+                                            // const proteoformWithoutModificationToCompare =
+                                            const proteoformToCompare =
                                                 _this._formatProteoformSequenceString(
                                                     msScanData[i].sequence,
                                                     msScanData[i].strand === '-'
-                                                ).replace(/\[.*?]|\(|\)|\./g, '');
+                                                )/*.replace(/\[.*?]|\(|\)|\./g, '')*/;
 
                                             if(msScanData[i].strand === '-')
                                             {
@@ -1224,57 +1442,60 @@ define(
                                                 msScanData[i].arrIonsNum = msScanData[i].arrIonsNum.reverse();
                                             }
 
-                                            let lcsMatrix = [];
-                                            msScanData[i].lcsLengthArray = [];
+                                            msScanData[i].needlemanMatrixArray = [];
+                                            msScanData[i].alignmentScoreArray = [];
+                                            msScanData[i].proteoformObject = _this._detachPtmFromProteoform(proteoformToCompare);
                                             for(let indexJ = 0; indexJ < 3; indexJ++)
                                             {
                                                 let translatedRefSeqForProteoformToCompare = msScanData[i].strand === '-' ?
                                                     translatedRefSeqsArrayForProteoform[3 + indexJ] :
                                                     translatedRefSeqsArrayForProteoform[indexJ];
 
-
-                                                lcsMatrix.push(
-                                                    _this._getLongestCommonSubSequenceMatrix(
+                                                msScanData[i].needlemanMatrixArray.push(
+                                                    _this._fillNeedlemanMatrix(
                                                         translatedRefSeqForProteoformToCompare,
-                                                        proteoformWithoutModificationToCompare
+                                                        msScanData[i].proteoformObject.newProteoform
                                                     )
                                                 );
 
-                                                msScanData[i].lcsLengthArray.push(
-                                                    _this._getLcsMatrixLength(
-                                                        translatedRefSeqForProteoformToCompare,
-                                                        proteoformWithoutModificationToCompare,
-                                                        lcsMatrix[indexJ]
+                                                msScanData[i].alignmentScoreArray.push(
+                                                    _this._getAlignmentScore(
+                                                        msScanData[i].needlemanMatrixArray[indexJ]
                                                     )
                                                 );
                                             }
 
                                             msScanData[i].selectedRefSeqIndex = 0;
-                                            for(let indexK = 1; indexK < msScanData[i].lcsLengthArray.length; indexK++)
+                                            for(let indexK = 1; indexK < msScanData[i].alignmentScoreArray.length; indexK++)
                                             {
                                                 if(
-                                                    msScanData[i].lcsLengthArray[indexK] > msScanData[i].lcsLengthArray[
-                                                        msScanData[i].selectedRefSeqIndex
-                                                    ]
+                                                    msScanData[i].alignmentScoreArray[indexK] >
+                                                    msScanData[i].alignmentScoreArray[msScanData[i].selectedRefSeqIndex]
                                                 )
                                                 {
                                                     msScanData[i].selectedRefSeqIndex = indexK;
                                                 }
                                             }
 
-                                            window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId] =
-                                                window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId] || { };
-                                            window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].lcsLengthArray =
-                                                msScanData[i].lcsLengthArray;
-                                            window.BEYONDGBrowse.msScanDataInfoStore[msScanData[i].scanId].selectedRefSeqIndex =
+                                            let scanId = msScanData[i].scanId;
+                                            window.BEYONDGBrowse.msScanDataInfoStore[scanId] =
+                                                window.BEYONDGBrowse.msScanDataInfoStore[scanId] || { };
+                                            window.BEYONDGBrowse.msScanDataInfoStore[scanId].needlemanMatrixArray =
+                                                msScanData[i].needlemanMatrixArray;
+                                            window.BEYONDGBrowse.msScanDataInfoStore[scanId].alignmentScoreArray =
+                                                msScanData[i].alignmentScoreArray;
+                                            window.BEYONDGBrowse.msScanDataInfoStore[scanId].selectedRefSeqIndex =
                                                 msScanData[i].selectedRefSeqIndex;
+                                            window.BEYONDGBrowse.msScanDataInfoStore[scanId].proteoformObject =
+                                                msScanData[i].proteoformObject;
+                                            window.BEYONDGBrowse.msScanDataInfoStore[scanId].uniprot_id = msScanData[i].uniprot_id;
                                         }
                                     }
 
                                     msScanData.sort(
                                         (itemA, itemB) =>
-                                            itemB.lcsLengthArray[itemB.selectedRefSeqIndex] -
-                                            itemA.lcsLengthArray[itemA.selectedRefSeqIndex]
+                                            itemB.alignmentScoreArray[itemB.selectedRefSeqIndex] -
+                                            itemA.alignmentScoreArray[itemA.selectedRefSeqIndex]
                                     );
                                     _this.msScanDataCache.refName = _this.refSeq.name;
                                     _this.msScanDataCache._start = msScanData[0]._start;
@@ -1293,7 +1514,7 @@ define(
                                             thisMsScanTrackId = 1;
                                         }
 
-                                        let thisProteoformObject = msScanData[thisMsScanTrackId - 1];
+                                        let thisProteoform = msScanData[thisMsScanTrackId - 1];
                                         if(_this.config.DEBUG_SCANID && !isNaN(_this.config.DEBUG_SCANID))
                                         {
                                             let targetObject = msScanData.find(
@@ -1303,23 +1524,23 @@ define(
                                             );
                                             if(targetObject)
                                             {
-                                                thisProteoformObject = targetObject;
+                                                thisProteoform = targetObject;
                                             }
                                         }
 
-                                        _this.scanId = thisProteoformObject.scanId;
-                                        _this.proteoformStartPosition = thisProteoformObject._start;
-                                        let thisProteoformStartPosition = thisProteoformObject._start;
-                                        let thisProteoformEndPosition = thisProteoformObject.end;
+                                        _this.scanId = thisProteoform.scanId;
+                                        _this.proteoformStartPosition = thisProteoform._start;
+                                        let thisProteoformStartPosition = thisProteoform._start;
+                                        let thisProteoformEndPosition = thisProteoform.end;
                                         // let proteoformPositionOffset = 3 + Math.abs((thisProteoformStartPosition - leftBase) % 3);
                                         // thisProteoformStartPosition += proteoformPositionOffset;
                                         // thisProteoformEndPosition += proteoformPositionOffset;
-                                        let isThisProteoformReverse = thisProteoformObject.strand === '-';
+                                        let isThisProteoformReverse = thisProteoform.strand === '-';
                                         SnowConsole.info('msScanMassTrackId:', thisMsScanTrackId);
-                                        SnowConsole.info('thisProteoformObject:', thisProteoformObject);
+                                        SnowConsole.info('thisProteoform:', thisProteoform);
 
                                         // Update track label
-                                        let labelTextToAppend = ' (Scan: ' + thisProteoformObject.scanId + ')';
+                                        let labelTextToAppend = ' (Scan: ' + thisProteoform.scanId + ')';
                                         if(_this.originalLabelText + labelTextToAppend !== _this.labelHTML)
                                         {
                                             _this.setLabel(_this.originalLabelText + labelTextToAppend);
@@ -1327,80 +1548,121 @@ define(
 
                                         let diffFromRefSequenceResult = undefined;
                                         if(
-                                            window.BEYONDGBrowse.msScanDataInfoStore.hasOwnProperty(thisProteoformObject.scanId)
-                                            && typeof window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].diffFromRefSequenceResult == "object"
+                                            window.BEYONDGBrowse.msScanDataInfoStore.hasOwnProperty(thisProteoform.scanId)
+                                            && typeof window.BEYONDGBrowse.msScanDataInfoStore[thisProteoform.scanId].diffFromRefSequenceResult == "object"
                                         )
                                         {
-                                            diffFromRefSequenceResult = window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].diffFromRefSequenceResult;
+                                            diffFromRefSequenceResult = window.BEYONDGBrowse.msScanDataInfoStore[thisProteoform.scanId].diffFromRefSequenceResult;
                                         }
                                         else
                                         {
                                             let translatedRefSequenceForDiffCompare = isThisProteoformReverse ? translatedRefSeqsArrayForProteoform[
-                                                    3 + thisProteoformObject.selectedRefSeqIndex
-                                                ] : translatedRefSeqsArrayForProteoform[thisProteoformObject.selectedRefSeqIndex];
+                                                    3 + thisProteoform.selectedRefSeqIndex
+                                                ] : translatedRefSeqsArrayForProteoform[thisProteoform.selectedRefSeqIndex];
 
-                                            diffFromRefSequenceResult = JsDiff.diffChars(
+                                            // diffFromRefSequenceResult = JsDiff.diffChars(
+                                            //     translatedRefSequenceForDiffCompare,
+                                            //     _this._formatProteoformSequenceString(
+                                            //         thisProteoform.sequence,
+                                            //         thisProteoform.strand === '-'
+                                            //     ) /*.replace(/\[.*?\]|\(|\)|\./g,'')*/
+                                            // );
+
+                                            diffFromRefSequenceResult = _this._computeAlignmentDiffResult(
                                                 translatedRefSequenceForDiffCompare,
-                                                _this._formatProteoformSequenceString(
-                                                    thisProteoformObject.sequence,
-                                                    thisProteoformObject.strand === '-'
-                                                ) /*.replace(/\[.*?\]|\(|\)|\./g,'')*/
+                                                thisProteoform.proteoformObject.newProteoform,
+                                                thisProteoform.needlemanMatrixArray[thisProteoform.selectedRefSeqIndex],
+                                                thisProteoform.proteoformObject.ptmList
                                             );
 
                                             // Filter the PTM (modification)
-                                            diffFromRefSequenceResult.forEach(
-                                                function (item, index) {
-                                                    if(item.added === true && /\[.*?]/g.test(item.value) === true)
-                                                    {
-                                                        let ptmLength = 0;
-                                                        let matches = item.value.match(/\[.*?]/g);
-                                                        matches.forEach(
-                                                            (item) => { ptmLength += item.length }
-                                                        );
-                                                        matches = /\[(.*?)]/g.exec(item.value);
-                                                        let ptmContent = matches[1];
-                                                        let ptmColor;
-                                                        if(_this.config.PTMColor[ptmContent.split(';')[0]] !== undefined)
-                                                        {
-                                                            ptmColor = _this.config.PTMColor[ptmContent.split(';')[0]];
-                                                        }
-                                                        else
-                                                        {
-                                                            ptmColor = _this.config.PTMColor['default'];
-                                                        }
+                                            // diffFromRefSequenceResult.forEach(
+                                            //     function (item, index) {
+                                            //         if(item.added === true && /\[.*?]/g.test(item.value) === true)
+                                            //         {
+                                            //             let ptmLength = 0;
+                                            //             let matches = item.value.match(/\[.*?]/g);
+                                            //             matches.forEach(
+                                            //                 (item) => { ptmLength += item.length }
+                                            //             );
+                                            //             matches = /\[(.*?)]/g.exec(item.value);
+                                            //             let ptmContent = matches[1];
+                                            //             let ptmColor;
+                                            //             if(_this.config.PTMColor[ptmContent.split(';')[0]] !== undefined)
+                                            //             {
+                                            //                 ptmColor = _this.config.PTMColor[ptmContent.split(';')[0]];
+                                            //             }
+                                            //             else
+                                            //             {
+                                            //                 ptmColor = _this.config.PTMColor['default'];
+                                            //             }
+                                            //
+                                            //             diffFromRefSequenceResult[index].modification = {
+                                            //                 length: ptmLength,
+                                            //                 content: ptmContent,
+                                            //                 color: ptmColor
+                                            //             };
+                                            //         }
+                                            //     }
+                                            // );
 
-                                                        diffFromRefSequenceResult[index].modification = {
-                                                            length: ptmLength,
-                                                            content: ptmContent,
-                                                            color: ptmColor
-                                                        };
+                                            window.BEYONDGBrowse.msScanDataInfoStore[thisProteoform.scanId].diffFromRefSequenceResult = diffFromRefSequenceResult;
+                                            let diffAdded = 0;
+                                            let diffRemoved = 0;
+                                            let diffPTM = 0;
+                                            diffFromRefSequenceResult.diffObjectArray.forEach(
+                                                function(item) {
+                                                    let diffText = item.value;
+
+                                                    if(/\[.*]/.test(diffText))
+                                                    {
+                                                        /\[.*]/.exec(diffText).forEach(
+                                                            function(matched)
+                                                            {
+                                                                diffPTM++;
+                                                            }
+                                                        );
+
+                                                        diffText = diffText.replace(/\[.*]/, '');
+                                                    }
+
+                                                    if(item.added)
+                                                    {
+                                                        diffAdded += diffText.length;
+                                                    }
+                                                    else if(item.removed)
+                                                    {
+                                                        diffRemoved += diffText.length;
                                                     }
                                                 }
                                             );
-
-                                            window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].diffFromRefSequenceResult = diffFromRefSequenceResult;
+                                            window.BEYONDGBrowse.msScanDataInfoStore[thisProteoform.scanId].diffFromRefSequenceCount = {
+                                                added: diffAdded,
+                                                removed: diffRemoved,
+                                                ptm: diffPTM
+                                            };
                                         }
 
                                         let massAndIntensityMappingResult = undefined;
                                         let maxIntensityValue = undefined;
                                         if(
-                                            window.BEYONDGBrowse.msScanDataInfoStore.hasOwnProperty(thisProteoformObject.scanId) &&
-                                            typeof window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].massAndIntensityMappingResult == "object" &&
-                                            window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].maxIntensityValue
+                                            window.BEYONDGBrowse.msScanDataInfoStore.hasOwnProperty(thisProteoform.scanId) &&
+                                            typeof window.BEYONDGBrowse.msScanDataInfoStore[thisProteoform.scanId].massAndIntensityMappingResult == "object" &&
+                                            window.BEYONDGBrowse.msScanDataInfoStore[thisProteoform.scanId].maxIntensityValue
                                         )
                                         {
                                             massAndIntensityMappingResult =
-                                                window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].massAndIntensityMappingResult;
+                                                window.BEYONDGBrowse.msScanDataInfoStore[thisProteoform.scanId].massAndIntensityMappingResult;
                                             maxIntensityValue =
-                                                window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].maxIntensityValue;
+                                                window.BEYONDGBrowse.msScanDataInfoStore[thisProteoform.scanId].maxIntensityValue;
                                         }
                                         else
                                         {
                                             massAndIntensityMappingResult = _this._calcMSScanMass_v2(
-                                                thisProteoformObject.sequence,
-                                                thisProteoformObject.arrMSScanMassArray,
-                                                thisProteoformObject.arrMSScanPeakAundance,
-                                                thisProteoformObject.arrIonsNum
+                                                thisProteoform.sequence,
+                                                thisProteoform.arrMSScanMassArray,
+                                                thisProteoform.arrMSScanPeakAundance,
+                                                thisProteoform.arrIonsNum
                                             );
                                             // Eg: massAndIntensityMappingResult[0]
                                             // {
@@ -1459,21 +1721,21 @@ define(
                                             );
                                             maxIntensityValue = maxIntensityValue === 0 ? 10000.0 : maxIntensityValue;
 
-                                            window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].massAndIntensityMappingResult = massAndIntensityMappingResult;
-                                            window.BEYONDGBrowse.msScanDataInfoStore[thisProteoformObject.scanId].maxIntensityValue = maxIntensityValue;
+                                            window.BEYONDGBrowse.msScanDataInfoStore[thisProteoform.scanId].massAndIntensityMappingResult = massAndIntensityMappingResult;
+                                            window.BEYONDGBrowse.msScanDataInfoStore[thisProteoform.scanId].maxIntensityValue = maxIntensityValue;
                                             SnowConsole.info('massAndIntensityMappingResult', massAndIntensityMappingResult);
                                         }
 
                                         _this._publishDrawProteoformSequenceEvent(
-                                            thisProteoformObject.sequence,
+                                            thisProteoform.sequence,
                                             thisProteoformStartPosition,
                                             thisProteoformEndPosition,
                                             isThisProteoformReverse,
-                                            thisProteoformObject.scanId,
+                                            thisProteoform.scanId,
                                             massAndIntensityMappingResult,
                                             thisMsScanTrackId,
-                                            thisProteoformObject.selectedRefSeqIndex,
-                                            diffFromRefSequenceResult
+                                            thisProteoform.selectedRefSeqIndex,
+                                            diffFromRefSequenceResult.diffObjectArray
                                         );
 
                                         _this.inherited(_arguments);
@@ -1521,9 +1783,10 @@ define(
                         );
                         _this.fillHistograms(renderArgs, false);
                     }
-                },
+                }
 
-                fillBlock_Old: function(renderArgs)
+                // Deprecated
+                /*fillBlock_Old: function(renderArgs)
                 {
                     let _this = this;
                     let blockIndex = renderArgs.blockIndex;
@@ -1791,7 +2054,7 @@ define(
                                     window.BEYONDGBrowse.diffFromRefSequenceResult[thisProteoformObject.scanId] =
                                         diffFromRefSequenceResult = JsDiff.diffChars(
                                             translatedRefSequenceForDiffCompare,
-                                            thisProteoformSequence /*.replace(/\[.*?\]|\(|\)|\./g,'')*/
+                                            thisProteoformSequence /!*.replace(/\[.*?\]|\(|\)|\./g,'')*!/
                                         );
 
                                     // Filter the PTM (modification)
@@ -1999,7 +2262,7 @@ define(
                     }
 
                 }
-
+                */
             }
         );
 

@@ -28,7 +28,7 @@ define(
             {
                 constructor: function( args )
                 {
-                    this.title = 'Set mass spectra track number';
+                    this.title = 'Set mass spectrum track number';
 
                     this.browser = args.browser;
                     this.setCallback    = args.setCallback || function() {};

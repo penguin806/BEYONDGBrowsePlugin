@@ -112,10 +112,6 @@ define(
                                 + '/' + _this.browser.config.BEYONDGBrowseDatasetId + '/locate_autocomplete/' + currentTextBoxValue,
                                 {
                                     method: 'GET',
-                                    headers: {
-                                        'X-Requested-With': null
-                                        //'User-Agent': 'SnowPlugin-FrontEnd'
-                                    },
                                     handleAs: 'json'
                                 }
                             ).then(

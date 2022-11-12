@@ -59,6 +59,11 @@ define([
                     let locateButtonDomNode = _this._generateLocateButton();
                     _this._loadBeyondProteinTrackFromConfig();
                     _this._subscribeShowMassSpectraTrackEvent();
+                    let annotationTableContainer = _this._generateAnnotationTable();
+                    window.BEYONDGBrowse.annotationTable =
+                        _this.annotationTable = annotationTableContainer.lastChild;
+                    window.BEYONDGBrowse._fillAnnotationTable = _this._fillAnnotationTable;
+
 
                     browser.afterMilestone(
                         'loadConfig',
@@ -77,12 +82,22 @@ define([
                     browser.afterMilestone('initView', function() {
                             let menuBar = browser.menuBar;
                             menuBar.appendChild(locateButtonDomNode);
+                            let trackListContainer = browser.trackListView.containerNode;
+                            domConstruct.create(
+                                'h2',
+                                {
+                                    class: 'title',
+                                    innerHTML: 'Annotation Statistics'
+                                },
+                                trackListContainer
+                            );
+                            trackListContainer.appendChild(annotationTableContainer);
 
                             browser.addGlobalMenuItem(
                                 'file',
                                 new dijitMenuItem(
                                     {
-                                        label: 'Set mass spectra track number',
+                                        label: 'Set mass spectrum track number',
                                         iconClass: 'dijitIconConfigure',
                                         onClick: function () {
                                             _this._displayMassTrackSettingDialog(_this.browser);
@@ -211,8 +226,8 @@ define([
                             {
                                 let newMassSpectraTrackConfig = {
                                     type: 'BEYONDGBrowse/View/Track/SnowCanvasFeatures',
-                                    label: '质谱轨道' + (index + 1),
-                                    key: '质谱轨道' + (index + 1),
+                                    label: 'mass_spectrum_track' + (index + 1),
+                                    key: 'mass_spectrum_track' + (index + 1),
                                     store: _this.BEYONDGBrowseProteinTrack.store,
                                     storeClass: _this.BEYONDGBrowseProteinTrack.storeClass,
                                     urlTemplate: _this.BEYONDGBrowseProteinTrack.urlTemplate,
@@ -271,6 +286,168 @@ define([
                         }
                     );
                     return locateButton.domNode;
+                },
+
+                _generateAnnotationTable: function ()
+                {
+                    let _this = this;
+                    let tableContainer = domConstruct.create(
+                        'div',
+                        {
+                            class: 'uncategorized',
+                            style: {
+                                display: 'block',
+                                marginTop: '5px'
+                            }
+                        }
+                    );
+
+                    let annotationTable = domConstruct.create(
+                        'table', {
+                            id: 'annotation_table',
+                            style: {
+                                borderCollapse: 'collapse',
+                                width: '100%'
+                            }
+                        },
+                        tableContainer
+                    );
+
+                    return tableContainer;
+                },
+
+                _fillAnnotationTable : function ()
+                {
+                    let _this = this;
+                    let annotationTable = _this.annotationTable || window.BEYONDGBrowse.annotationTable;
+                    let annotationStore = window.BEYONDGBrowse.annotationStore;
+                    annotationTable.innerHTML = '';
+
+                    let headerRow = domConstruct.create('tr', {});
+                    domConstruct.create('th', {innerHTML: 'ID'}, headerRow);
+                    domConstruct.create('th', {innerHTML: 'Quantity'}, headerRow);
+
+                    if(!annotationStore || !annotationStore.hasOwnProperty('currentRangeRefSeq'))
+                    {
+                        annotationTable.appendChild(headerRow);
+                        return;
+                    }
+                    annotationTable.appendChild(headerRow);
+
+                    function rowClickedHandler(annotationArray) {
+                        dojoQuery('.annotation_detail', annotationTable.parentNode).remove();
+
+                        let annotationDetailTable = domConstruct.create(
+                            'table', {
+                                class: 'annotation_detail',
+                                style: {
+                                    marginTop: '5px',
+                                    borderCollapse: 'collapse',
+                                    width: '100%'
+                                }
+                            },
+                            annotationTable.parentNode
+                        );
+
+                        function parseContents(jsonString) {
+                            let contentObj = JSON.parse(jsonString);
+                            if(contentObj.ops && typeof contentObj.ops[0] == "object" && contentObj.ops[0].insert)
+                            {
+                                if(contentObj.ops[0].insert.length > 5)
+                                {
+                                    return contentObj.ops[0].insert.slice(0, 5) + '...';
+                                }
+                                else
+                                {
+                                    return contentObj.ops[0].insert;
+                                }
+                            }
+                            else
+                            {
+                                return undefined;
+                            }
+                        }
+
+                        let detailHeader = domConstruct.create('tr', {});
+                        domConstruct.create('th', {innerHTML: 'Name'}, detailHeader);
+                        domConstruct.create('th', {innerHTML: 'Position'}, detailHeader);
+                        domConstruct.create('th', {innerHTML: 'Author'}, detailHeader);
+                        domConstruct.create('th', {innerHTML: 'Preview'}, detailHeader);
+                        annotationDetailTable.appendChild(detailHeader);
+
+                        annotationArray && annotationArray.forEach(
+                            function(item, index) {
+                                let newRow = domConstruct.create(
+                                    'tr',
+                                    {
+                                        class: 'datarow',
+                                        ondblclick: function () {
+                                            window.BEYONDGBrowse._loadSpecificAnnotationAndPopupModal &&
+                                            window.BEYONDGBrowse._loadSpecificAnnotationAndPopupModal(
+                                                item.name, item.position, function finishCallback() {
+                                                    // Goto corresponding location
+                                                }
+                                            );
+                                        }
+                                    }
+                                );
+
+                                domConstruct.create('td', {innerHTML: item.name}, newRow);
+                                domConstruct.create('td', {innerHTML: item.position}, newRow);
+                                domConstruct.create('td', {innerHTML: item.author}, newRow);
+                                domConstruct.create(
+                                    'td',
+                                    {
+                                        innerHTML: parseContents(item.contents)
+                                    },
+                                    newRow
+                                );
+
+                                annotationDetailTable.appendChild(newRow);
+                            }
+                        );
+                    }
+
+                    for(let key in annotationStore)
+                    {
+                        let newRow = domConstruct.create(
+                            'tr',
+                            {
+                                class: 'datarow'
+                            }
+                        );
+                        if(key === 'currentRangeRefSeq')
+                        {
+                            domConstruct.create('td', {innerHTML: 'RefSeq'}, newRow);
+                            domConstruct.create(
+                                'td',
+                                {
+                                    innerHTML: annotationStore.currentRangeRefSeq.annotationData &&
+                                        annotationStore.currentRangeRefSeq.annotationData.length
+                                },
+                                newRow
+                            );
+                            newRow.onclick = function() {
+                                rowClickedHandler(annotationStore.currentRangeRefSeq.annotationData)
+                            };
+                        }
+                        else
+                        {
+                            domConstruct.create('td', {innerHTML: key}, newRow);
+                            domConstruct.create(
+                                'td',
+                                {
+                                    innerHTML: annotationStore[key].length
+                                },
+                                newRow
+                            );
+                            newRow.onclick = function() {
+                                rowClickedHandler(annotationStore[key])
+                            };
+                        }
+
+                        annotationTable.appendChild(newRow);
+                    }
                 },
 
                 _displayLocateDialog: function (browserObject)
@@ -352,7 +529,6 @@ define([
                         {
                             method: 'GET',
                             headers: {
-                                'X-Requested-With': null
                             },
                             handleAs: 'json'
                         }
@@ -362,8 +538,8 @@ define([
                                 function (item, index, arrDatasets) {
                                     arrDatasets[index].value = arrDatasets[index].id;
                                     arrDatasets[index].label =
-                                        '(' + arrDatasets[index].id + ') ' +
-                                        arrDatasets[index].dataset_name;
+                                        '(' + arrDatasets[index].id + ') ' + arrDatasets[index].dataset_name
+                                        //  + ' - ' + arrDatasets[index].source;
                                     if(parseInt(arrDatasets[index].id) === _this.browser.config.BEYONDGBrowseDatasetId)
                                     {
                                         arrDatasets[index].selected = true;
@@ -375,11 +551,15 @@ define([
                             let datasetSelectDialog = new SnowDatasetSelectDialog(
                                 {
                                     browser: browserObject,
+                                    style: {
+                                        width: '400px'
+                                    },
                                     datasetListInDatabase: datasetsList,
                                     setCallback: function (selectedDatasetId) {
                                         SnowConsole.info('selectedDatasetId:', selectedDatasetId);
                                         if(isNaN(selectedDatasetId) || selectedDatasetId < 1 || selectedDatasetId > 100)
                                         {
+                                            alert('DatasetID Error');
                                             return;
                                         }
                                         _this.browser.config.BEYONDGBrowseDatasetId = selectedDatasetId;
@@ -437,7 +617,6 @@ define([
                         {
                             method: 'GET',
                             headers: {
-                                'X-Requested-With': null
                                 //'User-Agent': 'SnowPlugin-FrontEnd'
                             },
                             handleAs: 'json'
